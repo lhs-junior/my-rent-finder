@@ -1,15 +1,9 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import { getArg } from './lib/cli_utils.mjs';
 
 const args = process.argv.slice(2);
-
-function getArg(name, fallback = null) {
-  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
-  if (idx === -1) return fallback;
-  if (args[idx] === name) return args[idx + 1] ?? fallback;
-  return args[idx].split('=').slice(1).join('=') ?? fallback;
-}
 
 const DEFAULT_RULES = {
   weights: {
@@ -41,9 +35,9 @@ const DEFAULT_RULES = {
   },
 };
 
-const inputPath = getArg('--input', 'scripts/match_sample_input.json');
-const outPath = getArg('--out', null);
-const rulesArg = getArg('--rules', null);
+const inputPath = getArg(args, '--input', 'scripts/match_sample_input.json');
+const outPath = getArg(args, '--out', null);
+const rulesArg = getArg(args, '--rules', null);
 
 const inputRaw = fs.readFileSync(inputPath, 'utf8');
 const input = JSON.parse(inputRaw);
@@ -432,36 +426,58 @@ function buildGroups(normalized, pairs) {
     }));
 }
 
-const result = (() => {
-  const { pairs, normalized } = buildCandidates(listings);
-  const autoMatch = pairs.filter((p) => p.status === 'AUTO_MATCH').length;
-  const review = pairs.filter((p) => p.status === 'REVIEW_REQUIRED').length;
-  const distinct = pairs.filter((p) => p.status === 'DISTINCT').length;
-  const groups = buildGroups(normalized, pairs);
-  return {
-    run_id: input.run_id || `matcher_${Date.now()}`,
-    generated_at: new Date().toISOString(),
-    rules_snapshot: rules,
-    input_summary: {
-      count: normalized.length,
-      candidate_pairs: pairs.length,
-      auto_match: autoMatch,
-      review_required: review,
-      distinct,
-      merged_groups: groups.length,
-    },
-    pairs: pairs.map((p) => {
-      // remove large duplicates before output
-      const { source, target, ...rest } = p;
-      return rest;
-    }),
-    match_groups: groups,
-  };
-})();
+// Export functions for testing
+export {
+  tokenMatchScore,
+  haversineDistanceMeters,
+  normalize,
+  areaRange,
+  areaScore,
+  priceScore,
+  attributeScore,
+  addressScore,
+  distanceScore,
+  scorePair,
+  buildCandidates,
+  unionFind,
+  buildGroups,
+  DEFAULT_RULES,
+};
 
-console.log(JSON.stringify(result, null, 2));
-if (outPath) {
-  fs.writeFileSync(outPath, JSON.stringify(result, null, 2), 'utf8');
-  console.error(`matcher output saved: ${outPath}`);
+// Only run CLI when executed directly
+const isDirectRun = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
+if (isDirectRun) {
+  const result = (() => {
+    const { pairs, normalized } = buildCandidates(listings);
+    const autoMatch = pairs.filter((p) => p.status === 'AUTO_MATCH').length;
+    const review = pairs.filter((p) => p.status === 'REVIEW_REQUIRED').length;
+    const distinct = pairs.filter((p) => p.status === 'DISTINCT').length;
+    const groups = buildGroups(normalized, pairs);
+    return {
+      run_id: input.run_id || `matcher_${Date.now()}`,
+      generated_at: new Date().toISOString(),
+      rules_snapshot: rules,
+      input_summary: {
+        count: normalized.length,
+        candidate_pairs: pairs.length,
+        auto_match: autoMatch,
+        review_required: review,
+        distinct,
+        merged_groups: groups.length,
+      },
+      pairs: pairs.map((p) => {
+        // remove large duplicates before output
+        const { source, target, ...rest } = p;
+        return rest;
+      }),
+      match_groups: groups,
+    };
+  })();
+
+  console.log(JSON.stringify(result, null, 2));
+  if (outPath) {
+    fs.writeFileSync(outPath, JSON.stringify(result, null, 2), 'utf8');
+    console.error(`matcher output saved: ${outPath}`);
+  }
+  process.exit(0);
 }
-process.exit(0);

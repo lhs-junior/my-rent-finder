@@ -10,38 +10,15 @@ import {
   toText,
   withDbClient,
 } from "./lib/db_client.mjs";
+import { getArg, getInt } from "./lib/cli_utils.mjs";
 
 const args = process.argv.slice(2);
-
-function getArg(name, fallback = null) {
-  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
-  if (idx === -1) return fallback;
-  if (args[idx] === name) return args[idx + 1] ?? fallback;
-  return args[idx].split("=").slice(1).join("=");
-}
-
-function getInt(name, fallback) {
-  const raw = getArg(name, null);
-  const n = Number(raw);
-  if (raw === null || !Number.isFinite(n)) return fallback;
-  return Math.max(0, Math.floor(n));
-}
 
 function normalizeBaseRunId(value) {
   const text = safeText(value, "");
   if (!text) return null;
   const base = text.split("::")[0].trim();
   return base.length ? base : null;
-}
-
-function getBool(name, fallback = false) {
-  const raw = getArg(name, null);
-  if (raw === null) return fallback;
-  if (raw === name) return true;
-  const norm = String(raw).trim().toLowerCase();
-  if (["1", "true", "yes", "on", "y"].includes(norm)) return true;
-  if (["0", "false", "no", "off", "n"].includes(norm)) return false;
-  return true;
 }
 
 function safeText(value, fallback = null) {
@@ -660,7 +637,7 @@ function toNumDate(value) {
 
 const DEFAULT_FRONT_DIR = path.resolve(process.cwd(), "frontend/dist");
 const FRONT_DIR = (() => {
-  const value = getArg("--front-dir", null);
+  const value = getArg(args, "--front-dir", null);
   if (!value) return DEFAULT_FRONT_DIR;
   return path.isAbsolute(value) ? value : path.resolve(process.cwd(), value);
 })();
@@ -1162,31 +1139,47 @@ async function route(req, res) {
   send404(res);
 }
 
-const port = getInt("--port", 4100);
-const host = getArg("--host", "127.0.0.1");
-const server = http.createServer((req, res) => {
-  route(req, res).catch((error) => {
-    console.error(error);
-    sendServerError(res, error);
+// Export for testing
+export {
+  platformNameFromCode,
+  mimeFor,
+  isInside,
+  inferItemQuality,
+  mapGradeToTone,
+  statusFromCode,
+  hasDbConnectionError,
+  mapServerError,
+  parseRunIdFilter,
+  normalizeBaseRunId,
+};
+
+const isDirectRun = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
+if (isDirectRun) {
+  const port = getInt(args, "--port", 4100);
+  const host = getArg(args, "--host", "127.0.0.1");
+  const server = http.createServer((req, res) => {
+    route(req, res).catch((error) => {
+      console.error(error);
+      sendServerError(res, error);
+    });
   });
-});
 
-server.on("error", (error) => {
-  if (error && error.code === "EADDRINUSE") {
-    console.error(`포트 ${port} 사용 불가: 이미 다른 프로세스가  ${host}:${port}를 사용 중입니다.`);
-    console.error("해결: 기존 서버를 종료한 뒤 다시 실행하거나, 다른 포트를 지정하세요.");
-    console.error("예: npm run start -- --port=4101");
+  server.on("error", (error) => {
+    if (error && error.code === "EADDRINUSE") {
+      console.error(`포트 ${port} 사용 불가: 이미 다른 프로세스가  ${host}:${port}를 사용 중입니다.`);
+      console.error("해결: 기존 서버를 종료한 뒤 다시 실행하거나, 다른 포트를 지정하세요.");
+      console.error("예: npm run start -- --port=4101");
+      process.exit(1);
+    }
+    console.error(`Server error: ${error?.message || String(error)}`);
     process.exit(1);
-  }
-  console.error(`Server error: ${error?.message || String(error)}`);
-  process.exit(1);
-});
+  });
 
-server.listen(port, host, () => {
-  console.log(`Rent Finder API server running on http://${host}:${port}`);
-  const frontDirExists = FRONT_DIR && fs.existsSync(FRONT_DIR) ? "ENABLED" : "DISABLED";
-  console.log(`Frontend static serving: ${frontDirExists} (${FRONT_DIR})`);
-  console.log(`Endpoints:
+  server.listen(port, host, () => {
+    console.log(`Rent Finder API server running on http://${host}:${port}`);
+    const frontDirExists = FRONT_DIR && fs.existsSync(FRONT_DIR) ? "ENABLED" : "DISABLED";
+    console.log(`Frontend static serving: ${frontDirExists} (${FRONT_DIR})`);
+    console.log(`Endpoints:
   /api/health
   /api/ops?run_id=
   /api/collection/runs?platform=&hours=&limit=&offset=
@@ -1194,4 +1187,5 @@ server.listen(port, host, () => {
   /api/listings/:id
   /api/matches?run_id=&status=&limit=&offset=
   /api/match-groups/:id`);
-});
+  });
+}

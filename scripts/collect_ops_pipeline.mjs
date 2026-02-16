@@ -3,25 +3,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { getArg, hasArg, toText } from "./lib/cli_utils.mjs";
 
 const args = process.argv.slice(2);
-
-function getArg(name, fallback = null) {
-  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
-  if (idx === -1) return fallback;
-  if (args[idx] === name) return args[idx + 1] ?? fallback;
-  return args[idx].split("=").slice(1).join("=");
-}
-
-function hasArg(name) {
-  return args.some((v) => v === name || v.startsWith(`${name}=`));
-}
-
-function toText(v, fallback = "") {
-  if (v === null || v === undefined) return fallback;
-  const text = String(v).trim();
-  return text.length > 0 ? text : fallback;
-}
 
 function runPhase(label, scriptPath, extraArgs) {
   const result = spawnSync(process.execPath, [scriptPath, ...extraArgs], {
@@ -40,8 +24,9 @@ function normalizeRunId(raw) {
   return toText(raw || new Date().toISOString(), "run").replace(/[T:.]/g, "-");
 }
 
-const runId = normalizeRunId(getArg("--run-id", null));
+const runId = normalizeRunId(getArg(args, "--run-id", null));
 const outDir = getArg(
+  args,
   "--out-dir",
   path.join("scripts", "parallel_collect_runs", runId),
 );
@@ -66,7 +51,7 @@ const collectArgs = [
   "--out-dir",
   workspace,
 ];
-if (!hasArg("--persist-to-db")) {
+if (!hasArg(args, "--persist-to-db")) {
   collectArgs.push("--persist-to-db");
 }
 
@@ -96,7 +81,7 @@ const buildArgs = [
   summaryPath,
   "--persist-to-db",
 ];
-if (!hasArg("--persist-matches")) {
+if (!hasArg(args, "--persist-matches")) {
   buildArgs.push("--persist-matches");
 }
 

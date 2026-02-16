@@ -1,0 +1,6 @@
+node_modules
+frontend/dist
+scripts/archive
+.omc
+*.jsonl
+*.json

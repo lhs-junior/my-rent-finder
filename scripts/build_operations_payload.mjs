@@ -4,36 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { persistOperationsToDb } from "./lib/ops_db_persistence.mjs";
+import { getArg, getInt, getBool, toText } from "./lib/cli_utils.mjs";
 
 const args = process.argv.slice(2);
-
-function getArg(name, fallback = null) {
-  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
-  if (idx === -1) return fallback;
-  if (args[idx] === name) return args[idx + 1] ?? fallback;
-  return args[idx].split("=").slice(1).join("=") ?? fallback;
-}
-
-function getInt(name, fallback) {
-  const raw = getArg(name, null);
-  const n = Number(raw);
-  if (raw === null || !Number.isFinite(n)) return fallback;
-  return Math.max(0, Math.floor(n));
-}
-
-function getBool(name, fallback = false) {
-  const raw = getArg(name, null);
-  if (raw === null) return fallback;
-  if (raw === name) return true;
-  const norm = String(raw).trim().toLowerCase();
-  if (["1", "true", "yes", "on", "y"].includes(norm)) return true;
-  if (["0", "false", "no", "off", "n"].includes(norm)) return false;
-  return true;
-}
-
-function toText(v) {
-  return String(v || "").trim();
-}
 
 function toSafeInt(v) {
   const n = Number(v);
@@ -250,19 +223,19 @@ function normalizeImageList(item) {
 }
 
 const runRoot = path.resolve(process.cwd(), "scripts", "parallel_collect_runs");
-const argRunDir = getArg("--run-dir", null);
-const argRunId = getArg("--run-id", null);
-const argSummary = getArg("--summary", null);
-const outArg = getArg("--out", "");
+const argRunDir = getArg(args, "--run-dir", null);
+const argRunId = getArg(args, "--run-id", null);
+const argSummary = getArg(args, "--summary", null);
+const outArg = getArg(args, "--out", "");
 const payloadOut = outArg
   ? (path.isAbsolute(outArg) ? path.resolve(outArg) : path.resolve(process.cwd(), outArg))
   : path.resolve(process.cwd(), "docs", "rent_finder_operations_dashboard_payload.json");
-const matcherOutArg = getArg("--match-out", null);
-const pairLimit = getInt("--pair-limit", 400);
-const groupLimit = getInt("--group-limit", 200);
-const keepMatchInput = getBool("--keep-match-input", false);
-const persistToDb = getBool("--persist-to-db", false);
-const persistMatches = getBool("--persist-matches", true);
+const matcherOutArg = getArg(args, "--match-out", null);
+const pairLimit = getInt(args, "--pair-limit", 400);
+const groupLimit = getInt(args, "--group-limit", 200);
+const keepMatchInput = getBool(args, "--keep-match-input", false);
+const persistToDb = getBool(args, "--persist-to-db", false);
+const persistMatches = getBool(args, "--persist-matches", true);
 
 if (!fs.existsSync(runRoot)) {
   console.error(`parallel_collect_runs not found: ${runRoot}`);

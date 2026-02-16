@@ -11,36 +11,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { persistSummaryToDb } from "./lib/ops_db_persistence.mjs";
+import { getArg, getBool, getInt, getList, normalizeCap } from "./lib/cli_utils.mjs";
 
 const args = process.argv.slice(2);
-
-function getArg(name, fallback = null) {
-  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
-  if (idx === -1) return fallback;
-  if (args[idx] === name) return args[idx + 1] ?? fallback;
-  return args[idx].split("=").slice(1).join("=") ?? fallback;
-}
-
-function getBool(name, fallback = false) {
-  if (args.includes(name)) return true;
-  return fallback;
-}
-
-function getInt(name, fallback) {
-  const raw = getArg(name, null);
-  if (raw === null) return fallback;
-  const v = Number(raw);
-  return Number.isFinite(v) ? Math.floor(v) : fallback;
-}
-
-function normalizeCap(raw, fallback) {
-  const parsed = Number(raw);
-  if (raw === null || raw === undefined || Number.isNaN(parsed)) return fallback;
-  if (parsed < 0) return fallback;
-  if (!Number.isFinite(parsed)) return Number.POSITIVE_INFINITY;
-  if (parsed === 0) return Number.POSITIVE_INFINITY;
-  return Math.max(1, Math.floor(parsed));
-}
 
 function asSampleCapArg(value) {
   if (Number.isFinite(value) && value > 0) return String(Math.floor(value));
@@ -55,15 +28,6 @@ function asAdapterMaxArg(value) {
 function splitCap(value, buckets) {
   if (!Number.isFinite(value) || value <= 0 || !Number.isFinite(buckets) || buckets <= 0) return 0;
   return Math.ceil(value / buckets);
-}
-
-function getList(name, fallback = []) {
-  const raw = getArg(name, null);
-  if (raw === null) return fallback;
-  return raw
-    .split(",")
-    .map((v) => String(v || "").trim())
-    .filter(Boolean);
 }
 
 function resolveAbs(v, fallback = null) {
@@ -105,53 +69,54 @@ const scriptPaths = {
 };
 
 const runId = getArg(
+  args,
   "--run-id",
   new Date().toISOString().replace(/[T:.]/g, "-"),
 );
 
 const workspace = resolveAbs(
-  getArg("--out-dir", path.join("scripts", "parallel_collect_runs", runId)),
+  getArg(args, "--out-dir", path.join("scripts", "parallel_collect_runs", runId)),
 );
 const probeOut = resolveAbs(
-  getArg("--probe-out", path.join(workspace, "platform_query_probe_results.json")),
+  getArg(args, "--probe-out", path.join(workspace, "platform_query_probe_results.json")),
 );
 const targetsIn = resolveAbs(
-  getArg("--targets", path.join(workspace, "platform_sampling_targets.json")),
+  getArg(args, "--targets", path.join(workspace, "platform_sampling_targets.json")),
 );
 const targetsOut = resolveAbs(
-  getArg("--targets-out", path.join(workspace, "platform_sampling_targets_parallel.json")),
+  getArg(args, "--targets-out", path.join(workspace, "platform_sampling_targets_parallel.json")),
 );
 const probeConditions = resolveAbs(
-  getArg("--conditions", path.join("scripts", "platform_search_conditions.json")),
+  getArg(args, "--conditions", path.join("scripts", "platform_search_conditions.json")),
   path.join("scripts", "platform_search_conditions.json"),
 );
- 
-const maxParallel = Math.max(1, getInt("--parallel", 3));
-const sampleCap = normalizeCap(getArg("--sample-cap", "100"), 100);
-const delayMs = Math.max(100, getInt("--delay-ms", 700));
-const persistToDb = getBool("--persist-to-db", false);
-const selectedPlatforms = getList("--platforms", [
+
+const maxParallel = Math.max(1, getInt(args, "--parallel", 3));
+const sampleCap = normalizeCap(getArg(args, "--sample-cap", "100"), 100);
+const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
+const persistToDb = getBool(args, "--persist-to-db", false);
+const selectedPlatforms = getList(args, "--platforms", [
   "zigbang",
   "dabang",
   "naver",
   "r114",
   "peterpanz",
 ]);
-const verbose = getBool("--verbose", false);
-const runNormalize = getBool("--normalize", true);
-const forceNoNaver = getBool("--no-naver", false);
-const skipProbe = getBool("--skip-probe", false);
-const selectedSigunguList = getList("--sigungu-list", []);
-const naverMaxRegions = getInt("--naver-max-regions", 8);
-const overrideSigungu = getArg("--sigungu", null);
-const overrideSido = getArg("--sido", null);
-const overrideRentMax = getArg("--rent-max", null);
-const overrideDepositMax = getArg("--deposit-max", null);
-const overrideMinArea = getArg("--min-area", null);
-const overrideTradeType = getArg("--trade-type", null);
-const overridePropertyTypes = getList("--property-types", []);
+const verbose = getBool(args, "--verbose", false);
+const runNormalize = getBool(args, "--normalize", true);
+const forceNoNaver = getBool(args, "--no-naver", false);
+const skipProbe = getBool(args, "--skip-probe", false);
+const selectedSigunguList = getList(args, "--sigungu-list", []);
+const naverMaxRegions = getInt(args, "--naver-max-regions", 8);
+const overrideSigungu = getArg(args, "--sigungu", null);
+const overrideSido = getArg(args, "--sido", null);
+const overrideRentMax = getArg(args, "--rent-max", null);
+const overrideDepositMax = getArg(args, "--deposit-max", null);
+const overrideMinArea = getArg(args, "--min-area", null);
+const overrideTradeType = getArg(args, "--trade-type", null);
+const overridePropertyTypes = getList(args, "--property-types", []);
 
-const timeoutMs = Math.max(500, getInt("--timeout-ms", 12000));
+const timeoutMs = Math.max(500, getInt(args, "--timeout-ms", 12000));
 
 const platformAlias = {
   zigbang: "zigbang",

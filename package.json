@@ -7,7 +7,10 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "lint": "eslint scripts/*.mjs scripts/lib/*.mjs frontend/src/ --max-warnings=50",
+    "format": "prettier --write \"scripts/**/*.mjs\" \"frontend/src/**/*.{js,jsx,css}\"",
+    "format:check": "prettier --check \"scripts/**/*.mjs\" \"frontend/src/**/*.{js,jsx,css}\"",
     "collect:parallel": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100",
     "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
     "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
@@ -30,15 +33,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "pg": "^8.16.0",
     "playwright": "^1.58.2",
     "playwright-extra": "^4.3.6",
-    "pg": "^8.16.0",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@vitejs/plugin-react": "^4.5.2",
-    "vite": "^5.4.14"
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "vite": "^5.4.14",
+    "vitest": "^4.0.18"
   }
 }
