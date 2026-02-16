@@ -26,6 +26,9 @@ Thumbs.db
 # Collected data runs (large)
 scripts/parallel_collect_runs/
 
+# Downloaded images
+data/images/
+
 # Screenshots and logs
 *.png
 *.log

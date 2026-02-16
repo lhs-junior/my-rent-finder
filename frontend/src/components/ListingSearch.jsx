@@ -255,6 +255,7 @@ export default function ListingSearch({ apiBase, runId }) {
                     <td className="mono">{item.listing_id || "-"}</td>
                     <td>
                       <span className="chip">{toPlatformLabel(item.platform_code || item.platform || "")}</span>
+                      {item.is_stale === true && <span className="chip chip-warn">만료의심</span>}
                     </td>
                     <td>{item.address_text || "-"}</td>
                     <td>
@@ -312,6 +313,37 @@ export default function ListingSearch({ apiBase, runId }) {
               <QualityFlags flags={detail.quality_flags} />
               <p style={{ fontWeight: 700, marginBottom: 6, marginTop: 10 }}>위반 사항</p>
               <Violations violations={detail.violations} />
+            </div>
+            <div className="detail-block">
+              <p style={{ fontWeight: 700, marginBottom: 6, marginTop: 0 }}>가격 변동 이력</p>
+              {Array.isArray(detail.price_history) && detail.price_history.length > 0 ? (
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>날짜</th>
+                        <th>이전월세</th>
+                        <th>변경월세</th>
+                        <th>이전보증금</th>
+                        <th>변경보증금</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.price_history.map((h, idx) => (
+                        <tr key={h.history_id || idx}>
+                          <td>{h.detected_at ? new Date(h.detected_at).toLocaleString("ko-KR") : "-"}</td>
+                          <td>{toMoney(h.previous_rent)}</td>
+                          <td>{toMoney(h.rent_amount)}</td>
+                          <td>{toMoney(h.previous_deposit)}</td>
+                          <td>{toMoney(h.deposit_amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="muted">가격 변동 이력 없음</p>
+              )}
             </div>
           </div>
         ) : (

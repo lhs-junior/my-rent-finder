@@ -14,6 +14,7 @@
     "collect:parallel": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100",
     "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
     "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
+    "db:migrate": "node scripts/db_migrate.mjs",
     "db:init": "node scripts/db_bootstrap.mjs",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down -v",

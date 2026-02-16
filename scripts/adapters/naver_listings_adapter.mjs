@@ -79,6 +79,13 @@ function normalizeHttpUrl(value) {
   return null;
 }
 
+function normalizeNaverTradeType(tradeTypeCode, tradeTypeName, leaseType) {
+  const combined = normalizeText(`${tradeTypeCode || ""} ${tradeTypeName || ""} ${leaseType || ""}`).toUpperCase();
+  if (/(\bA1\b|매매|SALE|매입)/.test(combined)) return "A1";
+  if (/(\bB1\b|전세|JEONSE)/.test(combined)) return "B1";
+  return "B2";
+}
+
 function resolveNaverSourceUrl(item, rawRecord, sourceRef) {
   const rawCandidates = [
     pick(item, ["cpMobileArticleUrl", "cpMobileArticleLink", "cpMobileArticleLinkUrl"], null),
@@ -97,15 +104,32 @@ function resolveNaverSourceUrl(item, rawRecord, sourceRef) {
   const fallbackRef = normalizeText(sourceRef || "");
   if (!fallbackRef) return "";
 
-  const fallbackPatterns = [
-    `https://fin.land.naver.com/articles/${encodeURIComponent(fallbackRef)}`,
-    `https://new.land.naver.com/article/${encodeURIComponent(fallbackRef)}`,
-    `https://new.land.naver.com/rooms/${encodeURIComponent(fallbackRef)}`,
-    `https://new.land.naver.com/houses?articleNo=${encodeURIComponent(fallbackRef)}&ms=0,0,15&e=RETAIL`,
-  ];
-  for (const candidate of fallbackPatterns) {
-    const normalized = normalizeHttpUrl(candidate);
-    if (normalized) return normalized;
+  const parsedRequestUrl = (() => {
+    try {
+      return rawRecord?.request_url ? new URL(String(rawRecord.request_url)) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const requestMs = parsedRequestUrl?.searchParams?.get("ms") || "";
+  const requestA = parsedRequestUrl?.searchParams?.get("a") || pick(item, ["tradeItem", "realEstateTypeCode", "houseTypeCode"], null);
+  const fallbackA = normalizeText(requestA) || "DDDGG:JWJT:SGJT:VL";
+  const fallbackB = normalizeNaverTradeType(
+    pick(item, ["tradeTypeCode", "tradeType", "tradeTypeName"], null),
+    pick(item, ["tradeTpNm", "tradeTypeName", "leaseType"], null),
+    normalizeText(item?.tradeTypeCode || item?.tradeTypeName || ""),
+  );
+
+  const fallbackD = normalizeText(item?.rentPrc || item?.tradePrc || "80") || "80";
+
+  const fallbackPattern = normalizeHttpUrl(
+    requestMs
+      ? `https://new.land.naver.com/houses?ms=${encodeURIComponent(requestMs)}&a=${encodeURIComponent(fallbackA)}&b=${encodeURIComponent(fallbackB)}&d=${encodeURIComponent(fallbackD)}&e=RETAIL&articleNo=${encodeURIComponent(fallbackRef)}`
+      : `https://fin.land.naver.com/articles/${encodeURIComponent(fallbackRef)}`,
+  );
+  if (fallbackPattern) {
+    return fallbackPattern;
   }
 
   return "";
@@ -390,7 +414,35 @@ function parseFloorRaw(raw) {
 
 function normalizeDirectionValue(value) {
   const normalized = normalizeText(value);
-  return normalized || null;
+  if (!normalized) return null;
+
+  const directionRules = [
+    [/남서향|남서|남서쪽/.test(normalized), "남서향"],
+    [/남동향|남동|남동쪽/.test(normalized), "남동향"],
+    [/북서향|북서|북서쪽/.test(normalized), "북서향"],
+    [/북동향|북동|북동쪽/.test(normalized), "북동향"],
+    [/남향|남쪽/.test(normalized), "남향"],
+    [/북향|북쪽/.test(normalized), "북향"],
+    [/동향|동쪽/.test(normalized), "동향"],
+    [/서향|서쪽/.test(normalized), "서향"],
+  ];
+
+  for (const [condition, label] of directionRules) {
+    if (condition) return label;
+  }
+
+  return normalized;
+}
+
+function normalizeBuildingUseValue(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) return null;
+  const normalizedLower = normalized.toLowerCase();
+
+  if (/(단독|다가구|다세대|다가지구|주택)/.test(normalizedLower)) return "단독/다가구";
+  if (/(연립|빌라|빌라\/?연립)/.test(normalizedLower)) return "빌라/연립";
+
+  return normalized;
 }
 
 function parseRoom(value) {
@@ -984,7 +1036,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
           "dir",
         ], null),
       ),
-      building_use: normalizeDirectionValue(
+      building_use: normalizeBuildingUseValue(
         pick(item, [
           "houseType",
           "houseTypeNm",

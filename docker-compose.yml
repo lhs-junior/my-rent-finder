@@ -18,5 +18,24 @@ services:
       retries: 20
       start_period: 5s
 
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    command: node scripts/api_server.mjs --host=0.0.0.0 --port=4100
+    ports:
+      - "4100:4100"
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE:-my_rent_finder}
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+
 volumes:
   postgres_data:

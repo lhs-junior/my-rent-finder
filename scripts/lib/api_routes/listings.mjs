@@ -90,6 +90,7 @@ export async function handleListings(req, res) {
              nl.external_id,
              nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount, nl.area_exclusive_m2, nl.area_gross_m2,
              nl.address_text, nl.address_code, nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
+             nl.quality_flags,
              nl.created_at, rl.run_id
       FROM normalized_listings nl
       JOIN raw_listings rl ON rl.raw_id = nl.raw_id
@@ -128,6 +129,14 @@ export async function handleListings(req, res) {
         direction: safeText(row.direction, null),
         building_use: safeText(row.building_use, null),
         image_count: Number(imageMap.get(listingId) || 0),
+        is_stale: (() => {
+          try {
+            const flags = typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : (row.quality_flags || []);
+            return Array.isArray(flags) && flags.includes("STALE_SUSPECT");
+          } catch {
+            return false;
+          }
+        })(),
         run_id: safeText(row.run_id, ""),
         created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
       };
@@ -163,6 +172,19 @@ export async function handleListingDetail(req, res, id) {
     const row = rows.rows[0];
     const imageRows = await client.query(`SELECT source_url, status, is_primary FROM listing_images WHERE listing_id = $1 ORDER BY is_primary DESC, image_id DESC`, [id]);
     const violationRows = await client.query(`SELECT violation_code, message, detail, severity, detected_at FROM contract_violations WHERE listing_id = $1 ORDER BY detected_at DESC`, [id]);
+
+    let priceHistory = [];
+    try {
+      const histResult = await client.query(
+        `SELECT history_id, rent_amount, deposit_amount, previous_rent, previous_deposit, detected_at, run_id
+         FROM listing_price_history WHERE listing_id = $1 ORDER BY detected_at DESC LIMIT 50`,
+        [id]
+      );
+      priceHistory = histResult.rows;
+    } catch (err) {
+      // Table may not exist yet (pre-migration)
+      if (!err.message?.includes("does not exist")) throw err;
+    }
 
     const rawAttrs = row?.payload_json && typeof row.payload_json === "object"
       ? row.payload_json
@@ -218,6 +240,15 @@ export async function handleListingDetail(req, res, id) {
           severity: safeText(v.severity, "WARN"),
           detail: v.detail,
           detected_at: v.detected_at ? new Date(v.detected_at).toISOString() : null,
+        })),
+        price_history: priceHistory.map((h) => ({
+          history_id: toInt(h.history_id, null),
+          rent_amount: toNumber(h.rent_amount, null),
+          deposit_amount: toNumber(h.deposit_amount, null),
+          previous_rent: toNumber(h.previous_rent, null),
+          previous_deposit: toNumber(h.previous_deposit, null),
+          detected_at: h.detected_at ? new Date(h.detected_at).toISOString() : null,
+          run_id: safeText(h.run_id, ""),
         })),
       },
     };

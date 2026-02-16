@@ -797,6 +797,11 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
       imageKeys: this.hints.imageKeys || DEFAULT_FIELD_HINTS.imageKeys,
     });
 
+    const rawDirection = pick(row, this.hints.directionKeys || [], null);
+    const rawBuildingUse = pick(row, this.hints.buildingUseKeys || [], null);
+    const direction = parseDirectionFallback(rawDirection);
+    const buildingUse = parseBuildingUseFallback(rawBuildingUse);
+
     const sourceRefResolved = sourceRef || hash11(`${addressText}|${rentAmount}|${depositAmount}|${exclusive.value || gross.value || ""}`);
     const hasSignal =
       sourceRefResolved !== null ||
@@ -830,8 +835,8 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
       area_claimed: normalizeText(areaClaimed),
       room_count: roomCount,
       bathroom_count: bathroomCount,
-      direction: pick(row, this.hints.directionKeys || [], null),
-      building_use: pick(row, this.hints.buildingUseKeys || [], null),
+      direction: direction,
+      building_use: buildingUse,
       floor: floorData.floor,
       total_floor: totalFloor,
       building_name: pick(row, ["building", "buildingName", "complexName", "complex"], null),
@@ -843,8 +848,8 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
         rent_raw: pick(row, this.hints.rentKeys, null),
         deposit_raw: pick(row, this.hints.depositKeys, null),
         address_raw: addressText,
-        direction: pick(row, this.hints.directionKeys || [], null),
-        building_use: pick(row, this.hints.buildingUseKeys || [], null),
+        direction: rawDirection,
+        building_use: rawBuildingUse,
         source_ref_candidates: sourceRef,
       },
     };
