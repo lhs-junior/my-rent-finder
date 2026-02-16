@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "source": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/naver_raw_samples_queryprobe.jsonl",
+    "generatedAt": "2026-02-16T00:52:55.377Z",
+    "totalRawRecords": 68,
+    "totalNormalizedItems": 2,
+    "durationMs": 13,
+    "stats": {
+      "rawRecords": 68,
+      "parsedRawRecords": 68,
+      "parseFailure": 0,
+      "unmappedRecords": 64,
+      "normalizedItems": 2,
+      "requiredFieldsRate": 1,
+      "addressRate": 1,
+      "imageRate": 0,
+      "imagePresenceRate": 0,
+      "priceRate": 1,
+      "areaRate": 1,
+      "violationCodeCounts": {
+        "IMAGE_URL_INVALID": 2
+      },
+      "errorCounts": {},
+      "durationMs": 13
+    }
+  },
+  "items": [
+    {
+      "platform_code": "naver",
+      "collected_at": "2026-02-16T00:52:05.901Z",
+      "source_url": "https://new.land.naver.com/houses?ms=37.654286,127.056411,15&a=DDDGG:JWJT:SGJT:VL&e=RETAIL",
+      "source_ref": "2608881762",
+      "external_id": "2608881762",
+      "address_text": "단독",
+      "address_code": "11176501078",
+      "lease_type": "매매",
+      "rent_amount": null,
+      "deposit_amount": 250000,
+      "area_exclusive_m2": 227,
+      "area_exclusive_m2_min": 227,
+      "area_exclusive_m2_max": 227,
+      "area_gross_m2": 430,
+      "area_gross_m2_min": 430,
+      "area_gross_m2_max": 430,
+      "area_claimed": "exclusive",
+      "room_count": 0,
+      "floor": null,
+      "total_floor": null,
+      "building_name": "단독",
+      "agent_name": "연세공인중개사사무소",
+      "agent_phone": null,
+      "listed_at": null,
+      "available_date": null,
+      "image_urls": [],
+      "raw_attrs": {
+        "atclNo": null,
+        "articleNo": "2608881762",
+        "articleName": "단독",
+        "itemNo": null
+      },
+      "validation": [
+        {
+          "level": "WARN",
+          "code": "IMAGE_URL_INVALID",
+          "message": "이미지 URL 미수집",
+          "detail": {
+            "image_urls": []
+          }
+        }
+      ]
+    },
+    {
+      "platform_code": "naver",
+      "collected_at": "2026-02-16T00:52:05.901Z",
+      "source_url": "https://new.land.naver.com/houses?ms=37.654286,127.056411,15&a=DDDGG:JWJT:SGJT:VL&e=RETAIL",
+      "source_ref": "2608875721",
+      "external_id": "2608875721",
+      "address_text": "상가주택",
+      "address_code": "11572543951",
+      "lease_type": "매매",
+      "rent_amount": null,
+      "deposit_amount": 210000,
+      "area_exclusive_m2": 227,
+      "area_exclusive_m2_min": 227,
+      "area_exclusive_m2_max": 227,
+      "area_gross_m2": 442,
+      "area_gross_m2_min": 442,
+      "area_gross_m2_max": 442,
+      "area_claimed": "exclusive",
+      "room_count": 0,
+      "floor": null,
+      "total_floor": null,
+      "building_name": "상가주택",
+      "agent_name": "연세공인중개사사무소",
+      "agent_phone": null,
+      "listed_at": null,
+      "available_date": null,
+      "image_urls": [],
+      "raw_attrs": {
+        "atclNo": null,
+        "articleNo": "2608875721",
+        "articleName": "상가주택",
+        "itemNo": null
+      },
+      "validation": [
+        {
+          "level": "WARN",
+          "code": "IMAGE_URL_INVALID",
+          "message": "이미지 URL 미수집",
+          "detail": {
+            "image_urls": []
+          }
+        }
+      ]
+    }
+  ]
+}

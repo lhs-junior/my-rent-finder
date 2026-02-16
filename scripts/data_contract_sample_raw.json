@@ -1,0 +1,51 @@
+{
+  "schema_version": "listing_contract_v0.2",
+  "collection_run_id": "run_20260215_001",
+  "platform_code": "example",
+  "external_id": "listing_123",
+  "source_url": "https://example.com/listing/123",
+  "collected_at": "2026-02-15T08:00:00.000Z",
+  "payload": {
+    "title": "신축 오피스텔 13평",
+    "price": {
+      "monthly_rent": "75",
+      "deposit": "1000"
+    },
+    "address": {
+      "address_raw": "서울시 강남구 역삼동",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "dong": "역삼동"
+    },
+    "area": {
+      "exclusive_m2": 43,
+      "area_type": "exclusive"
+    }
+  },
+  "page_snapshot": "snap://2026-02-15/run_001/123",
+  "normalized": {
+    "canonical_key": "ggangnam_123",
+    "source_url": "https://example.com/listing/123",
+    "address_text": "서울시 강남구 역삼동",
+    "address_code": "1168010100",
+    "lease_type": "월세",
+    "rent_amount": 75,
+    "deposit_amount": 1000,
+    "area_exclusive_m2": 43,
+    "area_gross_m2": null,
+    "floor": 4,
+    "total_floor": 12,
+    "room_count": 1,
+    "source_ref": "run_20260215_001:listing_123",
+    "quality_flags": [],
+    "created_at": "2026-02-15T08:00:00.000Z",
+    "updated_at": "2026-02-15T08:00:00.000Z"
+  },
+  "normalized_images": [
+    {
+      "source_url": "https://cdn.example.com/listing/123/1.jpg",
+      "local_path": null,
+      "status": "queued"
+    }
+  ]
+}

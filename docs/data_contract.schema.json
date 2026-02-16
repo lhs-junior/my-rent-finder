@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RentListingContract",
+  "type": "object",
+  "required": ["schema_version", "collection_run_id", "platform_code", "external_id", "source_url", "collected_at", "payload"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "listing_contract_v0.2"
+    },
+    "collection_run_id": {"type": "string", "minLength": 1},
+    "platform_code": {"type": "string", "minLength": 1},
+    "external_id": {"type": "string", "minLength": 1},
+    "source_url": {"type": "string", "format": "uri"},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "payload": {"type": "object"},
+    "page_snapshot": {"type": ["string", "null"]},
+    "normalized": {"$ref": "#/definitions/normalized"},
+    "normalized_images": {"type": "array", "items": {"$ref": "#/definitions/image"}
+    }
+  },
+  "definitions": {
+    "normalized": {
+      "type": "object",
+      "required": ["canonical_key", "source_url", "address_text", "address_code", "lease_type", "rent_amount", "deposit_amount", "area_exclusive_m2", "room_count", "source_ref", "quality_flags"],
+      "properties": {
+        "canonical_key": {"type": "string", "minLength": 1},
+        "source_url": {"type": "string", "format": "uri"},
+        "address_text": {"type": "string", "minLength": 1},
+        "address_code": {"type": "string", "minLength": 1},
+        "lease_type": {"type": "string", "enum": ["월세", "전세", "단기", "기타"]},
+        "rent_amount": {"type": ["number", "null"], "minimum": 0},
+        "deposit_amount": {"type": ["number", "null"], "minimum": 0},
+        "area_exclusive_m2": {"type": ["number", "null"], "minimum": 0},
+        "area_gross_m2": {"type": ["number", "null"], "minimum": 0},
+        "floor": {"type": ["integer", "null"]},
+        "total_floor": {"type": ["integer", "null"], "minimum": 0},
+        "room_count": {"type": ["integer", "null"], "minimum": 0},
+        "source_ref": {"type": "string", "minLength": 1},
+        "quality_flags": {"type": "array", "items": {"type": "string"}},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "image": {
+      "type": "object",
+      "required": ["source_url", "status"],
+      "properties": {
+        "source_url": {"type": "string", "format": "uri"},
+        "local_path": {"type": ["string", "null"]},
+        "status": {"type": "string", "enum": ["queued", "downloaded", "failed", "skipped"]}
+      }
+    }
+  }
+}

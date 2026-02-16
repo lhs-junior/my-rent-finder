@@ -1,0 +1,544 @@
+{
+  "requests": [
+    {
+      "url": "https://www.peterpanz.com/villa?zoomLevel=14&center=%7B%22y%22%3A37.6542%2C%22_lat%22%3A37.6542%2C%22x%22%3A127.0568%2C%22_lng%22%3A127.0568%7D&dong=&gungu=&filter=latitude%3A37.6200~37.6900%7C%7Clongitude%3A127.0200~127.1000%7C%7CcheckDeposit%3A0~60000000%7C%7CcheckMonth%3A0~800000%7C%7CcheckRealSize%3A40~999%7C%7CcontractType%3B%5B%22%EC%9B%94%EC%84%B8%22%5D%7C%7CroomType%3B%5B%22%ED%88%AC%EB%A3%B8%22%2C%22%EC%9B%90%EB%A3%B8%22%5D%7C%7CbuildingType%3B%5B%22%EB%B9%8C%EB%9D%BC%2F%EC%A3%BC%ED%83%9D%22%5D",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://pixelfnt-us.dsp-api.moloco.com/v1/cm/init?source=MOLOCO_PIXEL?mlc_cm",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2F&time=1771224030068",
+      "method": "GET",
+      "resourceType": "xhr",
+      "postData": null
+    },
+    {
+      "url": "https://connect.facebook.net/signals/config/504144601324697?v=2.9.265&r=stable&domain=www.peterpanz.com&hme=8faeb0ed09c145bbd9d3213e762abac29e9f76b8e7a9df9d71a3058625e3b7dd&ex_m=96%2C187%2C136%2C21%2C68%2C69%2C129%2C64%2C43%2C130%2C73%2C63%2C10%2C143%2C82%2C15%2C95%2C124%2C117%2C71%2C74%2C123%2C140%2C104%2C145%2C7%2C3%2C4%2C6%2C5%2C2%2C83%2C93%2C146%2C151%2C201%2C57%2C167%2C168%2C50%2C238%2C28%2C70%2C213%2C212%2C211%2C30%2C56%2C9%2C59%2C89%2C90%2C91%2C97%2C120%2C29%2C27%2C122%2C119%2C118%2C137%2C72%2C139%2C138%2C45%2C55%2C113%2C14%2C142%2C40%2C226%2C227%2C225%2C24%2C25%2C26%2C17%2C19%2C39%2C35%2C37%2C36%2C78%2C84%2C88%2C102%2C128%2C131%2C41%2C103%2C22%2C20%2C109%2C65%2C33%2C133%2C132%2C134%2C125%2C23%2C32%2C54%2C101%2C141%2C66%2C16%2C135%2C106%2C77%2C62%2C18%2C31%2C249%2C194%2C181%2C182%2C180%2C252%2C244%2C195%2C99%2C121%2C76%2C111%2C49%2C42%2C44%2C105%2C110%2C116%2C53%2C60%2C115%2C48%2C51%2C47%2C92%2C144%2C0%2C114%2C13%2C112%2C11%2C1%2C52%2C85%2C58%2C61%2C108%2C81%2C80%2C147%2C148%2C86%2C87%2C8%2C94%2C46%2C126%2C79%2C75%2C67%2C107%2C98%2C38%2C127%2C34%2C100%2C12%2C149",
+      "method": "GET",
+      "resourceType": "script",
+      "postData": null
+    },
+    {
+      "url": "https://service-api.flarelane.com/internal/v1/projects/8665acae-b33d-442e-bc1e-961c8ad02873/remote-params-web",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://wat.ad.daum.net/aac?d=roo_retargeting_id%3DSEHsOsc7RRhtQBSzU6ywgw00%26roo_tag_label%3DxkO9Hz5pSJmRq0EL7nE8RA%26doc_url%3Dhttps%253A%252F%252Fwww.peterpanz.com%252Fvilla%253FzoomLevel%253D14%2526center%253D%25257B%252522y%252522%25253A37.6542%25252C%252522_lat%252522%25253A37.6542%25252C%252522x%252522%25253A127.0568%25252C%252522_lng%252522%25253A127.0568%25257D%2526dong%253D%2526gungu%253D%2526filter%253Dlatitude%25253A37.6200~37.6900%25257C%25257Clongitude%25253A127.0200~127.1000%25257C%25257CcheckDeposit%25253A0~60000000%25257C%25257CcheckMonth%25253A0~800000%25257C%25257CcheckRealSize%25253A40~999%25257C%25257CcontractType%25253B%25255B%252522%2525EC%25259B%252594%2525EC%252584%2525B8%252522%25255D%25257C%25257CroomType%25253B%25255B%252522%2525ED%252588%2525AC%2525EB%2525A3%2525B8%252522%25252C%252522%2525EC%25259B%252590%2525EB%2525A3%2525B8%252522%25255D%25257C%25257CbuildingType%25253B%25255B%252522%2525EB%2525B9%25258C%2525EB%25259D%2525BC%25252F%2525EC%2525A3%2525BC%2525ED%252583%25259D%252522%25255D%26doc_charset%3DUTF-8%26doc_referer%3D%26jsver%3D1.0.4",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&time=1771224030620&callback=__naver_maps_callback__0",
+      "method": "GET",
+      "resourceType": "script",
+      "postData": null
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "method": "GET",
+      "resourceType": "xhr",
+      "postData": null
+    },
+    {
+      "url": "https://api.peterpanz.com/brandPromotion/IconLists",
+      "method": "GET",
+      "resourceType": "xhr",
+      "postData": null
+    },
+    {
+      "url": "https://api.peterpanz.com/onboarding/images",
+      "method": "GET",
+      "resourceType": "xhr",
+      "postData": null
+    },
+    {
+      "url": "https://sr-client-cfg.amplitude.com/config?api_key=f0101bc352729a271222038a04d31d9e&config_keys=sessionReplay",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%2C%2522_lat%2522%253A37.6542%2C%2522x%2522%253A127.0568%2C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%2C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&rl=&if=false&ts=1771224030743&sw=1440&sh=900&v=2.9.265&r=stable&ec=0&o=4126&fbp=fb.1.1771224030736.753796061517319805&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1246.699999988079&it=1771224030431&coo=false&expv2[0]=pl0&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct3&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.facebook.com/privacy_sandbox/pixel/register/trigger/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%2C%2522_lat%2522%253A37.6542%2C%2522x%2522%253A127.0568%2C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%2C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&rl=&if=false&ts=1771224030743&sw=1440&sh=900&v=2.9.265&r=stable&ec=0&o=4126&fbp=fb.1.1771224030736.753796061517319805&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1246.699999988079&it=1771224030431&coo=false&expv2[0]=pl0&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct3&expv2[6]=hf1&rqm=FGET",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://firebaseinstallations.googleapis.com/v1/projects/peterpanz-2a3da/installations",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "{\"fid\":\"ccjUBj580MxrzIzzr68_1S\",\"authVersion\":\"FIS_v2\",\"appId\":\"1:178795217921:web:ebaf98014c3b69bf\",\"sdkVersion\":\"w:0.4.14\"}"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rl=&if=false&ts=1771224030956&sw=1440&sh=900&v=2.9.265&r=stable&ec=1&o=4126&fbp=fb.1.1771224030736.753796061517319805&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1246.699999988079&it=1771224030955&coo=false&expv2[0]=pl0&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct3&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.facebook.com/privacy_sandbox/pixel/register/trigger/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rl=&if=false&ts=1771224030956&sw=1440&sh=900&v=2.9.265&r=stable&ec=1&o=4126&fbp=fb.1.1771224030736.753796061517319805&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1246.699999988079&it=1771224030955&coo=false&expv2[0]=pl0&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct3&expv2[6]=hf1&rqm=FGET",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://pixelfnt-us.dsp-api.moloco.com/v1/cm/adxcm?google_gid=CAESEGjDG0fpQuXRRkfRlWDd_m4&google_cver=1",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/ccm/collect?frm=0&en=page_view&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla&scrsrc=www.googletagmanager.com&rnd=317900667.1771224031&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&auid=21106053.1771224031&navt=n&npa=0&ep.ads_data_redaction=0&gtm=45He62c0h2v861217166za200zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528501~104684208~104684211~115616986~115938466~115938469~116988316~117447492&apve=1&apvf=f&apvc=1&tft=1771224031351&tfd=1912",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.googletagmanager.com/static/service_worker/6240/sw_iframe.html?origin=https%3A%2F%2Fwww.peterpanz.com",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/ads?client=ca-pub-2832578959395325&output=html&adk=1812271804&adf=3025194257&lmt=1771224031&plat=1%3A16777216%2C2%3A16777216%2C3%3A16%2C4%3A16%2C9%3A32776%2C16%3A8388608%2C17%3A32%2C24%3A32%2C25%3A32%2C30%3A1081344%2C32%3A32%2C41%3A32%2C42%3A32%2C43%3A32&format=0x0&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&pra=5&asro=0&aiapm=0.1542&aiapmd=0.1423&aiapmi=0.16&aiapmid=1&aiact=0.0001&aiactd=0.0001&aicct=0.7&aicctd=0.5799&ailct=0.5849&ailctd=0.65&aimart=4&aimartd=4&aieuf=1&aicrs=1&uach=WyJNYWMgT1MgWCIsIjEwXzE1XzciLCJ4ODYiLCIiLCIxNDUuMC43NjMyLjYiLG51bGwsMCxudWxsLCI2NCIsW1siTm90OkEtQnJhbmQiLCI5OS4wLjAuMCJdLFsiSGVhZGxlc3NDaHJvbWUiLCIxNDUuMC43NjMyLjYiXSxbIkNocm9taXVtIiwiMTQ1LjAuNzYzMi42Il1dLDBd&abgtt=6&dt=1771224030822&bpp=2&bdt=1022&idt=546&shv=r20260211&mjsv=m202602100101&ptt=9&saldr=aa&abxe=1&cookie_enabled=1&eoidce=1&nras=1&correlator=6807408866225&frm=20&pv=2&u_tz=540&u_his=2&u_h=900&u_w=1440&u_ah=900&u_aw=1440&u_cd=24&u_sd=1&dmc=8&adx=-12245933&ady=-12245933&biw=1440&bih=900&scr_x=0&scr_y=0&eid=95378425%2C95381490%2C95382735%2C95383316%2C95372614&oid=2&pvsid=1988633524446335&tmod=1932638956&uas=0&nvt=1&fsapi=1&fc=1920&brdim=0%2C0%2C0%2C0%2C1440%2C0%2C1440%2C900%2C1440%2C900&vis=1&rsz=%7C%7Cs%7C&abl=NS&fu=32768&bc=31&bz=1&pgls=CAs.&ifi=1&uci=a!1&fsb=1&dtd=568",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://cm.g.doubleclick.net/partnerpixels?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://securepubads.g.doubleclick.net/gampad/ads?pvsid=1988633524446335&correlator=2197212680905387&eid=31096754%2C31096717&output=ldjh&gdfp_req=1&vrg=202602100101&ptt=17&impl=fifs&iu_parts=22996174068%3A23013824946%2Cca-pub-2917775418894286-tag%2Cpeterpanz_PC_home_popup_300x250&enc_prev_ius=%2F0%2F1%2F2&prev_iu_szs=300x250&ifi=2&didk=124518353&dids=div-gpt-ad-202507151715502-178&adfs=873778310&sfv=1-0-45&eri=4&sc=1&cookie_enabled=1&cdm=www.peterpanz.com&abxe=1&dt=1771224031436&adxs=570&adys=426&biw=1440&bih=900&scr_x=0&scr_y=0&btvi=0&ucis=1&oid=2&u_his=2&u_h=900&u_w=1440&u_ah=900&u_aw=1440&u_cd=24&u_sd=1&u_tz=540&dmc=8&bc=31&nvt=1&uach=WyJNYWMgT1MgWCIsIjEwXzE1XzciLCJ4ODYiLCIiLCIxNDUuMC43NjMyLjYiLG51bGwsMCxudWxsLCI2NCIsW1siTm90OkEtQnJhbmQiLCI5OS4wLjAuMCJdLFsiSGVhZGxlc3NDaHJvbWUiLCIxNDUuMC43NjMyLjYiXSxbIkNocm9taXVtIiwiMTQ1LjAuNzYzMi42Il1dLDBd&url=www.peterpanz.com&loc=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&vis=1&psz=336x-1&msz=336x-1&fws=516&ohw=336&a3p=EhwKDWNyd2RjbnRybC5uZXQYyMG3qcYzSABSAghkEh0KDmVzcC5jcml0ZW8uY29tGMjBt6nGM0gAUgIIZBIUCgVvcGVueBjIwbepxjNIAFICCGQSFwoIcnRiaG91c2UYyMG3qcYzSABSAghk&psd=WzMxLFtdXQ..&dlt=1771224029800&idt=1597&prev_scp=refresh%3Dtrue&adks=2100273875&frm=20&eoidce=1&pgls=CAs.",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10844538628/?label=%2F&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&data=undefined",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10844538628/?value=&label=v-UOCOCdtrUDEISOirMo&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://oajs.openx.net/esp?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rid=esp",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://gum.criteo.com/syncframe?origin=publishertagids&topUrl=www.peterpanz.com",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?label=%2F&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&data=undefined&ct_cookie_present=false&random=1328274152&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgiC3rEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSv7FPehcE0jRxWLWezMvF6JJD8UtRnlCNmtkhQzqfv8xYg724n7F8aApmM&pscrd=IhMI9Ivi2bPdkgMV_HrDBh3A2TzmMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAA",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?value=&label=v-UOCOCdtrUDEISOirMo&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&ct_cookie_present=false&random=257413257&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgim3bEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSvq-ELo8cQJYsligh1t9LgzFjZSkC74wf5lfBX5Zvq1pE9ZNQkpgkaAnRW&pscrd=IhMI-4bi2bPdkgMVWE3DBh0tvBbgMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAA",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://oajs.openx.net/esp?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rid=esp&cc=1",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://gum.criteo.com/sid/json?origin=publishertagids&domain=peterpanz.com&sn=ChromeSyncframe&so=0&topUrl=www.peterpanz.com",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://api2.amplitude.com/2/httpapi",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "{\"api_key\":\"f0101bc352729a271222038a04d31d9e\",\"events\":[{\"device_id\":\"0126ed9f-f397-48a7-82f2-93430a77226e\",\"session_id\":1771224030799,\"time\":1771224030800,\"platform\":\"Web\",\"language\":\"en-US\",\"ip\":\"$remote\",\"insert_id\":\"ab87f6f5-0f1c-4cf5-90f4-5c1a82725794\",\"event_type\":\"home_view\",\"event_properties\":{\"page_id\":\"PAGE_MAP\",\"platform\":\"pc\"},\"user_properties\":{},\"event_id\":0,\"library\":\"amplitude-ts-script/2.34.0\",\"user_agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36\"},{\"device_id\":\"0126ed9f-f397-48a7-82f2-93430a77226e\",\"session_id\":1771224030799,\"time\":1771224029971,\"platform\":\"Web\",\"language\":\"en-US\",\"ip\":\"$remote\",\"insert_id\":\"53a03fac-19b6-418d-9e64-2f175da017fc\",\"event_type\":\"$impression\",\"event_properties\":{\"flag_key\":\"a-b\",\"experiment_key\":\"exp-1\",\"metadata\":{\"deliveryMethod\":\"web\",\"deployed\":true,\"evaluationMode\":\"local\",\"experimentKey\":\"exp-1\",\"exposureEvent\":\"$impression\",\"flagType\":\"experiment\",\"flagVersion\":12,\"testInstrumentation\":true,\"urlMatch\":[\"https://www.peterpanz.com/\"],\"segmentName\":\"default\",\"default\":true,\"url\":\"https://www.peterpanz.com/villa\"}},\"event_id\":1,\"library\":\"amplitude-ts-script/2.34.0\",\"user_agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36\"},{\"device_id\":\"0126ed9f-f397-48a7-82f2-93430a77226e\",\"session_id\":1771224030799,\"time\":1771224029972,\"platform\":\"Web\",\"language\":\"en-US\",\"ip\":\"$remote\",\"insert_id\":\"cc372660-2bdc-43ec-ab2d-bf11eb0e3f88\",\"event_type\":\"$impression\",\"event_properties\":{\"flag_key\":\"panel_abtest_2\",\"experiment_key\":\"exp-1\",\"metadata\":{\"deliveryMethod\":\"web\",\"deployed\":true,\"evaluationMode\":\"local\",\"experimentKey\":\"exp-1\",\"exposureEvent\":\"$impression\",\"flagType\":\"experiment\",\"flagVersion\":14,\"testInstrumentation\":true,\"urlMatch\":[\"https://www.peterpanz.com/\"],\"segmentName\":\"default\",\"default\":true,\"url\":\"https://www.peterpanz.com/villa\"}},\"event_id\":2,\"library\":\"amplitude-ts-script/2.34.0\",\"user_agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36\"}],\"options\":{},\"client_upload_time\":\"2026-02-16T06:40:31.801Z\"}"
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-conversion/10844538628/?label=%2F&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&data=undefined&ct_cookie_present=false&random=1328274152&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgiC3rEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSv7FPehcE0jRxWLWezMvF6JJD8UtRnlCNmtkhQzqfv8xYg724n7F8aApmM&pscrd=IhMI9Ivi2bPdkgMV_HrDBh3A2TzmMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAA&is_vtc=1&cid=CAQSjQEA56J1eayy6Z1OppjBUhAC6cN5pVkLg1J42X6Px2t_NkkW8pcX7W6QUCShRS6551IIcE2a9NsW_3N0BCFFvkzDWMyRaeAmgh-vHE5Xv3HZqb8vJ9UydxV75XrbjfOe4QslIjJvI5T8YUH7pPyDnelYyYCQvsANCU9afgQj04TxRWYmktw1p7EfjP6CrAA&random=4265940556",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-conversion/10844538628/?value=&label=v-UOCOCdtrUDEISOirMo&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&ct_cookie_present=false&random=257413257&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgim3bEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSvq-ELo8cQJYsligh1t9LgzFjZSkC74wf5lfBX5Zvq1pE9ZNQkpgkaAnRW&pscrd=IhMI-4bi2bPdkgMVWE3DBh0tvBbgMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAA&is_vtc=1&cid=CAQSjQEA56J1ee9wldL1L7Lr_ps-oPQvoqd8Gjvxfbqn3wbXJ_wu8dCHNOQGmX9xUzX2R0TCj-KdPRIRgA2QOfi5Cf6pEWTPyoWqTpywVjcBatcyJ4Vn1tzGVluAFTggVaQoJUY12-9gEbQh5wbPJRh3axxEcd6x_ZP05UWJlRfSW1YimvWbfu2B4WZYzbivTRQ&random=1107643871",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?random=1771224031931&cv=11&fst=1771224031931&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&data=event%3Dgtag.config&rfmt=3&fmt=4",
+      "method": "GET",
+      "resourceType": "script",
+      "postData": null
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10844538628/?random=1771224031954&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=7",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?random=1771224031956&cv=11&fst=1771224031956&bg=ffffff&guid=ON&async=1&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=%2Fvilla&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&userId=G-QR095ZM3Z6&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&_tu=CA&rfmt=3&fmt=4",
+      "method": "GET",
+      "resourceType": "script",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/ccm/collect?frm=0&en=page_view&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla&scrsrc=www.googletagmanager.com&rnd=317900667.1771224031&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&auid=21106053.1771224031&navt=n&npa=0&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&apve=1&apvf=f&apvc=0&tids=AW-10844538628&tid=AW-10844538628&tft=1771224031958&tfd=2519",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/ccm/collect?frm=0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla&scrsrc=www.googletagmanager.com&rnd=317900667.1771224031&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&auid=21106053.1771224031&navt=n&npa=0&uid=G-QR095ZM3Z6&_tu=CA&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&apve=1&apvf=f&apvc=0&tids=AW-10844538628&tid=AW-10844538628&tft=1771224031959&tfd=2519",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-XW3YXEHTE6&gtm=45je62c0h2v9119512483z8861217166za20gzb861217166zd861217166&_p=1771224030856&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938469~116988315~117416194&sid=1771224031&sct=1&seg=0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=2537",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QR095ZM3Z6&gtm=45je62c0h2v878134217za200zb861217166zd861217166&_p=1771224030856&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAACGA&_s=1&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316&uid=941c7fac04f1528acae75ad301ba03f6&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&dp=%2Fvilla&dr=&sid=1771224032&sct=1&seg=0&en=page_view&_fv=1&_ss=1&_ee=1&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&tfd=2580",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QR095ZM3Z6&gtm=45je62c0h2v878134217za200zb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGQ&_s=2&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316&uid=941c7fac04f1528acae75ad301ba03f6&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&dp=%2Fvilla&dr=&sid=1771224032&sct=1&seg=1&tfd=2598",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "en=page_view&_ee=1&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&ep.specific_key=page_view_941c7fac04f1528acae75ad301ba03f6_unknown_unknown_202602161540&ep.event_id=page_view&ep.referer_page_id=PAGE_UNKNOWN&ep.uidx=&ep.identifier_id=941c7fac04f1528acae75ad301ba03f6&ep.product_id=&ep.provider_id=&ep.category=&ep.value=&ep.device=web&ep.platform=pc&ep.source=direct&ep.source_provider=peterpanz&ep.options_value=&ep.options_user=&ep.options_product=&ep.options_provider=&ep.options_agency=&ep.options_is_premium=&ep.created_at=2026-02-16T15%3A40%3A30%2B09%3A00&_et=17"
+    },
+    {
+      "url": "https://www.google.com/ccm/collect?frm=0&en=user_id_update&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla&scrsrc=www.googletagmanager.com&rnd=317900667.1771224031&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&auid=21106053.1771224031&navt=n&npa=0&ep.ads_data_redaction=0&ga_uid=G-QR095ZM3Z6.941c7fac04f1528acae75ad301ba03f6&gtm=45He62c0h2v861217166za200zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528501~104684208~104684211~115616986~115938466~115938469~116988316~117447492&apve=1&apvf=f&apvc=1&tft=1771224032040&tfd=2601",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.co.kr/pagead/1p-conversion/10844538628/?value=&label=v-UOCOCdtrUDEISOirMo&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&ct_cookie_present=false&random=257413257&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgim3bEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSvq-ELo8cQJYsligh1t9LgzFjZSkC74wf5lfBX5Zvq1pE9ZNQkpgkaAnRW&is_vtc=1&cid=CAQSjQEA56J1ee9wldL1L7Lr_ps-oPQvoqd8Gjvxfbqn3wbXJ_wu8dCHNOQGmX9xUzX2R0TCj-KdPRIRgA2QOfi5Cf6pEWTPyoWqTpywVjcBatcyJ4Vn1tzGVluAFTggVaQoJUY12-9gEbQh5wbPJRh3axxEcd6x_ZP05UWJlRfSW1YimvWbfu2B4WZYzbivTRQ&random=1107643871&ipr=y&pscrd=IhMI-4bi2bPdkgMVWE3DBh0tvBbgMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAIIBAnAB",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.co.kr/pagead/1p-conversion/10844538628/?label=%2F&url=https%3A%2F%2Fwww.peterpanz.com%2F&guid=ON&script=0&data=undefined&ct_cookie_present=false&random=1328274152&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCNvcsQIIh9uxAgjTxbECCOvMsQII7c6xAgjVz7ECCJfUsQIIyduxAgiC3rEC&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsSv7FPehcE0jRxWLWezMvF6JJD8UtRnlCNmtkhQzqfv8xYg724n7F8aApmM&is_vtc=1&cid=CAQSjQEA56J1eayy6Z1OppjBUhAC6cN5pVkLg1J42X6Px2t_NkkW8pcX7W6QUCShRS6551IIcE2a9NsW_3N0BCFFvkzDWMyRaeAmgh-vHE5Xv3HZqb8vJ9UydxV75XrbjfOe4QslIjJvI5T8YUH7pPyDnelYyYCQvsANCU9afgQj04TxRWYmktw1p7EfjP6CrAA&random=4265940556&ipr=y&pscrd=IhMI9Ivi2bPdkgMV_HrDBh3A2TzmMgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOiFodHRwczovL3d3dy5nb29nbGV0YWdtYW5hZ2VyLmNvbS96DAgJYggIABAAGAAgAIIBAnAB",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-user-list/10844538628/?random=1771224031931&cv=11&fst=1771221600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&data=event%3Dgtag.config&rfmt=3&fmt=3&is_vtc=1&cid=CAQSjQEA56J1eRlJZ_U4pzHyEZS5--Uxmn_-klk2Gfh4QhLcYG8jf7rp9637e1zKS6xZHmbmndZPqzQl2EQ0IpD4aCKDe2fEpMcuMexvc5xAV7TYLNzfHCenQSDEGw4jAqI_4xiZs0Ftq4Fh-Ot_D8Fs4ep3re7n3oQUBn5pND9sysUPEu5X2bg3PtmLQPZpFKE&random=934547364&rmt_tld=0&ipr=y",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.co.kr/pagead/1p-user-list/10844538628/?random=1771224031931&cv=11&fst=1771221600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&data=event%3Dgtag.config&rfmt=3&fmt=3&is_vtc=1&cid=CAQSjQEA56J1eRlJZ_U4pzHyEZS5--Uxmn_-klk2Gfh4QhLcYG8jf7rp9637e1zKS6xZHmbmndZPqzQl2EQ0IpD4aCKDe2fEpMcuMexvc5xAV7TYLNzfHCenQSDEGw4jAqI_4xiZs0Ftq4Fh-Ot_D8Fs4ep3re7n3oQUBn5pND9sysUPEu5X2bg3PtmLQPZpFKE&random=934547364&rmt_tld=1&ipr=y",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-user-list/10844538628/?random=1771224031956&cv=11&fst=1771221600000&bg=ffffff&guid=ON&async=1&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=%2Fvilla&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&userId=G-QR095ZM3Z6&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&_tu=CA&rfmt=3&fmt=3&is_vtc=1&cid=CAQSjQEA56J1eQMwSlYc5mda1iPpMFldc0j6D9wvZ0fAzTOKd-w8lsEte7AhfrU0uCZqTRpa0NPDR1wbPJuDjN2nb-sR_1idYXnbG886_HcnZGPQsVDZNzDNHxdRs1lkK5c3DhYuIgYayOYTfNN0GiDJfwwCE5C_oKes9662-GTo7QMOl2KBFDwUNPqRrXYGvTU&random=185496412&rmt_tld=0&ipr=y",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.co.kr/pagead/1p-user-list/10844538628/?random=1771224031956&cv=11&fst=1771221600000&bg=ffffff&guid=ON&async=1&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=%2Fvilla&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&userId=G-QR095ZM3Z6&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&_tu=CA&rfmt=3&fmt=3&is_vtc=1&cid=CAQSjQEA56J1eQMwSlYc5mda1iPpMFldc0j6D9wvZ0fAzTOKd-w8lsEte7AhfrU0uCZqTRpa0NPDR1wbPJuDjN2nb-sR_1idYXnbG886_HcnZGPQsVDZNzDNHxdRs1lkK5c3DhYuIgYayOYTfNN0GiDJfwwCE5C_oKes9662-GTo7QMOl2KBFDwUNPqRrXYGvTU&random=185496412&rmt_tld=1&ipr=y",
+      "method": "GET",
+      "resourceType": "image",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-XW3YXEHTE6&gtm=45je62c0h2v9119512483za20gzb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=2&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938469~116988315~117416194&sid=1771224031&sct=1&seg=0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&_tu=CA&en=scroll&epn.percent_scrolled=90&_et=19&tfd=2736",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QR095ZM3Z6&gtm=45je62c0h2v878134217z8861217166za200zb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGQ&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316&uid=941c7fac04f1528acae75ad301ba03f6&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&dp=%2Fvilla&dr=&sid=1771224032&sct=1&seg=1&_s=3&tfd=2738",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "en=screen_view&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&ep.platform=pc&ep.device=web&ep.source=direct&ep.source_provider=peterpanz&ep.user_type=&ep.login_type=&ep.firebase_previous_screen=PAGE_UNKNOWN&_et=1&up.user_type=&up.login_type=&up.user_id=941c7fac04f1528acae75ad301ba03f6\r\nen=map_view&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&ep.platform=pc&ep.device=web&ep.source=direct&ep.source_provider=peterpanz&ep.user_type=&ep.login_type=&ep.menu_category=%EB%B9%8C%EB%9D%BC%2F%EC%A3%BC%ED%83%9D&_et=1"
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?random=374230872&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=8&ct_cookie_present=false&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCJPasQII29yxAgiH27ECCNPFsQII68yxAgjtzrECCNXPsQIIl9SxAgjJ27ECCKbdsQIIsN6xAkoedHJpZ2dlciwgbm90LW5hdmlnYXRpb24tc291cmNlWgMKAQFiAwoBAw&cerd=CgEA&eitems=ChEIgPrFzAYQ6uSM_KC2-cW7ARIdADVdAZDFLVIyuuzDrjpb5IJAgW26Lm3zKIXbrhk&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsRk0V-VMlR1bGr0IOOxTBEco4e5figk-CZpEephz5_XX1-JqZ4qNZsaAqDF&pscrd=IhMI9Iv92bPdkgMViG7DBh1iLTR7MgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOhpodHRwczovL3d3dy5wZXRlcnBhbnouY29tL0JYQ2hFSWdQckZ6QVlRMHF2bXpvZm5fTUNTQVJJdEFJaHNzUDRBUnlLS1B2MVdlc3FqRThUTW9Rcnh1QktXWEVDV0wzWkJwSEZLV0poazlINWJ5SExnbGhOT3oMCAliCAgAEAAYACAA",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-conversion/10844538628/?random=374230872&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=8&ct_cookie_present=false&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCJPasQII29yxAgiH27ECCNPFsQII68yxAgjtzrECCNXPsQIIl9SxAgjJ27ECCKbdsQIIsN6xAkoedHJpZ2dlciwgbm90LW5hdmlnYXRpb24tc291cmNlWgMKAQFiAwoBAw&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsRk0V-VMlR1bGr0IOOxTBEco4e5figk-CZpEephz5_XX1-JqZ4qNZsaAqDF&pscrd=IhMI9Iv92bPdkgMViG7DBh1iLTR7MgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOhpodHRwczovL3d3dy5wZXRlcnBhbnouY29tL0JYQ2hFSWdQckZ6QVlRMHF2bXpvZm5fTUNTQVJJdEFJaHNzUDRBUnlLS1B2MVdlc3FqRThUTW9Rcnh1QktXWEVDV0wzWkJwSEZLV0poazlINWJ5SExnbGhOT3oMCAliCAgAEAAYACAA&is_vtc=1&cid=CAQSjQEA56J1ec35_Iw8xEAYprS8-Q2h0SS9MjeQ-Np2uDJC-fnTu2t7FBLtxe29_LKli_5OuXCzV-M5uxlJu93_ZSA-pdZwZuoitUY8Nn7swP-UyyQ7ujo72D4j9HuwunipHOteOqa7HrmCUref2YGer_1RAku950uISB9NYbewCKcRe8S2BEBGv5lBw2a4Vrk&eitems=ChEIgPrFzAYQ6uSM_KC2-cW7ARIdADVdAZCdJOOgehAsO88jsZd3O4b7O7DdhI4TAH4&random=188703146",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://www.google.co.kr/pagead/1p-conversion/10844538628/?random=374230872&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=8&ct_cookie_present=false&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCJPasQII29yxAgiH27ECCNPFsQII68yxAgjtzrECCNXPsQIIl9SxAgjJ27ECCKbdsQIIsN6xAkoedHJpZ2dlciwgbm90LW5hdmlnYXRpb24tc291cmNlWgMKAQFiAwoBAw&cerd=CgEA&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsRk0V-VMlR1bGr0IOOxTBEco4e5figk-CZpEephz5_XX1-JqZ4qNZsaAqDF&is_vtc=1&cid=CAQSjQEA56J1ec35_Iw8xEAYprS8-Q2h0SS9MjeQ-Np2uDJC-fnTu2t7FBLtxe29_LKli_5OuXCzV-M5uxlJu93_ZSA-pdZwZuoitUY8Nn7swP-UyyQ7ujo72D4j9HuwunipHOteOqa7HrmCUref2YGer_1RAku950uISB9NYbewCKcRe8S2BEBGv5lBw2a4Vrk&eitems=ChEIgPrFzAYQ6uSM_KC2-cW7ARIdADVdAZCdJOOgehAsO88jsZd3O4b7O7DdhI4TAH4&random=188703146&ipr=y&pscrd=IhMI9Iv92bPdkgMViG7DBh1iLTR7MgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOhpodHRwczovL3d3dy5wZXRlcnBhbnouY29tL0JYQ2hFSWdQckZ6QVlRMHF2bXpvZm5fTUNTQVJJdEFJaHNzUDRBUnlLS1B2MVdlc3FqRThUTW9Rcnh1QktXWEVDV0wzWkJwSEZLV0poazlINWJ5SExnbGhOT3oMCAliCAgAEAAYACAAggEFcAGIAQE",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://api.channel.io/front/v8/elastic/plugins/6bba2458-740a-46f5-bd2c-e305d0b0fcbc?",
+      "method": "GET",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://service-api.flarelane.com/internal/v1/projects/8665acae-b33d-442e-bc1e-961c8ad02873/devices",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "{\"browser\":\"Chrome\",\"browserVersion\":\"145.0.7632.6\",\"platform\":\"webDesktop\",\"deviceModel\":\"macOS\",\"osVersion\":\"10.15.7\",\"sdkType\":\"native\",\"sdkVersion\":\"0.10.0\",\"languageCode\":\"en-US\",\"countryCode\":\"US\",\"timeZone\":\"Asia/Seoul\",\"userId\":\"941c7fac04f1528acae75ad301ba03f6\"}"
+    },
+    {
+      "url": "https://api.channel.io/front/v8/elastic/plugins/6bba2458-740a-46f5-bd2c-e305d0b0fcbc/boot",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%7B%22y%22%3A37.6542%2C%22_lat%22%3A37.6542%2C%22x%22%3A127.0568%2C%22_lng%22%3A127.0568%7D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%7C%7Clongitude%3A127.0430671~127.1185981%26"
+    },
+    {
+      "url": "https://api.channel.io/front/v8/channels/2427/events",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "name=PageView&property=%7B%22title%22%3A%22%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0%22%2C%22url%22%3A%22https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%7B%5C%22y%5C%22%3A37.6542%2C%5C%22_lat%5C%22%3A37.6542%2C%5C%22x%5C%22%3A127.0568%2C%5C%22_lng%5C%22%3A127.0568%7D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%7C%7Clongitude%3A127.0430671~127.1185981%26%22%2C%22page%22%3A%22https%3A%2F%2Fwww.peterpanz.com%2Fvilla%22%2C%22referrer%22%3A%22%22%7D&sessionJWT=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzZXMiLCJleHAiOjE3NzM4MTYwMzMsImlhdCI6MTc3MTIyNDAzMywia2V5IjoiMjQyNy02OTkyYmJlMTdhNTgwZGE5NDJhNCJ9.1aKU_aibCQSOYuQbNllMOhXsovdcFyk-N7u9JQPGtnk"
+    },
+    {
+      "url": "https://api.channel.io/front/v8/elastic/plugins/6bba2458-740a-46f5-bd2c-e305d0b0fcbc/boot",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%7B%22y%22%3A37.6542%2C%22_lat%22%3A37.6542%2C%22x%22%3A127.0568%2C%22_lng%22%3A127.0568%7D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%7C%7Clongitude%3A127.0430671~127.1185981%26&veilId=8df7774c-9b25-41ae-b480-3b0d970e7a25&sessionJWT=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzZXMiLCJleHAiOjE3NzM4MTYwMzMsImlhdCI6MTc3MTIyNDAzMywia2V5IjoiMjQyNy02OTkyYmJlMTdhNTgwZGE5NDJhNCJ9.1aKU_aibCQSOYuQbNllMOhXsovdcFyk-N7u9JQPGtnk"
+    },
+    {
+      "url": "https://o249840.ingest.sentry.io/api/306179/envelope/?sentry_version=7&sentry_key=b05367f6be924bb49e15838987b99ce6&sentry_client=sentry.javascript.react%2F9.39.0",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "{\"sent_at\":\"2026-02-16T06:40:33.719Z\",\"sdk\":{\"name\":\"sentry.javascript.react\",\"version\":\"9.39.0\"}}\n{\"type\":\"session\"}\n{\"sid\":\"d4d8f0e2c15e4cbab4fdbbd97dc3cd0b\",\"init\":true,\"started\":\"2026-02-16T06:40:33.719Z\",\"timestamp\":\"2026-02-16T06:40:33.719Z\",\"status\":\"ok\",\"errors\":0,\"attrs\":{\"release\":\"17.0.12\",\"environment\":\"production|App\",\"user_agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36\"}}"
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QR095ZM3Z6&gtm=45je62c0h2v878134217za200zb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&_fid=ccjUBj580MxrzIzzr68_1S&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEIAAGQ&_s=4&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316&uid=941c7fac04f1528acae75ad301ba03f6&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&dp=%2Fvilla&dr=&sid=1771224032&sct=1&seg=1&_tu=CA&en=ad_impression&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&ep.origin=firebase&ep.query_id=CJaJ39mz3ZIDFTGC6QUdmL0Q6Q&_et=137&tfd=4293",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://api.channel.io/front/v8/channels/2427/events",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "name=PageView&property=%7B%22title%22%3A%22%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0%22%2C%22url%22%3A%22https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%7B%5C%22y%5C%22%3A37.6542%2C%5C%22_lat%5C%22%3A37.6542%2C%5C%22x%5C%22%3A127.0568%2C%5C%22_lng%5C%22%3A127.0568%7D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%7C%7Clongitude%3A127.0430671~127.1185981%26%22%2C%22page%22%3A%22https%3A%2F%2Fwww.peterpanz.com%2Fvilla%22%2C%22referrer%22%3A%22%22%7D&sessionJWT=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzZXMiLCJleHAiOjE3NzM4MTYwMzMsImlhdCI6MTc3MTIyNDAzMywia2V5IjoiMjQyNy02OTkyYmJlMTdhNTgwZGE5NDJhNCJ9.1aKU_aibCQSOYuQbNllMOhXsovdcFyk-N7u9JQPGtnk"
+    },
+    {
+      "url": "https://service-api.flarelane.com/internal/v1/projects/8665acae-b33d-442e-bc1e-961c8ad02873/devices/9003c673-c550-4196-9158-ec0808bd941f",
+      "method": "PATCH",
+      "resourceType": "fetch",
+      "postData": "{\"userId\":\"941c7fac04f1528acae75ad301ba03f6\"}"
+    },
+    {
+      "url": "https://www.google.com/recaptcha/api2/aframe",
+      "method": "GET",
+      "resourceType": "document",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-XW3YXEHTE6&gtm=45je62c0h2v9119512483z8878134217za20gzb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEIAAGQ&_s=3&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938469~116988315~117416194&sid=1771224031&sct=1&seg=0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&en=ad_impression&ep.query_id=CJaJ39mz3ZIDFTGC6QUdmL0Q6Q&_et=178&tfd=7737",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QR095ZM3Z6&gtm=45je62c0h2v878134217z8861217166za200zb861217166zd861217166&_p=1771224030856&gcd=13l3l3l3l1l1&npa=0&dma=0&_fid=ccjUBj580MxrzIzzr68_1S&cid=1050845621.1771224032&ul=en-us&sr=1440x900&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGQ&_s=5&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316&uid=941c7fac04f1528acae75ad301ba03f6&dt=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&dp=%2Fvilla&dr=&sid=1771224032&sct=1&seg=1&en=page_view&ep.screen_name=PAGE_MAP&ep.firebase_screen=PAGE_MAP&ep.firebase_screen_class=%2Fvilla&ep.page_id=PAGE_MAP&ep.app_name=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&ep.origin=firebase&ep.pv_path=%2Fvilla&ep.pv_time_local=2026-Feb-16%2015%3A40%3A33%20GMT%2B0900&_et=1554&tfd=9294",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": null
+    },
+    {
+      "url": "https://api2.amplitude.com/2/httpapi",
+      "method": "POST",
+      "resourceType": "fetch",
+      "postData": "{\"api_key\":\"f0101bc352729a271222038a04d31d9e\",\"events\":[{\"device_id\":\"0126ed9f-f397-48a7-82f2-93430a77226e\",\"session_id\":1771224030799,\"time\":1771224040962,\"platform\":\"Web\",\"language\":\"en-US\",\"ip\":\"$remote\",\"insert_id\":\"f12518d9-c975-4cfc-a2bb-a4a37bf9c466\",\"event_type\":\"map_view\",\"event_properties\":{\"page_id\":\"PAGE_MAP\",\"menu_category\":\"빌라\"},\"user_properties\":{},\"event_id\":3,\"library\":\"amplitude-ts-script/2.34.0\",\"user_agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36\"}],\"options\":{},\"client_upload_time\":\"2026-02-16T06:40:41.964Z\",\"request_metadata\":{\"sdk\":{\"metrics\":{\"histogram\":{}}}}}"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://www.peterpanz.com/villa?zoomLevel=14&center=%7B%22y%22%3A37.6542%2C%22_lat%22%3A37.6542%2C%22x%22%3A127.0568%2C%22_lng%22%3A127.0568%7D&dong=&gungu=&filter=latitude%3A37.6200~37.6900%7C%7Clongitude%3A127.0200~127.1000%7C%7CcheckDeposit%3A0~60000000%7C%7CcheckMonth%3A0~800000%7C%7CcheckRealSize%3A40~999%7C%7CcontractType%3B%5B%22%EC%9B%94%EC%84%B8%22%5D%7C%7CroomType%3B%5B%22%ED%88%AC%EB%A3%B8%22%2C%22%EC%9B%90%EB%A3%B8%22%5D%7C%7CbuildingType%3B%5B%22%EB%B9%8C%EB%9D%BC%2F%EC%A3%BC%ED%83%9D%22%5D",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bodyLength": 105149,
+      "bodyPreview": "<!DOCTYPE html>\n<html lang=\"ko\">\n\n<head>\n\n    <script src=\"https://api.peterpanz.com/v5/marketing/identifier/collect.js?uidx=&identifier_id=\" async></script>\n<script defer src=\"https://securepubads.g.doubleclick.net/tag/js/gpt.js\"></script>\n<script defer>\n      window.googletag = window.googletag || {cmd: []};\n      window.googletag.cmd = window.googletag.cmd || [];\n</script>\n<title>피터팬의 좋은방 구하기</title><meta name=\"subject\"  content='빌라/주택'/><meta name=\"author\"  content='피터팬의 좋은방 구하기'/><meta name=\"description\"  content='빌라매매, 전세, 월세 매물정보 확인과 전세자금대출, 반려동물, 직거래 필터로 원하는 매물 찾기!'/><meta name=\"image\"  content='https://www.peterpanz.com/mobile/assets/images/kakao_url.png'/><meta name=\"keywords\"  content='피터팬의 좋은방구하기, 피터팬, 부동산, real, estate, 피터팬의, 좋은, 방, 구하기'/><meta property=\"og:type\"  content='website'/><meta property=\"og:title\"  content='빌라/주택'/><meta property=\"og:url\"  content='https://www.peterpanz.com/villa'/><meta property=\"og:image\"  content='https://www.peterpanz.com/mobile/assets/images/kakao_url.png'/><meta property=\"og:description\"  content='원룸, 투룸, 오피스텔, 신축빌라, 아파트까지 부동산 직거래 No.1 피터팬의 좋은방 구하기'/><meta property=\"og:site_name\"  content='빌라/주택'/><meta property=\"og:locale\"  content='ko_KR'/><meta property=\"fb:app_id\"  content='1623043274663282'/><meta name=\"application-name\"  content='피터팬의 좋은방 구하기'/><meta name=\"msapplication-tooltip\"  content='피터팬의 좋은방 구하기'/><meta name=\"content-language\"  content='kr'/><meta name=\"reply-to\"  content='cs@duse.co.kr'/><link rel='alternate' href='https://www.peterpanz.com/villa'/><link rel='canonical' href='https://www.peterpanz.com/villa'/><script type='application/ld+json'>{\"@context\":\"https://schema.org\",\"name\":\"빌라/주택\",\"url\":\"https://www.peterpanz.com/villa\",\"logo\":{\"url\":\"https://www.peterpanz.com/mobile/assets/images/kakao_url.png\",\"@type\":\"ImageObject\"},\"contactPoint\":null,\"sameAs\":[\"https://naver.me/x1ervqSV\",\"https://www.instagram.com/peterpanz.official\",\"https://blog.naver.com/ilovedukkubi\",\"https://www.facebook.com/peterpanz.off",
+      "isJson": false
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2F&time=1771224030068",
+      "status": 200,
+      "contentType": "application/json",
+      "bodyLength": 101,
+      "bodyPreview": "{\"result\":{\"callCount\":\"0\",\"callSize\":\"0\",\"apiQuota\":\"200000\",\"apiKeyInfo\":\"apiKey:map/webApiGroup\"}}",
+      "isJson": true,
+      "jsonKeys": [
+        "result"
+      ],
+      "jsonPreview": "{\n  \"result\": {\n    \"callCount\": \"0\",\n    \"callSize\": \"0\",\n    \"apiQuota\": \"200000\",\n    \"apiKeyInfo\": \"apiKey:map/webApiGroup\"\n  }\n}"
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&time=1771224030620&callback=__naver_maps_callback__0",
+      "status": 200,
+      "contentType": "application/json",
+      "bodyLength": 127,
+      "bodyPreview": "__naver_maps_callback__0({\"result\":{\"callCount\":\"0\",\"callSize\":\"0\",\"apiQuota\":\"200000\",\"apiKeyInfo\":\"apiKey:map/webApiGroup\"}})",
+      "isJson": false
+    },
+    {
+      "url": "https://api.peterpanz.com/onboarding/images",
+      "status": 200,
+      "contentType": "application/json",
+      "bodyLength": 257,
+      "bodyPreview": "[\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_01.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_02.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_03.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_04.png\"]",
+      "isJson": true,
+      "jsonKeys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "jsonPreview": "[\n  \"https://static.peterpanz.com/guide/signin/pc/img_01.png\",\n  \"https://static.peterpanz.com/guide/signin/pc/img_02.png\",\n  \"https://static.peterpanz.com/guide/signin/pc/img_03.png\",\n  \"https://static.peterpanz.com/guide/signin/pc/img_04.png\"\n]"
+    },
+    {
+      "url": "https://api.peterpanz.com/brandPromotion/IconLists",
+      "status": 200,
+      "contentType": "application/json",
+      "bodyLength": 37,
+      "bodyPreview": "{\"code\":200,\"success\":true,\"data\":[]}",
+      "isJson": true,
+      "jsonKeys": [
+        "code",
+        "success",
+        "data"
+      ],
+      "jsonPreview": "{\n  \"code\": 200,\n  \"success\": true,\n  \"data\": []\n}"
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "status": 200,
+      "contentType": "application/json",
+      "bodyLength": 887,
+      "bodyPreview": "{\"result\":true,\"data\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"method\":\"geometry\",\"rate\":9,\"geometry\":{\"_id\":null,\"item_code\":\"11350105\",\"item_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_name\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"short_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_short_name\":\"\\uc11c\\uc6b8\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"location_type\":\"township\",\"state_code\":\"11\",\"district_code\":\"11350\",\"township_code\":\"11350105\",\"village_code\":\"1135010500\",\"jurisdiction_type\":\"legal\",\"bbox\":[127.04816152471014,37.63668765190952,127.09644725385846,37.69613746672266],\"geo_point\":{\"coordinates\":[127.07033776193619,37.67299338656389],\"type\":\"Point\"},\"geo_polygon\":null,\"last_updated_at\":null,\"created_at\":\"2026-02-16T00:06:19.884680\",\"updated_at\":\"2026-02-16T00:06:19.884684\",\"deleted_at\":null,\"manual_order\":null}}",
+      "isJson": true,
+      "jsonKeys": [
+        "result",
+        "data",
+        "method",
+        "rate",
+        "geometry"
+      ],
+      "jsonPreview": "{\n  \"result\": true,\n  \"data\": \"서울특별시 노원구 상계동\",\n  \"method\": \"geometry\",\n  \"rate\": 9,\n  \"geometry\": {\n    \"_id\": null,\n    \"item_code\": \"11350105\",\n    \"item_name\": \"상계동\",\n    \"item_full_name\": \"서울특별시 노원구 상계동\",\n    \"short_name\": \"상계동\",\n    \"item_full_short_name\": \"서울시 노원구 상계동\",\n    \"location_type\": \"township\",\n    \"state_code\": \"11\",\n    \"district_code\": \"11350\",\n    \"township_code\": \"11350105\",\n    \"village_code\": \"1135010500\",\n    \"jurisdiction_type\": \"legal\",\n    \"bbox\": [\n      127.04816152471014,\n      37.63668765190952,\n      127.09644725385846,\n      37.69613746672266\n    ],\n    \"geo_point\": {\n      \"coordinates\": [\n        127.07033776193619,\n        37.67299338656389\n      ],\n      \"type\": \"Point\"\n    },\n    \"geo_polygon\": null,\n    \"last_updated_at\": null,\n    \"created_at\": \"2026-02-16T00:06:19.884680\",\n    \"updated_at\": \"2026-02-16T00:06:19.884684\",\n    \"deleted_at\": null,\n    \"manual_order\": null\n  }\n}"
+    },
+    {
+      "url": "https://www.googletagmanager.com/static/service_worker/6240/sw_iframe.html?origin=https%3A%2F%2Fwww.peterpanz.com",
+      "status": 200,
+      "contentType": "text/html",
+      "bodyLength": 3503,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n<head>\n  <link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n</head>\n<body>\n  <script>\n'use strict';var l={};class m{constructor(a){this.j=a;this.g={};this.h={};this.i=0;this.id=String(Math.floor(Number.MAX_SAFE_INTEGER*Math.random()))}}function n(a){return a.performance&&a.performance.now()||Date.now()}\nvar p=function(a,c){class d{constructor(b,f,g){this.failureType=b;this.data=f;this.g=g;this.h=new m(n(g))}o(b,f){const g=b.clientId;if(b.type===0){b.isDead=!0;var e=this.h,k=n(this.g);e.g[g]==null&&(e.g[g]=0,e.h[g]=k,e.i++);e.g[g]++;b.stats={targetId:e.id,clientCount:e.i,totalLifeMs:Math.round(k-e.j),heartbeatCount:e.g[g],clientLifeMs:Math.round(k-e.h[g])}}b.failure={failureType:this.failureType,data:this.data};f(b)}}return new d(5,a,c)};/*\n\n Copyright Google LLC\n SPDX-License-Identifier: Apache-2.0\n*/\nlet q=globalThis.trustedTypes,r;function t(){let a=null;if(!q)return a;try{const c=d=>d;a=q.createPolicy(\"goog#html\",{createHTML:c,createScript:c,createScriptURL:c})}catch(c){}return a};var u=class{constructor(a){this.g=a}toString(){return this.g+\"\"}};function v(a){const c=a;var d;r===void 0&&(r=t());var b=(d=r)?d.createScriptURL(c):c;return new u(b)}function w(a){if(a instanceof u)return a.g;throw Error(\"\");};function x(a,...c){if(c.length===0)return v(a[0]);let d=a[0];for(let b=0;b<c.length;b++)d+=encodeURIComponent(c[b])+a[b+1];return v(d)}function y(a){var c=x`sw.js`,d=w(c).toString();const b=d.split(/[?#]/),f=/[?]/.test(d)?\"?\"+b[1]:\"\";return z(b[0],f,/[#]/.test(d)?\"#\"+(f?b[2]:b[1]):\"\",a)}\nfunction z(a,c,d,b){function f(e,k){e!=null&&(Array.isArray(e)?e.forEach(h=>f(h,k)):(c+=g+encodeURIComponent(k)+\"=\"+encodeURIComponent(e),g=\"&\"))}let g=c.length?\"&\":\"?\";b.constructor===Object&&(b=Object.entries(b));Array.isArray(b)?b.forEach(e=>f(e[1],e[0])):b.forEach(f);return v(a+c+d)};const A=/Chrome\\/(\\d+)/;var C=function(a){const c=a.origin;if(c){var d=a.g?x`/static/service_worker/${a.g}/${\"sw.js\"}?origin=${c}`:x`/gtm/static/${\"s",
+      "isJson": false
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/ads?client=ca-pub-2832578959395325&output=html&adk=1812271804&adf=3025194257&lmt=1771224031&plat=1%3A16777216%2C2%3A16777216%2C3%3A16%2C4%3A16%2C9%3A32776%2C16%3A8388608%2C17%3A32%2C24%3A32%2C25%3A32%2C30%3A1081344%2C32%3A32%2C41%3A32%2C42%3A32%2C43%3A32&format=0x0&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&pra=5&asro=0&aiapm=0.1542&aiapmd=0.1423&aiapmi=0.16&aiapmid=1&aiact=0.0001&aiactd=0.0001&aicct=0.7&aicctd=0.5799&ailct=0.5849&ailctd=0.65&aimart=4&aimartd=4&aieuf=1&aicrs=1&uach=WyJNYWMgT1MgWCIsIjEwXzE1XzciLCJ4ODYiLCIiLCIxNDUuMC43NjMyLjYiLG51bGwsMCxudWxsLCI2NCIsW1siTm90OkEtQnJhbmQiLCI5OS4wLjAuMCJdLFsiSGVhZGxlc3NDaHJvbWUiLCIxNDUuMC43NjMyLjYiXSxbIkNocm9taXVtIiwiMTQ1LjAuNzYzMi42Il1dLDBd&abgtt=6&dt=1771224030822&bpp=2&bdt=1022&idt=546&shv=r20260211&mjsv=m202602100101&ptt=9&saldr=aa&abxe=1&cookie_enabled=1&eoidce=1&nras=1&correlator=6807408866225&frm=20&pv=2&u_tz=540&u_his=2&u_h=900&u_w=1440&u_ah=900&u_aw=1440&u_cd=24&u_sd=1&dmc=8&adx=-12245933&ady=-12245933&biw=1440&bih=900&scr_x=0&scr_y=0&eid=95378425%2C95381490%2C95382735%2C95383316%2C95372614&oid=2&pvsid=1988633524446335&tmod=1932638956&uas=0&nvt=1&fsapi=1&fc=1920&brdim=0%2C0%2C0%2C0%2C1440%2C0%2C1440%2C900%2C1440%2C900&vis=1&rsz=%7C%7Cs%7C&abl=NS&fu=32768&bc=31&bz=1&pgls=CAs.&ifi=1&uci=a!1&fsb=1&dtd=568",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bodyLength": 603,
+      "bodyPreview": "<html><body style=\"background-color:transparent\"></body></html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+      "isJson": false
+    },
+    {
+      "url": "https://cm.g.doubleclick.net/partnerpixels?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26",
+      "status": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "bodyLength": 41,
+      "bodyPreview": "<!DOCTYPE html><html><body></body></html>",
+      "isJson": false
+    },
+    {
+      "url": "https://gum.criteo.com/syncframe?origin=publishertagids&topUrl=www.peterpanz.com",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bodyLength": 12662,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n<head>\n    <script type=\"text/javascript\">\n        window.CONFIG_CSM_DOMAIN_NAME = \"client-side-metrics.jp2.as.criteo.net\";\n        window.CONFIG_CSM_RATIO = 10;\n        window.GUM_DOMAIN = \"gum.criteo.com\";\n    </script>\n    <script type=\"text/javascript\">\n        !function(){\"use strict\";var r=function(t,n){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,n){t.__proto__=n}||function(t,n){for(var i in n)n.hasOwnProperty(i)&&(t[i]=n[i])})(t,n)};function t(t,n){function i(){this.constructor=t}r(t,n),t.prototype=null===n?Object.create(n):(i.prototype=n.prototype,new i)}var n=function(){return(n=Object.assign||function(t){for(var n,i=1,r=arguments.length;i<r;i++)for(var e in n=arguments[i])Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e]);return t}).apply(this,arguments)};function i(u,o,s,c){return new(s=s||Promise)(function(t,n){function i(t){try{e(c.next(t))}catch(t){n(t)}}function r(t){try{e(c.throw(t))}catch(t){n(t)}}function e(n){n.done?t(n.value):new s(function(t){t(n.value)}).then(i,r)}e((c=c.apply(u,o||[])).next())})}function o(i,r){var e,u,o,t,s={label:0,sent:function(){if(1&o[0])throw o[1];return o[1]},trys:[],ops:[]};return t={next:n(0),throw:n(1),return:n(2)},\"function\"==typeof Symbol&&(t[Symbol.iterator]=function(){return this}),t;function n(n){return function(t){return function(n){if(e)throw new TypeError(\"Generator is already executing.\");for(;s;)try{if(e=1,u&&(o=2&n[0]?u.return:n[0]?u.throw||((o=u.return)&&o.call(u),0):u.next)&&!(o=o.call(u,n[1])).done)return o;switch(u=0,o&&(n=[2&n[0],o.value]),n[0]){case 0:case 1:o=n;break;case 4:return s.label++,{value:n[1],done:!1};case 5:s.label++,u=n[1],n=[0];continue;case 7:n=s.ops.pop(),s.trys.pop();continue;default:if(!(o=0<(o=s.trys).length&&o[o.length-1])&&(6===n[0]||2===n[0])){s=0;continue}if(3===n[0]&&(!o||n[1]>o[0]&&n[1]<o[3])){s.label=n[1];break}if(6===n[0]&&s.label<o[1]){s.label=o[1],o=n;break}if(o&&s.label<o[2]){s.label=o[2],s.ops.push(n);break}o[2]&",
+      "isJson": false
+    },
+    {
+      "url": "https://gum.criteo.com/sid/json?origin=publishertagids&domain=peterpanz.com&sn=ChromeSyncframe&so=0&topUrl=www.peterpanz.com",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyLength": 441,
+      "bodyPreview": "{\"sid\":null,\"removeSid\":false,\"bundle\":\"W_jESl9ZMmJ3VGVpZE1keUREc3ltNkFRcjRFc0pIZW4yMEhaVzklMkZPYkt0UG9oVWdoJTJGcmNCd1hoNFQxZ2xOcTElMkJIQVZFazQ4NkVEajh0ZUY1SFRHZW5VM2xPZnlkS2RUJTJGJTJGdnZxcXZ4JTJCJTJGMVhqRnpYSEtHWTNBMGNwNmxQUWtEMFJPSTVMOFh1Q3E4JTJGb3ZsNXdoSXhGYzVTaDBRJTNEJTNE\",\"info\":\"S8GR0l9ZMmJ3VGVpZE1keUREc3ltNkFRcjRFc0pIZW4yMEhaVzklMkZPYkt0UG9oVWdoJTJGcmNCd1hoNFQxZ2xOcTElMkJIQVZFVzBpaXFPc3Q0TTRJZzdvMDFsMXdwdyUzRCUzRA\",\"optout\":false}",
+      "isJson": true,
+      "jsonKeys": [
+        "sid",
+        "removeSid",
+        "bundle",
+        "info",
+        "optout"
+      ],
+      "jsonPreview": "{\n  \"sid\": null,\n  \"removeSid\": false,\n  \"bundle\": \"W_jESl9ZMmJ3VGVpZE1keUREc3ltNkFRcjRFc0pIZW4yMEhaVzklMkZPYkt0UG9oVWdoJTJGcmNCd1hoNFQxZ2xOcTElMkJIQVZFazQ4NkVEajh0ZUY1SFRHZW5VM2xPZnlkS2RUJTJGJTJGdnZxcXZ4JTJCJTJGMVhqRnpYSEtHWTNBMGNwNmxQUWtEMFJPSTVMOFh1Q3E4JTJGb3ZsNXdoSXhGYzVTaDBRJTNEJTNE\",\n  \"info\": \"S8GR0l9ZMmJ3VGVpZE1keUREc3ltNkFRcjRFc0pIZW4yMEhaVzklMkZPYkt0UG9oVWdoJTJGcmNCd1hoNFQxZ2xOcTElMkJIQVZFVzBpaXFPc3Q0TTRJZzdvMDFsMXdwdyUzRCUzRA\",\n  \"optout\": false\n}"
+    },
+    {
+      "url": "https://oajs.openx.net/esp?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rid=esp&cc=1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bodyLength": 85,
+      "bodyPreview": "{\"esp\":\"eyJpIjoiOXdYN1hqamlTSDZubHRTazY5K3hydz09In0=\",\"i\":\"9wX7XjjiSH6nltSk69+xrw==\"}",
+      "isJson": true,
+      "jsonKeys": [
+        "esp",
+        "i"
+      ],
+      "jsonPreview": "{\n  \"esp\": \"eyJpIjoiOXdYN1hqamlTSDZubHRTazY5K3hydz09In0=\",\n  \"i\": \"9wX7XjjiSH6nltSk69+xrw==\"\n}"
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10844538628/?random=1771224031954&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=7",
+      "status": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "bodyLength": 4016,
+      "bodyPreview": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10844538628/?random=374230872&cv=11&fst=1771224031954&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be62c0h2v867564233z8861217166za20gzb861217166zd861217166xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~104527907~104528500~104684208~104684211~115938466~115938468~116988316~117384405~117455676~117455678&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&label=v-UOCOCdtrUDEISOirMo&capi=1&frm=0&tiba=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=21106053.1771224031&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Mac%20OS%20X&uapv=10_15_7&uaw=0&ec_mode=a&_tu=CA&gcl_ctr=1~0~0&category=acrcp_v1_512&em=tv.1&fmt=8&ct_cookie_present=false&crd=CPLOsQIItN6xAgihuLECCLHBsQIIsMGxAgixw7ECCIrFsQIIwsmxAgi0xrECCJPasQII29yxAgiH27ECCNPFsQII68yxAgjtzrECCNXPsQIIl9SxAgjJ27ECCKbdsQIIsN6xAkoedHJpZ2dlciwgbm90LW5hdmlnYXRpb24tc291cmNlWgMKAQFiAwoBAw&cerd=CgEA&eitems=ChEIgPrFzAYQ6uSM_KC2-cW7ARIdADVdAZDFLVIyuuzDrjpb5IJAgW26Lm3zKIXbrhk&fsk=ChEIgPrFzAYQq5P5rbGD68KjARIsAN3MvsRk0V-VMlR1bGr0IOOxTBEco4e5figk-CZpEephz5_XX1-JqZ4qNZsaAqDF&pscrd=IhMI9Iv92bPdkgMViG7DBh1iLTR7MgwIA2IICAAQABgAIAAyDAgEYggIABAAGAAgADIMCAdiCAgAEAAYACAAMgwICGIICAAQABgAIAAyDAgJYggIABAAGAAgADIMCApiCAgAEAAYACAAMgwIAmIICAAQABgAIAAyDAgLYggIABAAGAAgADIMCBViCAgAEAAYACAAMgwIH2IICAAQABgAIAAyDAgTYggIABAAGAAgADIMCBJiCAgAEAAYACAAOhpodHRwczovL3d3dy5wZXRlcnBhbnouY29tL0JYQ2hFSWdQckZ6QVlRMHF2bXpvZm5fTUNTQVJJdEFJaHNzUDRBUnlLS1B2MVdlc3FqRThUTW9Rcnh1QktXWEVDV0wzWkJwSEZLV0poazlINWJ5SExnbGhOT3oMCAliCAgAEAAYACAA\"",
+      "isJson": false
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files from Playwright captures
+.tmp_*
+
+# Artifact directories from CLI parsing bugs
+--out-dir/
+--probe-out
+--targets-out
+
+# Collected data runs (large)
+scripts/parallel_collect_runs/
+
+# Screenshots and logs
+*.png
+*.log
+
+# QA artifacts at root
+qa_*.mjs
+qa_*.json
+qa_*.log
+qa_*.png
+frontend_ui_smoke_check.mjs
+
+# OMC state
+.omc/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

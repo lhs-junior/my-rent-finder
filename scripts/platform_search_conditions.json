@@ -1,0 +1,33 @@
+{
+  "version": "query_probe_v0.1",
+  "target": {
+    "sido": "서울시",
+    "sigungu": "노원구",
+    "dong": "",
+    "sigunguList": [
+      "노원구",
+      "중랑구",
+      "동대문구",
+      "광진구",
+      "성북구",
+      "성동구",
+      "중구",
+      "종로구"
+    ],
+    "rentMin": 0,
+    "rentMax": 80,
+    "depositMax": 6000,
+    "minAreaM2": 40,
+    "propertyTypes": [
+      "빌라/연립",
+      "단독/다가구"
+    ],
+    "leaseType": "월세",
+    "maxResults": 20
+  },
+  "options": {
+    "timeoutMs": 12000,
+    "sampleCap": 20,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36"
+  }
+}

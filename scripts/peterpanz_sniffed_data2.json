@@ -1,0 +1,260 @@
+{
+  "apiHits": [
+    {
+      "url": "https://www.peterpanz.com/villa?zoomLevel=14&center=%7B%22y%22%3A37.6542%2C%22_lat%22%3A37.6542%2C%22x%22%3A127.0568%2C%22_lng%22%3A127.0568%7D&dong=&gungu=&filter=latitude%3A37.6200~37.6900%7C%7Clongitude%3A127.0200~127.1000%7C%7CcheckDeposit%3A0~60000000%7C%7CcheckMonth%3A0~800000%7C%7CcheckRealSize%3A40~999%7C%7CcontractType%3B%5B%22%EC%9B%94%EC%84%B8%22%5D%7C%7CroomType%3B%5B%22%ED%88%AC%EB%A3%B8%22%2C%22%EC%9B%90%EB%A3%B8%22%5D%7C%7CbuildingType%3B%5B%22%EB%B9%8C%EB%9D%BC%2F%EC%A3%BC%ED%83%9D%22%5D",
+      "status": 200,
+      "len": 105149,
+      "preview": "<!DOCTYPE html>\n<html lang=\"ko\">\n\n<head>\n\n    <script src=\"https://api.peterpanz.com/v5/marketing/identifier/collect.js?uidx=&identifier_id=\" async></script>\n<script defer src=\"https://securepubads.g.doubleclick.net/tag/js/gpt.js\"></script>\n<script defer>\n      window.googletag = window.googletag || {cmd: []};\n      window.googletag.cmd = window.googletag.cmd || [];\n</script>\n<title>피터팬의 좋은방 구하기</title><meta name=\"subject\"  content='빌라/주택'/><meta name=\"author\"  content='피터팬의 좋은방 구하기'/><meta name"
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2F&time=1771224099607",
+      "status": 200,
+      "len": 101,
+      "preview": "{\"result\":{\"callCount\":\"0\",\"callSize\":\"0\",\"apiQuota\":\"200000\",\"apiKeyInfo\":\"apiKey:map/webApiGroup\"}}"
+    },
+    {
+      "url": "https://wat.ad.daum.net/aac?d=roo_retargeting_id%3DSEHsOsc7RRhtQBSzU6ywgw00%26roo_tag_label%3DxkO9Hz5pSJmRq0EL7nE8RA%26doc_url%3Dhttps%253A%252F%252Fwww.peterpanz.com%252Fvilla%253FzoomLevel%253D14%2526center%253D%25257B%252522y%252522%25253A37.6542%25252C%252522_lat%252522%25253A37.6542%25252C%252522x%252522%25253A127.0568%25252C%252522_lng%252522%25253A127.0568%25257D%2526dong%253D%2526gungu%253D%2526filter%253Dlatitude%25253A37.6200~37.6900%25257C%25257Clongitude%25253A127.0200~127.1000%25257C%25257CcheckDeposit%25253A0~60000000%25257C%25257CcheckMonth%25253A0~800000%25257C%25257CcheckRealSize%25253A40~999%25257C%25257CcontractType%25253B%25255B%252522%2525EC%25259B%252594%2525EC%252584%2525B8%252522%25255D%25257C%25257CroomType%25253B%25255B%252522%2525ED%252588%2525AC%2525EB%2525A3%2525B8%252522%25252C%252522%2525EC%25259B%252590%2525EB%2525A3%2525B8%252522%25255D%25257C%25257CbuildingType%25253B%25255B%252522%2525EB%2525B9%25258C%2525EB%25259D%2525BC%25252F%2525EC%2525A3%2525BC%2525ED%252583%25259D%252522%25255D%26doc_charset%3DUTF-8%26doc_referer%3D%26jsver%3D1.0.4",
+      "status": 200,
+      "len": 43,
+      "preview": "GIF89a\u0001\u0000\u0001\u0000�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000!�\u0004\u0001\u0000\u0000\u0000\u0000,\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0000\u0002\u0002D\u0001\u0000;"
+    },
+    {
+      "url": "https://connect.facebook.net/signals/config/504144601324697?v=2.9.265&r=stable&domain=www.peterpanz.com&hme=8faeb0ed09c145bbd9d3213e762abac29e9f76b8e7a9df9d71a3058625e3b7dd&ex_m=96%2C187%2C136%2C21%2C68%2C69%2C129%2C64%2C43%2C130%2C73%2C63%2C10%2C143%2C82%2C15%2C95%2C124%2C117%2C71%2C74%2C123%2C140%2C104%2C145%2C7%2C3%2C4%2C6%2C5%2C2%2C83%2C93%2C146%2C151%2C201%2C57%2C167%2C168%2C50%2C238%2C28%2C70%2C213%2C212%2C211%2C30%2C56%2C9%2C59%2C89%2C90%2C91%2C97%2C120%2C29%2C27%2C122%2C119%2C118%2C137%2C72%2C139%2C138%2C45%2C55%2C113%2C14%2C142%2C40%2C226%2C227%2C225%2C24%2C25%2C26%2C17%2C19%2C39%2C35%2C37%2C36%2C78%2C84%2C88%2C102%2C128%2C131%2C41%2C103%2C22%2C20%2C109%2C65%2C33%2C133%2C132%2C134%2C125%2C23%2C32%2C54%2C101%2C141%2C66%2C16%2C135%2C106%2C77%2C62%2C18%2C31%2C249%2C194%2C181%2C182%2C180%2C252%2C244%2C195%2C99%2C121%2C76%2C111%2C49%2C42%2C44%2C105%2C110%2C116%2C53%2C60%2C115%2C48%2C51%2C47%2C92%2C144%2C0%2C114%2C13%2C112%2C11%2C1%2C52%2C85%2C58%2C61%2C108%2C81%2C80%2C147%2C148%2C86%2C87%2C8%2C94%2C46%2C126%2C79%2C75%2C67%2C107%2C98%2C38%2C127%2C34%2C100%2C12%2C149",
+      "status": 200,
+      "len": 168374,
+      "preview": "/**\n* Copyright (c) 2017-present, Facebook, Inc. All rights reserved.\n*\n* You are hereby granted a non-exclusive, worldwide, royalty-free license to use,\n* copy, modify, and distribute this software in source code or binary form for use\n* in connection with the web services and APIs provided by Facebook.\n*\n* As with any software that integrates with the Facebook platform, your use of\n* this software is subject to the Facebook Platform Policy\n* [http://developers.facebook.com/policy/]. This copyr"
+    },
+    {
+      "url": "https://oapi.map.naver.com/v3/auth?ncpKeyId=rumlayj5ar&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&time=1771224100107&callback=__naver_maps_callback__0",
+      "status": 200,
+      "len": 127,
+      "preview": "__naver_maps_callback__0({\"result\":{\"callCount\":\"0\",\"callSize\":\"0\",\"apiQuota\":\"200000\",\"apiKeyInfo\":\"apiKey:map/webApiGroup\"}})"
+    },
+    {
+      "url": "https://api.peterpanz.com/onboarding/images",
+      "status": 200,
+      "len": 257,
+      "preview": "[\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_01.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_02.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_03.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_04.png\"]"
+    },
+    {
+      "url": "https://api.peterpanz.com/brandPromotion/IconLists",
+      "status": 200,
+      "len": 37,
+      "preview": "{\"code\":200,\"success\":true,\"data\":[]}"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%2C%2522_lat%2522%253A37.6542%2C%2522x%2522%253A127.0568%2C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%2C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&rl=&if=false&ts=1771224100177&sw=1440&sh=900&v=2.9.265&r=stable&ec=0&o=4126&fbp=fb.1.1771224100174.946810835877475800&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1224.3999999761581&it=1771224099971&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im1&expv2[6]=hf1&rqm=GET",
+      "status": 200,
+      "len": 0,
+      "preview": ""
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "status": 200,
+      "len": 887,
+      "preview": "{\"result\":true,\"data\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"method\":\"geometry\",\"rate\":9,\"geometry\":{\"_id\":null,\"item_code\":\"11350105\",\"item_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_name\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"short_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_short_name\":\"\\uc11c\\uc6b8\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"location_type\":\"township\",\"state_code\":\"11\",\"district_code\":\"11350\",\"township_code\":\"11350105\""
+    },
+    {
+      "url": "https://www.facebook.com/privacy_sandbox/pixel/register/trigger/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%2C%2522_lat%2522%253A37.6542%2C%2522x%2522%253A127.0568%2C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%2C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&rl=&if=false&ts=1771224100177&sw=1440&sh=900&v=2.9.265&r=stable&ec=0&o=4126&fbp=fb.1.1771224100174.946810835877475800&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1224.3999999761581&it=1771224099971&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im1&expv2[6]=hf1&rqm=FGET",
+      "status": 200,
+      "len": 67,
+      "preview": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0001\b\u0004\u0000\u0000\u0000�\u001c\f\u0002\u0000\u0000\u0000\nIDATx�c\u0000\u0001\u0000\u0000\u0005\u0000\u0001\r\n-�\u0000\u0000\u0000\u0000IEND�B`�"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rl=&if=false&ts=1771224100632&sw=1440&sh=900&v=2.9.265&r=stable&ec=1&o=4126&fbp=fb.1.1771224100174.946810835877475800&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1224.3999999761581&it=1771224100631&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im1&expv2[6]=hf1&rqm=GET",
+      "status": 200,
+      "len": 0,
+      "preview": ""
+    },
+    {
+      "url": "https://www.facebook.com/privacy_sandbox/pixel/register/trigger/?id=504144601324697&ev=PageView&dl=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rl=&if=false&ts=1771224100632&sw=1440&sh=900&v=2.9.265&r=stable&ec=1&o=4126&fbp=fb.1.1771224100174.946810835877475800&cs_est=true&ler=empty&cdl=API_unavailable&pmd[title]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%20%EA%B5%AC%ED%95%98%EA%B8%B0&pmd[description]=%EB%B9%8C%EB%9D%BC%EB%A7%A4%EB%A7%A4%2C%20%EC%A0%84%EC%84%B8%2C%20%EC%9B%94%EC%84%B8%20%EB%A7%A4%EB%AC%BC%EC%A0%95%EB%B3%B4%20%ED%99%95%EC%9D%B8%EA%B3%BC%20%EC%A0%84%EC%84%B8%EC%9E%90%EA%B8%88%EB%8C%80%EC%B6%9C%2C%20%EB%B0%98%EB%A0%A4%EB%8F%99%EB%AC%BC%2C%20%EC%A7%81%EA%B1%B0%EB%9E%98%20%ED%95%84%ED%84%B0%EB%A1%9C%20%EC%9B%90%ED%95%98%EB%8A%94%20%EB%A7%A4%EB%AC%BC%20%EC%B0%BE%EA%B8%B0!&pmd[keywords]=%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%20%EC%A2%8B%EC%9D%80%EB%B0%A9%EA%B5%AC%ED%95%98%EA%B8%B0%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%2C%20%EB%B6%80%EB%8F%99%EC%82%B0%2C%20real%2C%20estate%2C%20%ED%94%BC%ED%84%B0%ED%8C%AC%EC%9D%98%2C%20%EC%A2%8B%EC%9D%80%2C%20%EB%B0%A9%2C%20%EA%B5%AC%ED%95%98%EA%B8%B0&plt=1224.3999999761581&it=1771224100631&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im1&expv2[6]=hf1&rqm=FGET",
+      "status": 200,
+      "len": 67,
+      "preview": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0001\b\u0004\u0000\u0000\u0000�\u001c\f\u0002\u0000\u0000\u0000\nIDATx�c\u0000\u0001\u0000\u0000\u0005\u0000\u0001\r\n-�\u0000\u0000\u0000\u0000IEND�B`�"
+    },
+    {
+      "url": "https://cm.g.doubleclick.net/partnerpixels?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26",
+      "status": 200,
+      "len": 41,
+      "preview": "<!DOCTYPE html><html><body></body></html>"
+    },
+    {
+      "url": "https://gum.criteo.com/syncframe?origin=publishertagids&topUrl=www.peterpanz.com",
+      "status": 200,
+      "len": 12662,
+      "preview": "<!DOCTYPE html>\n<html>\n<head>\n    <script type=\"text/javascript\">\n        window.CONFIG_CSM_DOMAIN_NAME = \"client-side-metrics.jp2.as.criteo.net\";\n        window.CONFIG_CSM_RATIO = 10;\n        window.GUM_DOMAIN = \"gum.criteo.com\";\n    </script>\n    <script type=\"text/javascript\">\n        !function(){\"use strict\";var r=function(t,n){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,n){t.__proto__=n}||function(t,n){for(var i in n)n.hasOwnProperty(i)&&(t[i]=n[i])})(t,n)};fu"
+    },
+    {
+      "url": "https://gum.criteo.com/sid/json?origin=publishertagids&domain=peterpanz.com&sn=ChromeSyncframe&so=0&topUrl=www.peterpanz.com",
+      "status": 200,
+      "len": 435,
+      "preview": "{\"sid\":null,\"removeSid\":false,\"bundle\":\"ydvLAV9tNVUxZkNWMVpmRXpkZWVTNmtmb2xMdDh6eWRFaEJudiUyQmVpZzhMQzlKZGkwb2ozS28lMkJ5dUxiVVE2MTVVUmJKb3ZHbHZaaWNYJTJCUHZvZFRJakFONmlTWGpqVmF4UFFKSEhya1hyYUVCWE82VWglMkZiTlFiMmp0MiUyQmMzZ01xZk5uUW5pSFBwdkhuNE5sQ2w5NTY0UVdBRTN3JTNEJTNE\",\"info\":\"yf-B_19tNVUxZkNWMVpmRXpkZWVTNmtmb2xMdDh6eWRFaEJudiUyQmVpZzhMQzlKZGkwb2ozS28lMkJ5dUxiVVE2MTVVUmJKb1UlMkJXcyUyQldWcFlSeWNFVzRLOVZ0UVBRJTNEJTNE\",\"optout\":false}"
+    },
+    {
+      "url": "https://oajs.openx.net/esp?url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&rid=esp&cc=1",
+      "status": 200,
+      "len": 85,
+      "preview": "{\"esp\":\"eyJpIjoiNEFQQkxYTFdUUmlxZkdycFprZ3pvdz09In0=\",\"i\":\"4APBLXLWTRiqfGrpZkgzow==\"}"
+    },
+    {
+      "url": "https://securepubads.g.doubleclick.net/gampad/ads?pvsid=6685374869777637&correlator=2628197880675475&eid=31096386%2C31096593%2C95379659&output=ldjh&gdfp_req=1&vrg=202602100101&ptt=17&impl=fifs&iu_parts=22996174068%3A23013824946%2Cca-pub-2917775418894286-tag%2Cpeterpanz_PC_home_popup_300x250&enc_prev_ius=%2F0%2F1%2F2&prev_iu_szs=300x250&ifi=1&didk=124518353&dids=div-gpt-ad-202507151715502-178&adfs=873778310&sfv=1-0-45&eri=4&sc=1&cookie_enabled=1&cdm=www.peterpanz.com&abxe=1&dt=1771224100887&adxs=570&adys=426&biw=1440&bih=900&scr_x=0&scr_y=0&btvi=0&ucis=1&oid=2&u_his=2&u_h=900&u_w=1440&u_ah=900&u_aw=1440&u_cd=24&u_sd=1&u_tz=540&dmc=8&bc=31&nvt=1&uach=WyJNYWMgT1MgWCIsIjEwXzE1XzciLCJ4ODYiLCIiLCIxNDUuMC43NjMyLjYiLG51bGwsMCxudWxsLCI2NCIsW1siTm90OkEtQnJhbmQiLCI5OS4wLjAuMCJdLFsiSGVhZGxlc3NDaHJvbWUiLCIxNDUuMC43NjMyLjYiXSxbIkNocm9taXVtIiwiMTQ1LjAuNzYzMi42Il1dLDBd&url=www.peterpanz.com&loc=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%3A37.6542%2C%2522_lat%2522%3A37.6542%2C%2522x%2522%3A127.0568%2C%2522_lng%2522%3A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%3A37.6281014~37.6802894%257C%257Clongitude%3A127.0430671~127.1185981%26&vis=1&psz=336x-1&msz=336x-1&fws=516&ohw=336&a3p=EhwKDWNyd2RjbnRybC5uZXQYkuC7qcYzSABSAghkEh0KDmVzcC5jcml0ZW8uY29tGJLgu6nGM0gAUgIIZBIUCgVvcGVueBiS4LupxjNIAFICCGQSFwoIcnRiaG91c2UYkuC7qcYzSABSAghk&psd=WzMxLFtdXQ..&dlt=1771224099271&idt=1568&prev_scp=refresh%3Dtrue&adks=2100273875&frm=20&eoidce=1&pgls=CAk.~CAs.",
+      "status": 200,
+      "len": 86174,
+      "preview": "{\"/22996174068/ca-pub-2917775418894286-tag/peterpanz_PC_home_popup_300x250\":[\"html\",0,null,null,0,250,300,0,1,null,null,null,1,[[\"ID=87915f594bd0d043:T=1771224100:RT=1771224100:S=ALNI_MYNnlPu7f-y1J_K_cJ8imRbc88WbQ\",1804920100,\"/\",\"peterpanz.com\",1],[\"UID=00001201b99464de:T=1771224100:RT=1771224100:S=ALNI_MaX0cU0n9YyrCvGhy3rIPafsr2gZA\",1804920100,\"/\",\"peterpanz.com\",2]],[138453137681],[6411015491],[5363344072],[3266949025],[596310,628845,663191,670531,705825,781367],null,null,null,null,null,null,"
+    },
+    {
+      "url": "https://api.peterpanz.com/houses?filter=latitude:37.6200~37.6900||longitude:127.0200~127.1000||checkDeposit:0~60000000||checkMonth:0~800000||contractType;[%22%EC%9B%94%EC%84%B8%22]&page=1&limit=20",
+      "status": 400,
+      "len": 41,
+      "preview": "{\"errors\":\"Sorry, something went wrong.\"}"
+    },
+    {
+      "url": "https://api.peterpanz.com/search/houses?filter=latitude:37.6200~37.6900||longitude:127.0200~127.1000&page=1",
+      "status": 200,
+      "len": 757,
+      "preview": "{\"dong\":{\"aggregate\":null,\"columns\":null,\"distinct\":false,\"from\":\"TB_DONG_LIST\",\"joins\":null,\"wheres\":[{\"type\":\"Basic\",\"column\":\"dong\",\"operator\":\"like\",\"value\":\"houses%\",\"boolean\":\"and\"}],\"groups\":null,\"havings\":null,\"orders\":[{\"column\":\"dong_idx\",\"direction\":\"asc\"}],\"limit\":20,\"offset\":null,\"unions\":null,\"unionLimit\":null,\"unionOffset\":null,\"unionOrders\":null,\"lock\":null},\"subway\":{\"aggregate\":null,\"columns\":null,\"distinct\":false,\"from\":\"TB_SUBWAY\",\"joins\":null,\"wheres\":[{\"type\":\"Basic\",\"colum"
+    },
+    {
+      "url": "https://api.peterpanz.com/villa/list?latitude1=37.6200&latitude2=37.6900&longitude1=127.0200&longitude2=127.1000&page=1",
+      "status": 404,
+      "len": 41,
+      "preview": "{\"errors\":\"Sorry, something went wrong.\"}"
+    }
+  ],
+  "domInfo": {
+    "[class*=list] a": {
+      "count": 5,
+      "samples": [
+        {
+          "tag": "A",
+          "href": "https://www.peterpanz.com/use_of_terms",
+          "text": "",
+          "className": "",
+          "dataId": null
+        },
+        {
+          "tag": "A",
+          "href": "https://www.peterpanz.com/privacy/personal-information",
+          "text": "",
+          "className": "",
+          "dataId": null
+        },
+        {
+          "tag": "A",
+          "href": "https://www.peterpanz.com/privacy/personal-information-third-party",
+          "text": "",
+          "className": "",
+          "dataId": null
+        }
+      ]
+    },
+    "[class*=item]": {
+      "count": 5,
+      "samples": [
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "거래방식   융자금   전용면적   층수   옵션",
+          "className": "left-side item",
+          "dataId": null
+        },
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "",
+          "className": "carousel-item",
+          "dataId": null
+        },
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "",
+          "className": "carousel-item",
+          "dataId": null
+        }
+      ]
+    },
+    "[class*=marker]": {
+      "count": 4,
+      "samples": [
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "대표평형 실거래가",
+          "className": "o-markerFilter",
+          "dataId": null
+        },
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "대표평형 실거래가",
+          "className": "m-marker",
+          "dataId": null
+        },
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "대표평형",
+          "className": "m-marker__top",
+          "dataId": null
+        }
+      ]
+    },
+    "[class*=pin]": {
+      "count": 2,
+      "samples": [
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "",
+          "className": "ani-one pink pic7  active",
+          "dataId": null
+        },
+        {
+          "tag": "DIV",
+          "href": null,
+          "text": "",
+          "className": "ani-one pink pic8  active",
+          "dataId": null
+        }
+      ]
+    }
+  },
+  "windowData": {
+    "__ANALYTICS_TOOL__": "{\"key\":\"f0101bc352729a271222038a04d31d9e\",\"EventNames\":{\"FIRST_APP_OPEN\":\"first_app_open\",\"AUTH_LOGIN_SIGNUP_CLICK\":\"auth_login_signup_click\",\"AUTH_METHOD_SELECT_CLICK\":\"auth_method_select_click\",\"AUTH_SIGNUP_COMPLETE\":\"auth_signup_complete\",\"AUTH_LOGIN_COMPLETE\":\"auth_login_complete\",\"AUTH_LOGOUT_COMPLETE\":\"auth_logout_complete\",\"AGENT_SIGNUP_START_CLICK\":\"agent_signup_start_click\",\"AGENT_SIGNUP_TERMS_AGREE_NEXT_CLICK\":\"agent_signup_terms_agree_next_click\",\"AGENT_SIGNUP_INFO_STEP1_NEXT_CLICK\":\"agent_signup_info_step1_next_click\",\"AGENT_SIGNUP_INFO_STEP2_NEXT_CLICK\":\"agent_signup_info_step2_next_click\",\"AGENT_SIGNUP_SUBMIT_CLICK\":\"agent_signup_submit_click\",\"AGENT_SIGNUP_COMPLETE\":\"agent_signup_complete\",\"AGENT_PREMIUM_UPDATE_COMPLETE\":\"agent_premium_update_complete\",\"AGENT_SIGNUP_POPUP_VIEW\":\"agent_signup_popup_view\",\"HOME_VIEW\":\"home_view\",\"HOME_CARD_CLICK\":\"home_card_click\",\"HOME_ICON_CLICK\":\"home_icon_click\",\"HOME_HOUSE_FINDER_CLICK\":\"home_house_finder_click\",\"HOME_HOUSE_REGISTER_C"
+  },
+  "directApiResult": [
+    {
+      "label": "houses",
+      "status": 400,
+      "len": 41,
+      "preview": "{\"errors\":\"Sorry, something went wrong.\"}"
+    },
+    {
+      "label": "search/houses",
+      "status": 200,
+      "len": 757,
+      "preview": "{\"dong\":{\"aggregate\":null,\"columns\":null,\"distinct\":false,\"from\":\"TB_DONG_LIST\",\"joins\":null,\"wheres\":[{\"type\":\"Basic\",\"column\":\"dong\",\"operator\":\"like\",\"value\":\"houses%\",\"boolean\":\"and\"}],\"groups\":null,\"havings\":null,\"orders\":[{\"column\":\"dong_idx\",\"direction\":\"asc\"}],\"limit\":20,\"offset\":null,\"unions\":null,\"unionLimit\":null,\"unionOffset\":null,\"unionOrders\":null,\"lock\":null},\"subway\":{\"aggregate\":null,\"columns\":null,\"distinct\":false,\"from\":\"TB_SUBWAY\",\"joins\":null,\"wheres\":[{\"type\":\"Basic\",\"column\":\"station\",\"operator\":\"like\",\"value\":\"houses%\",\"boolean\":\"and\"}],\"groups\":null,\"havings\":null,\"orders\":[{\"column\":\"subway_idx\",\"direction\":\"asc\"}],\"limit\":20,\"offset\":null,\"unions\":null,\"unionLimit\":null,\"unionOffset\":null,\"unionOrders\":null,\"lock\":null}}"
+    },
+    {
+      "label": "villa/list",
+      "status": 404,
+      "len": 41,
+      "preview": "{\"errors\":\"Sorry, something went wrong.\"}"
+    }
+  ],
+  "scriptDataResult": [
+    {
+      "id": null,
+      "type": null,
+      "len": 17228,
+      "preview": "\n\tconst routes = [\n    { regex: /^\\/$/, id: 'PAGE_MAP' },\n    { regex: /^\\/apt$/, id: 'PAGE_MAP' },\n    { regex: /^\\/villa$/, id: 'PAGE_MAP' },\n    { regex: /^\\/officetel$/, id: 'PAGE_MAP' },\n    { regex: /^\\/store$/, id: 'PAGE_MAP' },\n    { regex: /^\\/house\\/\\d+$/, id: 'PAGE_HOUSE_DETAIL' },\n    { regex: /^\\/sendbird\\/v1\\/chat\\/\\d+$/, id: 'PAGE_CHAT' },\n    { regex: /^\\/sendbird\\/v1\\/chat\\/\\d+\\?m\\=widget&hidx\\=\\d+$/, id: 'PAGE_CHAT' },\n    { regex: /^\\/sendbird\\/v1\\/chat\\/\\d+\\/report$/, id: 'PAGE_REPORT_DIRECT_HOUSE' },\n    { regex: /^\\/signup$/, id: 'PAGE_SIGNUP_AGENT' },\n    { regex: /^\\/profile$/, id: 'PAGE_MANAGE_PROFILE' },\n    { regex: /^\\/register_house$/, id: 'PAGE_HOUSE_REGISTER' }, // 개인\n    { regex: /^\\/agency\\/register_house$/, id: 'PAGE_HOUSE_REGISTER' }, // 중개\n    { regex: /^\\/agency\\/select_product\\/\\d+$/, id: 'PAGE_HOUSE_SEND' },\n    {\n      regex: /^\\/agency\\/info\\/\\d+$/,\n      id: 'PAGE_AGENT_INFO',\n    },\n    { regex: /^\\/manage_house\\/\\w+$/, id: 'PAGE_HOUSE_MANAGE' },\n    { regex: /^\\/agency\\/register_ad\\/\\d+$/, id: 'PAGE_HOUSE_SEND_RESULT' },\n    { regex: /^\\/agency\\/detail_ad\\/\\d+$/, id: 'isDetailAd' },\n    { regex: /^\\/rooms\\/favorite$/, id: 'PAGE_HOUSE_FAVORITE_LIST' },\n    { regex: /^\\/rooms\\/contact$/, id: 'PAGE_HOUSE_ASK_LIST' },\n    { regex: /^\\/rooms\\/recent$/, id: 'PAGE_HOUSE_RECENT_LIST' },\n    { regex: /^\\/zero_membership$/, id: 'PAGE_Z_MEMBER' },\n    { regex: /^\\/notice$/, id: 'PAGE_NOTICE' },\n    { regex: /^\\/news$/, id: 'PAGE_NEWS' },\n    { regex: /^\\/faq$/, id: 'PAGE_FAQ' },\n    { regex: /^\\/use_of_terms$/, id: 'PAGE_USE_TERMS' },\n    { regex: /^\\/privacy$/, id: 'PAGE_PRIVACY' },\n    { regex: /^\\/location_terms$/, id: 'PAGE_LOCATION_TERMS' },\n    { regex: /^\\/house_sale_terms$/, id: 'PAGE_HOUSE_SALE_TERMS' },\n    { regex: /^\\/remobile$/, id: 'PAGE_HOME' },\n    { regex: /^\\/remobile\\/map$/, id: 'PAGE_MAP' },\n    { regex: /^\\/remobile\\/villa$/, id: 'PAGE_MAP' },\n    { regex: /^\\/remobile\\/officetel$/, id: 'PAGE_MAP' },\n    { regex:"
+    },
+    {
+      "id": null,
+      "type": null,
+      "len": 305,
+      "preview": "\n        window.__SERVER_DATA__ = window.__SERVER_DATA__ || {};\n\n        // 피터팬 첫 접속자가 네이버 지도를 실행할때 표시할 기본 값\n        window.__SERVER_DATA__.map = {\n            latitude: 37.566628,\n            longitude: 126.978038,\n            zoom : 12\n        }\n\n        window.__SERVER_DATA__.agency_version = '';\n    "
+    }
+  ]
+}

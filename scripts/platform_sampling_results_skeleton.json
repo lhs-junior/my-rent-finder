@@ -1,0 +1,30 @@
+{
+  "runMeta": {
+    "runId": "sampling_2026-02-15",
+    "createdAt": "2026-02-15T00:00:00.000Z",
+    "owner": "my-rent-finder"
+  },
+  "thresholds": {
+    "requiredFieldsRate": 0.85,
+    "violationRate": 0.08,
+    "parseFailRate": 0.08,
+    "imageValidRate": 0.90
+  },
+  "platforms": [
+    {
+      "name": "직방",
+      "mode": "UI_ONLY",
+      "samples": []
+    },
+    {
+      "name": "다방",
+      "mode": "USER_ONLY",
+      "samples": []
+    },
+    {
+      "name": "네이버 부동산",
+      "mode": "USER_ONLY",
+      "samples": []
+    }
+  ]
+}

@@ -1,0 +1,455 @@
+{
+  "run_id": "matcher_demo_2026_0215",
+  "generated_at": "2026-02-15T16:27:37.722Z",
+  "rules_snapshot": {
+    "weights": {
+      "address": 0.3,
+      "distance": 0.2,
+      "area": 0.25,
+      "price": 0.15,
+      "attribute": 0.1
+    },
+    "threshold": {
+      "autoMatch": 93,
+      "reviewRequiredMin": 80,
+      "conflictPenalty": 6
+    },
+    "area": {
+      "exclusiveRelativeTolerance": 0.06,
+      "grossToExclusiveMinRatio": 1.05,
+      "grossToExclusiveMaxRatio": 1.35,
+      "rangeOverlapMinRate": 0.1
+    },
+    "price": {
+      "rentTolerance": 0.08,
+      "depositTolerance": 0.12
+    },
+    "distance": {
+      "high": 20,
+      "medium": 80,
+      "low": 500
+    }
+  },
+  "input_summary": {
+    "count": 5,
+    "candidate_pairs": 10,
+    "auto_match": 1,
+    "review_required": 1,
+    "distinct": 8,
+    "merged_groups": 1
+  },
+  "pairs": [
+    {
+      "source_listing_id": "n1",
+      "target_listing_id": "n3",
+      "source_index": 0,
+      "target_index": 2,
+      "score": 60,
+      "status": "DISTINCT",
+      "distance_score": 71,
+      "address_score": 100,
+      "area_score": 17,
+      "price_score": 27,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 71,
+          "detail": "dist:257m"
+        },
+        "area": {
+          "score": 17,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 27,
+          "detail": "rent:30 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n1",
+      "target_listing_id": "n2",
+      "source_index": 0,
+      "target_index": 1,
+      "score": 82,
+      "status": "REVIEW_REQUIRED",
+      "distance_score": 100,
+      "address_score": 100,
+      "area_score": 35,
+      "price_score": 87,
+      "attribute_score": 100,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 100,
+          "detail": "dist:14m"
+        },
+        "area": {
+          "score": 35,
+          "detail": "no clear area rule match"
+        },
+        "price": {
+          "score": 87,
+          "detail": "rent:85 dep:90"
+        },
+        "attribute": {
+          "score": 100,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": true
+        }
+      }
+    },
+    {
+      "source_listing_id": "n1",
+      "target_listing_id": "n4",
+      "source_index": 0,
+      "target_index": 3,
+      "score": 45,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 16,
+      "price_score": 27,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1488m"
+        },
+        "area": {
+          "score": 16,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 27,
+          "detail": "rent:30 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n1",
+      "target_listing_id": "n5",
+      "source_index": 0,
+      "target_index": 4,
+      "score": 45,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 16,
+      "price_score": 29,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1482m"
+        },
+        "area": {
+          "score": 16,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 29,
+          "detail": "rent:33 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n2",
+      "target_listing_id": "n3",
+      "source_index": 1,
+      "target_index": 2,
+      "score": 64,
+      "status": "DISTINCT",
+      "distance_score": 73,
+      "address_score": 100,
+      "area_score": 35,
+      "price_score": 27,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 73,
+          "detail": "dist:243m"
+        },
+        "area": {
+          "score": 35,
+          "detail": "no clear area rule match"
+        },
+        "price": {
+          "score": 27,
+          "detail": "rent:30 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n2",
+      "target_listing_id": "n4",
+      "source_index": 1,
+      "target_index": 3,
+      "score": 50,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 35,
+      "price_score": 27,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1482m"
+        },
+        "area": {
+          "score": 35,
+          "detail": "no clear area rule match"
+        },
+        "price": {
+          "score": 27,
+          "detail": "rent:30 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n2",
+      "target_listing_id": "n5",
+      "source_index": 1,
+      "target_index": 4,
+      "score": 50,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 35,
+      "price_score": 27,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1475m"
+        },
+        "area": {
+          "score": 35,
+          "detail": "no clear area rule match"
+        },
+        "price": {
+          "score": 27,
+          "detail": "rent:30 dep:20"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n3",
+      "target_listing_id": "n4",
+      "source_index": 2,
+      "target_index": 3,
+      "score": 49,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 17,
+      "price_score": 51,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1427m"
+        },
+        "area": {
+          "score": 17,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 51,
+          "detail": "rent:30 dep:100"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n3",
+      "target_listing_id": "n5",
+      "source_index": 2,
+      "target_index": 4,
+      "score": 48,
+      "status": "DISTINCT",
+      "distance_score": 0,
+      "address_score": 100,
+      "area_score": 18,
+      "price_score": 46,
+      "attribute_score": 70,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 0,
+          "detail": "dist:1423m"
+        },
+        "area": {
+          "score": 18,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 46,
+          "detail": "rent:30 dep:83"
+        },
+        "attribute": {
+          "score": 70,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": false
+        }
+      }
+    },
+    {
+      "source_listing_id": "n4",
+      "target_listing_id": "n5",
+      "source_index": 3,
+      "target_index": 4,
+      "score": 98,
+      "status": "AUTO_MATCH",
+      "distance_score": 100,
+      "address_score": 100,
+      "area_score": 100,
+      "price_score": 89,
+      "attribute_score": 100,
+      "reason_json": {
+        "address": {
+          "score": 100,
+          "detail": "address_code exact"
+        },
+        "distance": {
+          "score": 100,
+          "detail": "dist:14m"
+        },
+        "area": {
+          "score": 100,
+          "detail": "exclusive vs exclusive"
+        },
+        "price": {
+          "score": 89,
+          "detail": "rent:91 dep:83"
+        },
+        "attribute": {
+          "score": 100,
+          "detail": "room/floor/lease"
+        },
+        "samePlatformExternal": false,
+        "bucket": {
+          "areaBucketMatch": false,
+          "priceBucketMatch": true
+        }
+      }
+    }
+  ],
+  "match_groups": [
+    {
+      "group_id": "g_1",
+      "canonical_key": "cg_3",
+      "members": [
+        "n4",
+        "n5"
+      ],
+      "member_count": 2,
+      "reason": "auto_match_cluster"
+    }
+  ]
+}

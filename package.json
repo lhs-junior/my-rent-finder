@@ -1,0 +1,44 @@
+{
+  "name": "my-rent-finder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "collect:parallel": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100",
+    "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
+    "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
+    "db:init": "node scripts/db_bootstrap.mjs",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down -v",
+    "db:logs": "docker compose logs -f postgres",
+    "db:wait": "node scripts/wait_db_ready.mjs",
+    "ops:dashboard:build": "node scripts/build_operations_payload.mjs",
+    "ops:dashboard:build:db": "node scripts/build_operations_payload.mjs --persist-to-db --persist-matches",
+    "ops:full": "node scripts/run_ops_pipeline.mjs --serve",
+    "ops:full:stack": "npm run db:up && npm run db:wait -- --timeout-ms=120000 && npm run ops:full -- --serve --host=127.0.0.1 --port=4100",
+    "api:server": "node scripts/api_server.mjs --host=127.0.0.1 --port=4100 --front-dir=frontend/dist",
+    "start": "npm run front:build && npm run api:server",
+    "front:dev": "cd frontend && vite",
+    "front:build": "cd frontend && vite build",
+    "front:preview": "cd frontend && vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.58.2",
+    "playwright-extra": "^4.3.6",
+    "pg": "^8.16.0",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.2",
+    "vite": "^5.4.14"
+  }
+}

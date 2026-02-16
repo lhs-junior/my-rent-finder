@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rent Finder 매물 검색(legacy)</title>
+    <style>
+      :root {
+        --bg: #f4f7ff;
+        --panel: #ffffff;
+        --line: rgba(15, 36, 78, 0.12);
+        --text: #16254f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Pretendard", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 24px 12px;
+      }
+      .box {
+        width: min(680px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      a, button {
+        border: 1px solid #bfd0ff;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        text-decoration: none;
+      }
+      a { color: #1847d8; background: #eef4ff; }
+      .primary { background: #1f57f0; color: #fff; border-color: transparent; }
+      .muted { color: #64759d; font-size: 0.93rem; }
+      .error { color: #bd2525; font-size: 0.92rem; margin-top: 10px; }
+      code { word-break: break-all; }
+    </style>
+  </head>
+  <body>
+    <section class="box">
+      <h1>Rent Finder 매물 검색 (Legacy entry)</h1>
+      <p class="muted">
+        이 파일은 오래된 HTML 앱을 대체한 React 진입점입니다.
+        실제 화면은 <strong>DB → API → Frontend</strong> 경로로 동작합니다.
+      </p>
+      <div class="buttons">
+        <a id="go-listings" class="primary" href="/?view=listings">매물 검색 화면 열기</a>
+        <a id="go-dashboard" href="/?view=ops">운영 대시보드</a>
+        <a id="go-matches" href="/?view=matches">매칭 후보 / 중복 탐색</a>
+      </div>
+      <p class="muted" id="status-line" style="margin-top: 12px;">API 서버 주소: <code>http://127.0.0.1:4100</code></p>
+      <p class="error" id="note-line" style="display:none;"></p>
+    </section>
+
+    <script>
+      (() => {
+        const fallback = "127.0.0.1:4100";
+        const isServed = window.location.protocol === "http:" || window.location.protocol === "https:";
+        if (isServed) {
+          const target = new URL("/?view=listings", window.location.href);
+          window.location.replace(target.href);
+          return;
+        }
+        const lines = [
+          "현재 파일을 로컬(file://)에서 열면 API 서버가 자동 연결되지 않습니다.",
+          `npm run api:server`,
+          "실행 후 브라우저에서 http://127.0.0.1:4100/?view=listings 로 접속해 주세요.",
+        ];
+        const noteLine = document.getElementById("note-line");
+        noteLine.textContent = lines.join(" ");
+        noteLine.style.display = "block";
+
+        const apiUrl = document.getElementById("status-line");
+        if (apiUrl) apiUrl.textContent = `API 서버 주소: ${fallback}`;
+      })();
+    </script>
+  </body>
+</html>

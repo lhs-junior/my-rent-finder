@@ -1,0 +1,78 @@
+{
+  "runId": "naver_1771218554057",
+  "success": true,
+  "dataQuality": {
+    "grade": "GOOD",
+    "apiSuccess": false,
+    "apiListings": 0,
+    "clickedListings": 0,
+    "capturedArticleResponses": 5,
+    "capturedArticleItems": 60,
+    "totalArticles": 60,
+    "capturedResponses": 61
+  },
+  "sigungu": "노원구",
+  "cortarNo": "1135000000",
+  "sampleCap": 5,
+  "filters": {
+    "tradeType": "B2",
+    "rentMax": 80,
+    "priceMax": 6000,
+    "areaMin": 40,
+    "realEstateType": "DDDGG:JWJT:SGJT:VL:YR:DSD",
+    "order": "rank"
+  },
+  "requestSource": {
+    "directRegionUrl": "https://new.land.naver.com/houses?cortarNo=1135000000&realEstateType=DDDGG%3AJWJT%3ASGJT%3AVL%3AYR%3ADSD&tradeType=B2&rentPriceMin=0&rentPriceMax=80&priceMin=0&priceMax=6000&areaMin=40",
+    "filterProbe": false,
+    "filterProbeOnly": false,
+    "filterProbeDelayMs": 900
+  },
+  "regionState": {
+    "lat": 37.654286,
+    "lon": 127.056411,
+    "zoom": 18,
+    "realEstateType": "DDDGG:JWJT:SGJT:VL",
+    "priceType": "RETAIL"
+  },
+  "apiCollect": {
+    "collectedPages": 0,
+    "totalListings": 0,
+    "success": false,
+    "requestLog": [
+      {
+        "page": 1,
+        "requestUrl": "https://new.land.naver.com/api/articles?cortarNo=1135000000&order=rank&realEstateType=DDDGG%3AJWJT%3ASGJT%3AVL%3AYR%3ADSD&tradeType=B2&tag=%3A%3A%3A%3A%3A%3A%3A%3A&rentPriceMin=0&rentPriceMax=80&priceMin=0&priceMax=6000&areaMin=40&areaMax=900000000&oldBuildYears=&recentlyBuildYears=&minHouseHoldCount=&maxHouseHoldCount=&showArticle=false&sameAddressGroup=false&minMaintenanceCost=&maxMaintenanceCost=&priceType=RETAIL&directions=&page=1&articleState=&zoom=18",
+        "status": 401,
+        "mismatch": {
+          "tradeType": false,
+          "rentPriceMax": false,
+          "priceMax": false,
+          "areaMin": false,
+          "realEstateType": false
+        },
+        "isMismatch": false,
+        "responsePayloadError": true,
+        "responseError": "unauthorized user"
+      }
+    ],
+    "filters": {
+      "tradeType": "B2",
+      "rentMax": 80,
+      "priceMax": 6000,
+      "areaMin": 40,
+      "realEstateType": "DDDGG:JWJT:SGJT:VL:YR:DSD",
+      "order": "rank"
+    },
+    "stateSnapshot": {
+      "rawEstateType": "DDDGG:JWJT:SGJT:VL",
+      "priceType": "RETAIL",
+      "zoom": 18,
+      "ms": "37.654286,127.056411,18"
+    }
+  },
+  "responsesCapture": 61,
+  "clickedListings": 0,
+  "timestamp": "2026-02-16T05:09:14.057Z",
+  "durationMs": 51061
+}

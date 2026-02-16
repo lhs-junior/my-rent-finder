@@ -1,0 +1,1144 @@
+{
+  "platform_code": "peterpanz",
+  "platform_name": "피터팬",
+  "collection_mode": "STEALTH_AUTOMATION",
+  "runAt": "2026-02-16T07:21:57.360Z",
+  "input": "scripts/peterpanz_raw_samples.jsonl",
+  "options": {
+    "maxItems": 20
+  },
+  "metadata": {
+    "platform_code": "peterpanz",
+    "platform_name": "피터팬",
+    "collection_mode": "STEALTH_AUTOMATION",
+    "source_file": "scripts/peterpanz_raw_samples.jsonl",
+    "raw_records": 5,
+    "parsed_raw_records": 5,
+    "parse_failure": 0,
+    "unmapped_records": 0,
+    "normalized_records": 5,
+    "generated_at": "2026-02-16T07:21:57.359Z",
+    "durationMs": 3,
+    "thresholds": {
+      "requiredFieldsRate": 0.85,
+      "imageValidRate": 0.9,
+      "imagePresenceRate": 0.9
+    }
+  },
+  "stats": {
+    "rawRecords": 5,
+    "parsedRawRecords": 5,
+    "parseFailure": 0,
+    "unmappedRecords": 0,
+    "normalizedItems": 5,
+    "requiredFieldsRate": 1,
+    "addressRate": 1,
+    "imageRate": 1,
+    "imagePresenceRate": 1,
+    "priceRate": 1,
+    "areaRate": 1,
+    "violationCodeCounts": {},
+    "errorCounts": {},
+    "durationMs": 3
+  },
+  "samples": [
+    {
+      "parse_status": "ok",
+      "source_ref": "18878661",
+      "address": true,
+      "has_price": true,
+      "has_area": true,
+      "image_count": 9,
+      "validation_count": 0
+    },
+    {
+      "parse_status": "ok",
+      "source_ref": "18885645",
+      "address": true,
+      "has_price": true,
+      "has_area": true,
+      "image_count": 11,
+      "validation_count": 0
+    },
+    {
+      "parse_status": "ok",
+      "source_ref": "18848669",
+      "address": true,
+      "has_price": true,
+      "has_area": true,
+      "image_count": 10,
+      "validation_count": 0
+    },
+    {
+      "parse_status": "ok",
+      "source_ref": "18888826",
+      "address": true,
+      "has_price": true,
+      "has_area": true,
+      "image_count": 11,
+      "validation_count": 0
+    },
+    {
+      "parse_status": "ok",
+      "source_ref": "18856594",
+      "address": true,
+      "has_price": true,
+      "has_area": true,
+      "image_count": 6,
+      "validation_count": 0
+    }
+  ],
+  "items": [
+    {
+      "platform_code": "peterpanz",
+      "source_ref": "18878661",
+      "source_url": "https://www.peterpanz.com/house/18878661",
+      "title": "초저가 투룸!ㅣ 도배예정ㅣ에어컨2대 옷장 풀옵션 투룸",
+      "address_text": "서울특별시 광진구 중곡동",
+      "lease_type": "월세",
+      "rent_amount": 40,
+      "deposit_amount": 3000,
+      "maintenance_cost": 0,
+      "area_exclusive_m2": 40.6,
+      "area_gross_m2": 40.6,
+      "floor": -1,
+      "total_floor": 2,
+      "room_count": 2,
+      "room_type": "투룸",
+      "building_type": "빌라",
+      "latitude": 37.5583817,
+      "longitude": 127.0921055,
+      "image_urls": [
+        "https://img.peterpanz.com/photo/20260212/18878661/698d405f6b37d_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d406011cb5_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d4060a157c_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d40614a174_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d4061dcc20_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d40627919a_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d40630cada_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d40639c34d_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260212/18878661/698d4064260fb_thumb.jpg"
+      ],
+      "collected_at": "2026-02-16T07:21:40.901Z",
+      "external_id": "18878661",
+      "address_code": "11685896974",
+      "validation": [],
+      "_raw": {
+        "hidx": 18878661,
+        "attribute": {
+          "created_device": "web",
+          "naverVerification": false,
+          "safeDirectTrade": false,
+          "withoutFee": false,
+          "withoutFeeDiscount": 0,
+          "isZero": false,
+          "isRentalManagement": false,
+          "recommend": false,
+          "isFa": null,
+          "verificationType": null,
+          "isReported": 0,
+          "isMyReport": 0,
+          "smartContract": 0,
+          "userType": "agent",
+          "status_code": "0103",
+          "isOwnerConfirm": null,
+          "naverUpdatedAt": null,
+          "peterVerified": false,
+          "hasOwner": false,
+          "peterVerifiedCheckVacancyDate": "",
+          "peterOwnerCheckedAt": null,
+          "is_recommend": false,
+          "is_jjin": false,
+          "is_premium": 0,
+          "hasOwnerMark": false
+        },
+        "info": {
+          "temp_address": null,
+          "vaddr": 0,
+          "subject": "초저가 투룸!ㅣ 도배예정ㅣ에어컨2대 옷장 풀옵션 투룸",
+          "room_count": 2,
+          "room_type": "투룸",
+          "bedroom_count": 2,
+          "store_count": null,
+          "thumbnail": "https://img.peterpanz.com/photo/20260212/18878661/698d405f6b37d_thumb.jpg",
+          "created_at": "2026-02-12 11:52:15",
+          "live_start_date": "2026-02-12 11:52:29",
+          "is_octop": 0,
+          "is_half_underground": 1,
+          "is_multilayer": 0,
+          "supplied_size": 40.6,
+          "supplied_pyeong": 12.28,
+          "real_size": 40.6,
+          "real_pyeong": 12.28,
+          "total_floor_size": null,
+          "total_floor_size_pyeong": 0,
+          "site_size": null,
+          "site_size_pyeong": 0,
+          "building_size": null,
+          "building_size_pyeong": 0,
+          "naver_map": 1,
+          "livingroom_text": "분리형",
+          "special_pick": null
+        },
+        "type": {
+          "contract_type": "월세",
+          "trade_type": "agency",
+          "building_form": "빌라",
+          "building_type": "빌라/주택",
+          "building_type_text": "빌라",
+          "building_category": null,
+          "building_code": "",
+          "isCafe": false,
+          "fa3Code": 0
+        },
+        "price": {
+          "monthly_fee": 400000,
+          "deposit": 30000000,
+          "maintenance_cost": 0
+        },
+        "floor": {
+          "target": -1,
+          "total": 2,
+          "floor_type": 1,
+          "floor_text": "반지층",
+          "floor_text_detail": "반지층/2층"
+        },
+        "location": {
+          "coordinate": {
+            "latitude": "37.5583817",
+            "longitude": "127.0921055"
+          },
+          "address": {
+            "sido": "서울특별시",
+            "sigungu": "광진구",
+            "dong": "중곡동",
+            "aptName": null,
+            "text": "광진구 중곡동"
+          }
+        },
+        "favorite": false,
+        "recentView": false,
+        "additional_options": {
+          "is_new_building": 0,
+          "have_parking_lot": 0,
+          "is_full_option": 0,
+          "have_elevator": 0,
+          "support_loan": 0,
+          "allow_pet": 1,
+          "is_main_road": 0
+        },
+        "images": {
+          "S": [
+            {
+              "id": 375130814,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d405f6b37d_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 1
+            },
+            {
+              "id": 375130817,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d406011cb5_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 2
+            },
+            {
+              "id": 375130820,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d4060a157c_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 3
+            },
+            {
+              "id": 375130823,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d40614a174_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 4
+            },
+            {
+              "id": 375130826,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d4061dcc20_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 5
+            },
+            {
+              "id": 375130829,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d40627919a_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 6
+            },
+            {
+              "id": 375130832,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d40630cada_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 7
+            },
+            {
+              "id": 375130835,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d40639c34d_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 8
+            },
+            {
+              "id": 375130838,
+              "path": "https://img.peterpanz.com/photo/20260212/18878661/698d4064260fb_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 9
+            }
+          ]
+        }
+      }
+    },
+    {
+      "platform_code": "peterpanz",
+      "source_ref": "18885645",
+      "source_url": "https://www.peterpanz.com/house/18885645",
+      "title": "ㅣHOTㅣ넓은 단독 베란다. 초특급. 채광 좋은 집.",
+      "address_text": "서울특별시 광진구 화양동",
+      "lease_type": "월세",
+      "rent_amount": 65,
+      "deposit_amount": 1000,
+      "maintenance_cost": 5,
+      "area_exclusive_m2": 51.08,
+      "area_gross_m2": null,
+      "floor": 4,
+      "total_floor": 5,
+      "room_count": 1,
+      "room_type": "원룸",
+      "building_type": "빌라",
+      "latitude": 37.5437946,
+      "longitude": 127.0706814,
+      "image_urls": [
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3a1665e_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3a65739_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3abb627_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3b0e92a_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3b667a3_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3bb46c5_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3c1ad73_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3c65c9a_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3cc2f3f_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3d27c47_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260213/18885645/698ead3d6bf07_thumb.jpg"
+      ],
+      "collected_at": "2026-02-16T07:21:40.904Z",
+      "external_id": "18885645",
+      "address_code": "11389963449",
+      "validation": [],
+      "_raw": {
+        "hidx": 18885645,
+        "attribute": {
+          "created_device": "web",
+          "naverVerification": true,
+          "safeDirectTrade": false,
+          "withoutFee": false,
+          "withoutFeeDiscount": 0,
+          "isZero": false,
+          "isRentalManagement": false,
+          "recommend": false,
+          "isFa": null,
+          "verificationType": "D2",
+          "isReported": 0,
+          "isMyReport": 0,
+          "smartContract": 0,
+          "userType": "agent",
+          "status_code": "0103",
+          "isOwnerConfirm": null,
+          "naverUpdatedAt": "2026-02-13 14:09:16",
+          "peterVerified": false,
+          "hasOwner": false,
+          "peterVerifiedCheckVacancyDate": "",
+          "peterOwnerCheckedAt": null,
+          "is_recommend": false,
+          "is_jjin": false,
+          "is_premium": 0,
+          "hasOwnerMark": false
+        },
+        "info": {
+          "temp_address": null,
+          "vaddr": 0,
+          "subject": "ㅣHOTㅣ넓은 단독 베란다. 초특급. 채광 좋은 집.",
+          "room_count": 1,
+          "room_type": "원룸",
+          "bedroom_count": 1,
+          "store_count": null,
+          "thumbnail": "https://img.peterpanz.com/photo/20260213/18885645/698ead3a1665e_thumb.jpg",
+          "created_at": "2026-02-13 13:48:58",
+          "live_start_date": "2026-02-13 00:00:00",
+          "is_octop": 0,
+          "is_half_underground": 0,
+          "is_multilayer": 0,
+          "supplied_size": 0,
+          "supplied_pyeong": 0,
+          "real_size": 51.08,
+          "real_pyeong": 15.45,
+          "total_floor_size": null,
+          "total_floor_size_pyeong": 0,
+          "site_size": null,
+          "site_size_pyeong": 0,
+          "building_size": null,
+          "building_size_pyeong": 0,
+          "naver_map": 1,
+          "livingroom_text": "",
+          "special_pick": null
+        },
+        "type": {
+          "contract_type": "월세",
+          "trade_type": "agency",
+          "building_form": "빌라",
+          "building_type": "빌라/주택",
+          "building_type_text": "빌라",
+          "building_category": null,
+          "building_code": "",
+          "isCafe": false,
+          "fa3Code": 0
+        },
+        "price": {
+          "monthly_fee": 650000,
+          "deposit": 10000000,
+          "maintenance_cost": 50000
+        },
+        "floor": {
+          "target": 4,
+          "total": 5,
+          "floor_type": 1,
+          "floor_text": "4층",
+          "floor_text_detail": "4층/5층"
+        },
+        "location": {
+          "coordinate": {
+            "latitude": "37.5437946",
+            "longitude": "127.0706814"
+          },
+          "address": {
+            "sido": "서울특별시",
+            "sigungu": "광진구",
+            "dong": "화양동",
+            "aptName": null,
+            "text": "광진구 화양동"
+          }
+        },
+        "favorite": false,
+        "recentView": false,
+        "additional_options": {
+          "is_new_building": 0,
+          "have_parking_lot": 0,
+          "is_full_option": 0,
+          "have_elevator": 0,
+          "support_loan": 0,
+          "allow_pet": 0,
+          "is_main_road": 0
+        },
+        "images": {
+          "S": [
+            {
+              "id": 375289696,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3a1665e_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 1
+            },
+            {
+              "id": 375289699,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3a65739_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 2
+            },
+            {
+              "id": 375289702,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3abb627_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 3
+            },
+            {
+              "id": 375289705,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3b0e92a_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 4
+            },
+            {
+              "id": 375289708,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3b667a3_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 5
+            },
+            {
+              "id": 375289711,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3bb46c5_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 6
+            },
+            {
+              "id": 375289714,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3c1ad73_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 7
+            },
+            {
+              "id": 375289717,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3c65c9a_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 8
+            },
+            {
+              "id": 375289720,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3cc2f3f_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 9
+            },
+            {
+              "id": 375289723,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3d27c47_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 10
+            },
+            {
+              "id": 375289726,
+              "path": "https://img.peterpanz.com/photo/20260213/18885645/698ead3d6bf07_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 11
+            }
+          ]
+        }
+      }
+    },
+    {
+      "platform_code": "peterpanz",
+      "source_ref": "18848669",
+      "source_url": "https://www.peterpanz.com/house/18848669",
+      "title": "뷰 맛집 군자역도보5분.뷰맛집.채광좋음.선착순1명.",
+      "address_text": "서울특별시 광진구 중곡동",
+      "lease_type": "월세",
+      "rent_amount": 60,
+      "deposit_amount": 1000,
+      "maintenance_cost": 7,
+      "area_exclusive_m2": 86.76,
+      "area_gross_m2": null,
+      "floor": 5,
+      "total_floor": 5,
+      "room_count": 1,
+      "room_type": "원룸",
+      "building_type": "빌라",
+      "latitude": 37.5600081,
+      "longitude": 127.0816405,
+      "image_urls": [
+        "https://img.peterpanz.com/photo/20260206/18848669/6985713ce5562_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/6985713d9de72_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/6985713e5ae3d_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/6985713f17e7a_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/6985713fae660_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/698571407761b_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/6985714124b81_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/69857141d53be_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/698571427250d_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260206/18848669/698571431dc79_thumb.jpg"
+      ],
+      "collected_at": "2026-02-16T07:21:40.904Z",
+      "external_id": "18848669",
+      "address_code": "11685896974",
+      "validation": [],
+      "_raw": {
+        "hidx": 18848669,
+        "attribute": {
+          "created_device": "web",
+          "naverVerification": true,
+          "safeDirectTrade": false,
+          "withoutFee": false,
+          "withoutFeeDiscount": 0,
+          "isZero": false,
+          "isRentalManagement": false,
+          "recommend": false,
+          "isFa": null,
+          "verificationType": "D2",
+          "isReported": 0,
+          "isMyReport": 0,
+          "smartContract": 0,
+          "userType": "agent",
+          "status_code": "0103",
+          "isOwnerConfirm": null,
+          "naverUpdatedAt": "2026-02-06 13:55:30",
+          "peterVerified": false,
+          "hasOwner": false,
+          "peterVerifiedCheckVacancyDate": "",
+          "peterOwnerCheckedAt": null,
+          "is_recommend": false,
+          "is_jjin": false,
+          "is_premium": 0,
+          "hasOwnerMark": false
+        },
+        "info": {
+          "temp_address": null,
+          "vaddr": 0,
+          "subject": "뷰 맛집 군자역도보5분.뷰맛집.채광좋음.선착순1명.",
+          "room_count": 1,
+          "room_type": "원룸",
+          "bedroom_count": 1,
+          "store_count": null,
+          "thumbnail": "https://img.peterpanz.com/photo/20260206/18848669/6985713ce5562_thumb.jpg",
+          "created_at": "2026-02-06 13:41:42",
+          "live_start_date": "2026-02-06 00:00:00",
+          "is_octop": 0,
+          "is_half_underground": 0,
+          "is_multilayer": 0,
+          "supplied_size": 0,
+          "supplied_pyeong": 0,
+          "real_size": 86.76,
+          "real_pyeong": 26.24,
+          "total_floor_size": null,
+          "total_floor_size_pyeong": 0,
+          "site_size": null,
+          "site_size_pyeong": 0,
+          "building_size": null,
+          "building_size_pyeong": 0,
+          "naver_map": 1,
+          "livingroom_text": "",
+          "special_pick": null
+        },
+        "type": {
+          "contract_type": "월세",
+          "trade_type": "agency",
+          "building_form": "빌라",
+          "building_type": "빌라/주택",
+          "building_type_text": "빌라",
+          "building_category": null,
+          "building_code": "1121510100100470005000001",
+          "isCafe": false,
+          "fa3Code": 0
+        },
+        "price": {
+          "monthly_fee": 600000,
+          "deposit": 10000000,
+          "maintenance_cost": 70000
+        },
+        "floor": {
+          "target": 5,
+          "total": 5,
+          "floor_type": 1,
+          "floor_text": "5층",
+          "floor_text_detail": "5층/5층"
+        },
+        "location": {
+          "coordinate": {
+            "latitude": "37.5600081",
+            "longitude": "127.0816405"
+          },
+          "address": {
+            "sido": "서울특별시",
+            "sigungu": "광진구",
+            "dong": "중곡동",
+            "aptName": null,
+            "text": "광진구 중곡동"
+          }
+        },
+        "favorite": false,
+        "recentView": false,
+        "additional_options": {
+          "is_new_building": 0,
+          "have_parking_lot": 0,
+          "is_full_option": 0,
+          "have_elevator": 0,
+          "support_loan": 0,
+          "allow_pet": 0,
+          "is_main_road": 0
+        },
+        "images": {
+          "S": [
+            {
+              "id": 374431402,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985713ce5562_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 1
+            },
+            {
+              "id": 374431405,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985713d9de72_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 2
+            },
+            {
+              "id": 374431408,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985713e5ae3d_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 3
+            },
+            {
+              "id": 374431411,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985713f17e7a_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 4
+            },
+            {
+              "id": 374431415,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985713fae660_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 5
+            },
+            {
+              "id": 374431421,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/698571407761b_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 6
+            },
+            {
+              "id": 374431427,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/6985714124b81_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 7
+            },
+            {
+              "id": 374431433,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/69857141d53be_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 8
+            },
+            {
+              "id": 374431439,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/698571427250d_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 9
+            },
+            {
+              "id": 374431445,
+              "path": "https://img.peterpanz.com/photo/20260206/18848669/698571431dc79_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "platform_code": "peterpanz",
+      "source_ref": "18888826",
+      "source_url": "https://www.peterpanz.com/house/18888826",
+      "title": "룸  자양동잠실대교북단사거리역 1분거리 (구의역) 7분 건대역 강변역 ",
+      "address_text": "서울특별시 광진구 자양동",
+      "lease_type": "월세",
+      "rent_amount": 60,
+      "deposit_amount": 2000,
+      "maintenance_cost": 3,
+      "area_exclusive_m2": 49.59,
+      "area_gross_m2": 49.59,
+      "floor": 0,
+      "total_floor": 3,
+      "room_count": 2,
+      "room_type": "투룸",
+      "building_type": "다가구",
+      "latitude": 37.5325198,
+      "longitude": 127.0832384,
+      "image_urls": [
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb561db8e_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb568165e_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb570bc4b_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb57924a5_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb581bdac_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb58a6065_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb592dc2c_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb59bd3c2_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb5a6387f_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb5b0c85f_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260114/18725420/6966eb5bd4826_thumb.jpg"
+      ],
+      "collected_at": "2026-02-16T07:21:40.904Z",
+      "external_id": "18888826",
+      "address_code": "11749488637",
+      "validation": [],
+      "_raw": {
+        "hidx": 18888826,
+        "attribute": {
+          "created_device": "web",
+          "naverVerification": false,
+          "safeDirectTrade": false,
+          "withoutFee": false,
+          "withoutFeeDiscount": 0,
+          "isZero": false,
+          "isRentalManagement": false,
+          "recommend": false,
+          "isFa": null,
+          "verificationType": null,
+          "isReported": 0,
+          "isMyReport": 0,
+          "smartContract": 0,
+          "userType": "user",
+          "status_code": "0103",
+          "isOwnerConfirm": null,
+          "naverUpdatedAt": null,
+          "peterVerified": false,
+          "hasOwner": false,
+          "peterVerifiedCheckVacancyDate": "",
+          "peterOwnerCheckedAt": null,
+          "is_recommend": false,
+          "is_jjin": false,
+          "is_premium": 0,
+          "hasOwnerMark": false
+        },
+        "info": {
+          "temp_address": "",
+          "vaddr": 0,
+          "subject": "룸  자양동잠실대교북단사거리역 1분거리 (구의역) 7분 건대역 강변역 ",
+          "room_count": 2,
+          "room_type": "투룸",
+          "bedroom_count": 2,
+          "store_count": null,
+          "thumbnail": "https://img.peterpanz.com/photo/20260114/18725420/6966eb561db8e_thumb.jpg",
+          "created_at": "2026-02-14 07:42:07",
+          "live_start_date": "2026-02-14 00:00:00",
+          "is_octop": 0,
+          "is_half_underground": 1,
+          "is_multilayer": 0,
+          "supplied_size": 49.59,
+          "supplied_pyeong": 15,
+          "real_size": 49.59,
+          "real_pyeong": 15,
+          "total_floor_size": null,
+          "total_floor_size_pyeong": 0,
+          "site_size": null,
+          "site_size_pyeong": 0,
+          "building_size": null,
+          "building_size_pyeong": 0,
+          "naver_map": 1,
+          "livingroom_text": "분리형",
+          "special_pick": null
+        },
+        "type": {
+          "contract_type": "월세",
+          "trade_type": "direct",
+          "building_form": "다가구",
+          "building_type": "빌라/주택",
+          "building_type_text": "다가구",
+          "building_category": null,
+          "building_code": "",
+          "isCafe": false,
+          "fa3Code": 0
+        },
+        "price": {
+          "monthly_fee": 600000,
+          "deposit": 20000000,
+          "maintenance_cost": 30000
+        },
+        "floor": {
+          "target": 0,
+          "total": 3,
+          "floor_type": 1,
+          "floor_text": "반지층",
+          "floor_text_detail": "반지층/3층"
+        },
+        "location": {
+          "coordinate": {
+            "latitude": "37.5325198",
+            "longitude": "127.0832384"
+          },
+          "address": {
+            "sido": "서울특별시",
+            "sigungu": "광진구",
+            "dong": "자양동",
+            "aptName": null,
+            "text": "광진구 자양동"
+          }
+        },
+        "favorite": false,
+        "recentView": false,
+        "additional_options": {
+          "is_new_building": 0,
+          "have_parking_lot": 0,
+          "is_full_option": 0,
+          "have_elevator": 0,
+          "support_loan": 0,
+          "allow_pet": 0,
+          "is_main_road": 0
+        },
+        "images": {
+          "S": [
+            {
+              "id": 375370227,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb561db8e_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 1
+            },
+            {
+              "id": 375370230,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb568165e_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 2
+            },
+            {
+              "id": 375370233,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb570bc4b_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 3
+            },
+            {
+              "id": 375370236,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb57924a5_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 4
+            },
+            {
+              "id": 375370239,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb581bdac_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 5
+            },
+            {
+              "id": 375370242,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb58a6065_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 6
+            },
+            {
+              "id": 375370245,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb592dc2c_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 7
+            },
+            {
+              "id": 375370248,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb59bd3c2_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 8
+            },
+            {
+              "id": 375370251,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb5a6387f_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 9
+            },
+            {
+              "id": 375370254,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb5b0c85f_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 10
+            },
+            {
+              "id": 375370257,
+              "path": "https://img.peterpanz.com/photo/20260114/18725420/6966eb5bd4826_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 11
+            }
+          ]
+        }
+      }
+    },
+    {
+      "platform_code": "peterpanz",
+      "source_ref": "18856594",
+      "source_url": "https://www.peterpanz.com/house/18856594",
+      "title": "I조용한생활권I 투룸 I 반려동물가능 I  ",
+      "address_text": "서울특별시 광진구 중곡동",
+      "lease_type": "월세",
+      "rent_amount": 30,
+      "deposit_amount": 5000,
+      "maintenance_cost": 1,
+      "area_exclusive_m2": 49.6,
+      "area_gross_m2": null,
+      "floor": -1,
+      "total_floor": 2,
+      "room_count": 2,
+      "room_type": "투룸",
+      "building_type": "다가구",
+      "latitude": 37.5583817,
+      "longitude": 127.0921055,
+      "image_urls": [
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e005867_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e0733e6_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e0d5237_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e133c31_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e186039_thumb.jpg",
+        "https://img.peterpanz.com/photo/20260207/18856594/698747e1daa2b_thumb.jpg"
+      ],
+      "collected_at": "2026-02-16T07:21:40.904Z",
+      "external_id": "18856594",
+      "address_code": "11685896974",
+      "validation": [],
+      "_raw": {
+        "hidx": 18856594,
+        "attribute": {
+          "created_device": "web",
+          "naverVerification": true,
+          "safeDirectTrade": false,
+          "withoutFee": true,
+          "withoutFeeDiscount": 20,
+          "isZero": true,
+          "isRentalManagement": false,
+          "recommend": false,
+          "isFa": null,
+          "verificationType": "D2",
+          "isReported": 0,
+          "isMyReport": 0,
+          "smartContract": 0,
+          "userType": "agent",
+          "status_code": "0103",
+          "isOwnerConfirm": null,
+          "naverUpdatedAt": "2026-02-09 09:59:28",
+          "peterVerified": false,
+          "hasOwner": false,
+          "peterVerifiedCheckVacancyDate": "",
+          "peterOwnerCheckedAt": null,
+          "is_recommend": false,
+          "is_jjin": false,
+          "is_premium": 0,
+          "hasOwnerMark": false
+        },
+        "info": {
+          "temp_address": null,
+          "vaddr": 0,
+          "subject": "I조용한생활권I 투룸 I 반려동물가능 I  ",
+          "room_count": 2,
+          "room_type": "투룸",
+          "bedroom_count": 2,
+          "store_count": null,
+          "thumbnail": "https://img.peterpanz.com/photo/20260207/18856594/698747e005867_thumb.jpg",
+          "created_at": "2026-02-07 23:10:39",
+          "live_start_date": "2026-02-09 00:00:00",
+          "is_octop": 0,
+          "is_half_underground": 0,
+          "is_multilayer": 0,
+          "supplied_size": 0,
+          "supplied_pyeong": 0,
+          "real_size": 49.6,
+          "real_pyeong": 15,
+          "total_floor_size": null,
+          "total_floor_size_pyeong": 0,
+          "site_size": null,
+          "site_size_pyeong": 0,
+          "building_size": null,
+          "building_size_pyeong": 0,
+          "naver_map": 1,
+          "livingroom_text": "분리형",
+          "special_pick": null
+        },
+        "type": {
+          "contract_type": "월세",
+          "trade_type": "withoutFee",
+          "building_form": "다가구",
+          "building_type": "빌라/주택",
+          "building_type_text": "다가구",
+          "building_category": null,
+          "building_code": "",
+          "isCafe": false,
+          "fa3Code": 0
+        },
+        "price": {
+          "monthly_fee": 300000,
+          "deposit": 50000000,
+          "maintenance_cost": 10000
+        },
+        "floor": {
+          "target": -1,
+          "total": 2,
+          "floor_type": 1,
+          "floor_text": "B-1층",
+          "floor_text_detail": "B-1층/2층"
+        },
+        "location": {
+          "coordinate": {
+            "latitude": "37.5583817",
+            "longitude": "127.0921055"
+          },
+          "address": {
+            "sido": "서울특별시",
+            "sigungu": "광진구",
+            "dong": "중곡동",
+            "aptName": null,
+            "text": "광진구 중곡동"
+          }
+        },
+        "favorite": false,
+        "recentView": false,
+        "additional_options": {
+          "is_new_building": 0,
+          "have_parking_lot": 0,
+          "is_full_option": 0,
+          "have_elevator": 0,
+          "support_loan": 0,
+          "allow_pet": 1,
+          "is_main_road": 0
+        },
+        "images": {
+          "S": [
+            {
+              "id": 374617328,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e005867_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 1
+            },
+            {
+              "id": 374617331,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e0733e6_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 2
+            },
+            {
+              "id": 374617334,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e0d5237_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 3
+            },
+            {
+              "id": 374617337,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e133c31_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 4
+            },
+            {
+              "id": 374617340,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e186039_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 5
+            },
+            {
+              "id": 374617343,
+              "path": "https://img.peterpanz.com/photo/20260207/18856594/698747e1daa2b_thumb.jpg",
+              "type": "S",
+              "is_complex_photo": 0,
+              "order": 6
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

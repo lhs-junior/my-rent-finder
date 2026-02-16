@@ -1,0 +1,144 @@
+{
+  "scenario": {
+    "name": "서울 초기 탐색 (시·구·동 기반)",
+    "queryCountPerDay": 140,
+    "queryCountForPilot": 200,
+    "targetRent": {
+      "min": 20,
+      "max": 120
+    },
+    "minAreaPyeong": 12,
+    "storageBudgetGb": 3,
+    "imageBudgetGb": 1,
+    "retentionDays": 30,
+    "maxDailyListings": 3000
+  },
+  "platforms": [
+    {
+      "name": "직방",
+      "mode": "UI_ONLY",
+      "pagesPerQuery": 12,
+      "listingsPerPage": 20,
+      "extractSuccessRate": 0.87,
+      "requiredFieldsCoverage": {
+        "address": 0.93,
+        "area": 0.85,
+        "price": 0.95,
+        "floor": 0.71,
+        "images": 0.79
+      },
+      "failureRate": 0.09,
+      "rawKbPerListing": 5,
+      "normalizedKbPerListing": 3,
+      "avgImageCount": 11,
+      "avgImageKb": 70,
+      "savedImageCount": 2,
+      "updateCadence": "high"
+    },
+    {
+      "name": "다방",
+      "mode": "USER_ONLY",
+      "pagesPerQuery": 8,
+      "listingsPerPage": 15,
+      "extractSuccessRate": 0.94,
+      "requiredFieldsCoverage": {
+        "address": 0.98,
+        "area": 0.91,
+        "price": 0.98,
+        "floor": 0.74,
+        "images": 0.93
+      },
+      "failureRate": 0.05,
+      "rawKbPerListing": 4,
+      "normalizedKbPerListing": 3,
+      "avgImageCount": 9,
+      "avgImageKb": 65,
+      "savedImageCount": 2,
+      "updateCadence": "medium"
+    },
+    {
+      "name": "네이버 부동산",
+      "mode": "BLOCKED",
+      "pagesPerQuery": 10,
+      "listingsPerPage": 20,
+      "extractSuccessRate": 0.15,
+      "requiredFieldsCoverage": {
+        "address": 0.62,
+        "area": 0.48,
+        "price": 0.52,
+        "floor": 0.31,
+        "images": 0.88
+      },
+      "failureRate": 0.51,
+      "rawKbPerListing": 5,
+      "normalizedKbPerListing": 3,
+      "avgImageCount": 12,
+      "avgImageKb": 80,
+      "savedImageCount": 2,
+      "updateCadence": "high"
+    },
+    {
+      "name": "호갱노노",
+      "mode": "UI_ONLY",
+      "pagesPerQuery": 6,
+      "listingsPerPage": 20,
+      "extractSuccessRate": 0.60,
+      "requiredFieldsCoverage": {
+        "address": 0.79,
+        "area": 0.72,
+        "price": 0.83,
+        "floor": 0.66,
+        "images": 0.82
+      },
+      "failureRate": 0.18,
+      "rawKbPerListing": 6,
+      "normalizedKbPerListing": 4,
+      "avgImageCount": 8,
+      "avgImageKb": 75,
+      "savedImageCount": 2,
+      "updateCadence": "low"
+    },
+    {
+      "name": "부동산114",
+      "mode": "USER_ONLY",
+      "pagesPerQuery": 4,
+      "listingsPerPage": 15,
+      "extractSuccessRate": 0.82,
+      "requiredFieldsCoverage": {
+        "address": 0.86,
+        "area": 0.80,
+        "price": 0.90,
+        "floor": 0.60,
+        "images": 0.45
+      },
+      "failureRate": 0.12,
+      "rawKbPerListing": 4,
+      "normalizedKbPerListing": 2,
+      "avgImageCount": 4,
+      "avgImageKb": 62,
+      "savedImageCount": 2,
+      "updateCadence": "low"
+    },
+    {
+      "name": "당근 부동산",
+      "mode": "USER_ONLY",
+      "pagesPerQuery": 5,
+      "listingsPerPage": 12,
+      "extractSuccessRate": 0.54,
+      "requiredFieldsCoverage": {
+        "address": 0.74,
+        "area": 0.63,
+        "price": 0.81,
+        "floor": 0.51,
+        "images": 0.68
+      },
+      "failureRate": 0.22,
+      "rawKbPerListing": 3,
+      "normalizedKbPerListing": 2,
+      "avgImageCount": 6,
+      "avgImageKb": 72,
+      "savedImageCount": 2,
+      "updateCadence": "high"
+    }
+  ]
+}

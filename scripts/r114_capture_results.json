@@ -1,0 +1,23 @@
+{
+  "runId": "r114_1771229288860",
+  "success": false,
+  "districts": "종로구",
+  "sampleCap": 3,
+  "filters": {
+    "rentMax": 80,
+    "depositMax": 6000,
+    "minAreaM2": 40
+  },
+  "stats": {
+    "종로구": {
+      "total": 10,
+      "filtered": 0,
+      "capped": 0
+    }
+  },
+  "totalListings": 0,
+  "dataQuality": {
+    "grade": "EMPTY"
+  },
+  "timestamp": "2026-02-16T08:08:08.860Z"
+}

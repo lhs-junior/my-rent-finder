@@ -1,0 +1,60 @@
+{
+  "runId": "zigbang_1771219841924",
+  "success": true,
+  "sigungu": "노원구",
+  "sampleCap": 5,
+  "filters": {
+    "rentMax": 80,
+    "depositMax": 6000,
+    "minArea": 40
+  },
+  "strategies": [
+    {
+      "name": "directApi",
+      "tried": true,
+      "success": true,
+      "listings": 5,
+      "error": null,
+      "details": {
+        "v2Items": 280,
+        "detailItems": 60,
+        "afterFilter": 5,
+        "returned": 5,
+        "geohash": "wydq5",
+        "source": "v2+detail"
+      },
+      "durationMs": 4852
+    },
+    {
+      "name": "networkIntercept",
+      "tried": false,
+      "success": false,
+      "listings": 0,
+      "error": null,
+      "durationMs": 0
+    },
+    {
+      "name": "browserApi",
+      "tried": false,
+      "success": false,
+      "listings": 0,
+      "error": null,
+      "durationMs": 0
+    },
+    {
+      "name": "domParse",
+      "tried": false,
+      "success": false,
+      "listings": 0,
+      "error": null,
+      "durationMs": 0
+    }
+  ],
+  "winningStrategy": "directApi",
+  "totalListings": 5,
+  "dataQuality": {
+    "grade": "PARTIAL"
+  },
+  "timestamp": "2026-02-16T05:30:41.924Z",
+  "durationMs": 4853
+}

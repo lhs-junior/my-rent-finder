@@ -1,0 +1,54 @@
+{
+  "runId": "naver_1771204016430",
+  "success": true,
+  "sigungu": "노원구",
+  "cortarNo": "1135000000",
+  "sampleCap": 3,
+  "filters": {
+    "tradeType": "B2",
+    "rentMax": 80,
+    "priceMax": 6000,
+    "areaMin": 40,
+    "realEstateType": "DDDGG:JWJT:SGJT:VL:YR:DSD",
+    "order": "rank"
+  },
+  "requestSource": {
+    "directRegionUrl": "https://new.land.naver.com/houses?cortarNo=1135000000",
+    "filterProbe": true,
+    "filterProbeOnly": true,
+    "filterProbeDelayMs": 900
+  },
+  "regionState": {
+    "lat": 37.654286,
+    "lon": 127.056411,
+    "zoom": 18,
+    "realEstateType": "DDDGG:JWJT:SGJT:VL",
+    "priceType": "RETAIL"
+  },
+  "apiCollect": {
+    "collectedPages": 0,
+    "totalListings": 0,
+    "success": false,
+    "requestLog": [],
+    "filters": {
+      "tradeType": "B2",
+      "rentMax": 80,
+      "priceMax": 6000,
+      "areaMin": 40,
+      "realEstateType": "DDDGG:JWJT:SGJT:VL:YR:DSD",
+      "order": "rank"
+    },
+    "stateSnapshot": {
+      "lat": 37.654286,
+      "lon": 127.056411,
+      "zoom": 18,
+      "realEstateType": "DDDGG:JWJT:SGJT:VL",
+      "priceType": "RETAIL"
+    },
+    "probeMode": true
+  },
+  "responsesCapture": 61,
+  "clickedListings": 0,
+  "timestamp": "2026-02-16T01:06:56.430Z",
+  "durationMs": 51302
+}

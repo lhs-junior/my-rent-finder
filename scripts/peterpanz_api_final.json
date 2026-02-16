@@ -1,0 +1,196 @@
+{
+  "apiCalls": [
+    {
+      "url": "https://api.peterpanz.com/v5/marketing/identifier/collect.js?uidx=&identifier_id=",
+      "status": 200,
+      "len": 2659,
+      "method": "GET",
+      "postData": null,
+      "body": "(function(){var isLoading=false;var loadedScripts=null;var beforeHashed=null;var url=window.location.origin+window.location.pathname;var referer=document.referrer;var checkParseString=function(value){var strippedValue='REPLACE_ITEMS';var compare_origin='{{'+strippedValue+'}}';var isFalsy=function(val){return val===null||val==='null'||val==='false'||val===false||val===''||val===0||val==='0'||val===undefined||val==='undefined'||val!==val||val===compare_origin};return isFalsy(value)?null:value};var simpleHash=function(str){var hash=0;for(var i=0;i<str.length;i++){var char=str.charCodeAt(i);hash=(hash<<5)-hash+char;hash=hash&hash}return(hash>>>0).toString(16)};var getAccessToken=function(){if(typeof localStorage!==\"undefined\"&&localStorage.getItem!==undefined){return localStorage.getItem(\"access_token\")}return null};var loadScript=function(items){return new Promise(function(resolve){var token=getAccessToken();token=token?encodeURIComponent(token):'';var uidx=items.uidx?encodeURIComponent(items.uidx):'';var identifier_id=items.identifierId?encodeURIComponent(items.identifierId):'';var path=window.location.pathname;var current_url=window.location.origin+path;var scriptUrl=items.scriptUrl+\"?uidx=\"+uidx+\"&identifier_id=\"+identifier_id+\"&url=\"+(window.location.href?encodeURIComponent(window.location.href):'')+\"&token=\"+token;var hash_string=path+\"_\"+identifier_id+\"_\"+uidx+\"_\"+token;var hashed=simpleHash(hash_string);if(loadedScripts===hashed){resolve();return}else if(beforeHashed){var beforeElement=document.getElementById(beforeHashed);if(beforeElement&&beforeElement.tagName.toUpperCase()===\"SCRIPT\"){beforeElement.parentNode.removeChild(beforeElement)}}if(url!==current_url){referer=url;url=current_url}scriptUrl=scriptUrl+\"&referer=\"+encodeURIComponent(referer);var scriptElement=document.createElement(\"script\");scriptElement.src=scriptUrl;scriptElement.id=hashed;scriptElement.async=true;scriptElement.onload=function(){beforeHashed=hashed;loadedScripts=hashed;resolve()};document.head.prepend(scriptElement)})};var items=JSON.parse(checkParseString('{\\\"scriptUrl\\\":\\\"https:\\/\\/api.peterpanz.com\\/v5\\/marketing\\/identifier\\/marketing.js\\\",\\\"identifierId\\\":\\\"\\\",\\\"uidx\\\":null}'));if(typeof items==='object'&&items!==null){var properties=Object.keys(items);properties.forEach(function(property){items[property]=checkParseString(items[property])});if(!isLoading){var checkPathChangeAndReload=function(){var newPath=window.location.pathname;if(!isLoading){isLoading=true;loadScript(items).then(function(){isLoading=false})}};isLoading=true;loadScript(items).then(function(){isLoading=false;setInterval(checkPathChangeAndReload,1000)})}}})();",
+      "headers": {
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "accept-language": "ko-KR",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/v5/marketing/identifier/marketing.js?uidx=&identifier_id=&url=https%3A%2F%2Fwww.peterpanz.com%2Fvilla%3FzoomLevel%3D14%26center%3D%257B%2522y%2522%253A37.6542%252C%2522_lat%2522%253A37.6542%252C%2522x%2522%253A127.0568%252C%2522_lng%2522%253A127.0568%257D%26dong%3D%26gungu%3D%26filter%3Dlatitude%253A37.6200~37.6900%257C%257Clongitude%253A127.0200~127.1000%257C%257CcheckDeposit%253A0~60000000%257C%257CcheckMonth%253A0~800000%257C%257CcheckRealSize%253A40~999%257C%257CcontractType%253B%255B%2522%25EC%259B%2594%25EC%2584%25B8%2522%255D%257C%257CroomType%253B%255B%2522%25ED%2588%25AC%25EB%25A3%25B8%2522%252C%2522%25EC%259B%2590%25EB%25A3%25B8%2522%255D%257C%257CbuildingType%253B%255B%2522%25EB%25B9%258C%25EB%259D%25BC%252F%25EC%25A3%25BC%25ED%2583%259D%2522%255D&token=&referer=",
+      "status": 200,
+      "len": 6713,
+      "method": "GET",
+      "postData": null,
+      "body": "(function(){window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function gtag(){dataLayer.push(arguments)};window.googletag=window.googletag||{cmd:[]};window.googletag.cmd=window.googletag.cmd||[];var checkParseString=function(value){var strippedValue=\"REPLACE_ITEMS\";var compare_origin=\"{{\"+strippedValue+\"}}\";var isFalsy=function(val){return val===null||val===\"null\"||val===\"false\"||val===false||val===\"\"||val===0||val===\"0\"||val===undefined||val===\"undefined\"||val!==val||val===compare_origin};return isFalsy(value)?null:value};var checkMatchVariable=function(varName,putVar){var check=checkParseString(window[varName]);window[varName]=checkParseString(putVar)?putVar:check?check:{}};function checkAssigned(assigned){if(Array.isArray(assigned)){for(var j=0;j<assigned.length;j++){var keys=assigned[j].split(\".\");var context=window;for(var i=0;i<keys.length;i++){if(typeof context[keys[i]]===\"undefined\"||!context[keys[i]]){return false}context=context[keys[i]]}if(i===keys.length){return context}}}else if(assigned){var keys=assigned.split(\".\");var context=window;for(var i=0;i<keys.length;i++){if(typeof context[keys[i]]===\"undefined\"||!context[keys[i]]){return false}context=context[keys[i]]}if(i===keys.length){return context}}return false}var loadScript=function(src,callback=null,assigned=null,failCallback=null){if(assigned){var targetValue=checkAssigned(assigned);if(targetValue){addDevStatement(assigned,targetValue);if(failCallback){failCallback()}return}}var existingScript=document.querySelector('script[src=\"'+src+'\"]');if(!existingScript){var script=document.createElement(\"script\");script.src=src;if(callback){script.onload=callback}document.head.appendChild(script)}};var loadFlareLane=function(flarelaneProjectId,specificKey){loadScript(\"https://cdn.flarelane.com/WebSDK.js\",function(){try{FlareLane.initialize({projectId:flarelaneProjectId});FlareLane.setUserId(specificKey);if(\"Notification\"in window){if(Notification.permission===\"granted\"){FlareLane.setIsSubscribed(true,function(){})}else if(Notification.permission===\"default\"){Notification.requestPermission().then(function(permission){if(permission===\"granted\"){FlareLane.setIsSubscribed(true,function(){})}})}}}catch(e){}},\"FlareLane\")};var loadGoogleAnalytics=function(gaMeasurementId,serviceName=null,event){event=event||{};event.screen_name=event.page_id;event.firebase_screen=event.page_id;event.firebase_screen_class=window.location.pathname;var afterEvent=function(){gtag(\"config\",gaMeasurementId,{user_id:event.user_id,screen_name:event.screen_name,firebase_screen:event.firebase_screen,firebase_screen_class:event.firebase_screen_class,page_id:event.page_id,app_name:serviceName,page_title:document.title,page_location:window.location.href,page_path:window.location.pathname,page_referrer:document.referrer});gtag(\"event\",\"page_view\",event)};loadScript(\"https://www.googletagmanager.com/gtag/js?id=\"+gaMeasurementId,function(){afterEvent()},\"gtag\",afterEvent)};var loadGoogleTagManager=function(gtmMeasurementId){var setDataLayer=function(){};loadScript(\"https://www.googletagmanager.com/gtm.js?id=\"+gtmMeasurementId,function(){var noscript=document.createElement(\"noscript\");var iframe=document.createElement(\"iframe\");iframe.src=\"https://www.googletagmanager.com/ns.html?id=\"+gtmMeasurementId;iframe.height=\"0\";iframe.width=\"0\";iframe.style.display=\"none\";iframe.style.visibility=\"hidden\";noscript.appendChild(iframe);document.body.insertBefore(noscript,document.body.firstChild);setDataLayer()},\"google_tag_manager\",setDataLayer)};var loadGoogleAdsense=function(gadMeasurementId){loadScript(\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=\"+gadMeasurementId,null,\"adsbygoogle\")};var loadFirebaseConfig=function(firebaseConfig,event){var afterEvent;loadScript(\"https://www.gstatic.com/firebasejs/7.16.0/firebase-app.js\",function(){loadScript(\"https://www.gstatic.com/firebasejs/7.16.0/firebase-analytics.js\",function(){var firebaseApp=firebase.initializeApp(firebaseConfig);var analytics=firebase.analytics(firebaseApp);analytics.setUserId(event.user_id);window[\"Firebase\"]={logEvent:analytics.logEvent.bind(analytics)}},\"firebase.analytics\")},\"firebase.app\")};var loadGoogleAdmanager=function(gadmMeasurementId){loadScript(\"https://securepubads.g.doubleclick.net/tag/js/gpt.js\",null)};var items=JSON.parse(checkParseString(\"{\\\"serviceName\\\":\\\"\\ud53c\\ud130\\ud32c\\uc758 \\uc88b\\uc740\\ubc29 \\uad6c\\ud558\\uae30\\\",\\\"dev\\\":false,\\\"isApp\\\":false,\\\"isWeb\\\":true,\\\"flarelaneProjectId\\\":\\\"8665acae-b33d-442e-bc1e-961c8ad02873\\\",\\\"gaMeasurementId\\\":\\\"G-QR095ZM3Z6\\\",\\\"gtmMeasurementId\\\":\\\"GTM-TZGCQ3C\\\",\\\"gadMeasurementId\\\":\\\"ca-pub-2832578959395325\\\",\\\"gadmMeasurementId\\\":\\\"23013824946\\\",\\\"firebase\\\":{\\\"apiKey\\\":\\\"AIzaSyCpdE-o-ZK0qaNhRd2xkS4L8-66SgGRXE8\\\",\\\"authDomain\\\":\\\"peterpanz-2a3da.firebaseapp.com\\\",\\\"databaseURL\\\":\\\"https:\\/\\/peterpanz-2a3da.firebaseio.com\\\",\\\"projectId\\\":\\\"peterpanz-2a3da\\\",\\\"storageBucket\\\":\\\"peterpanz-2a3da.appspot.com\\\",\\\"messagingSenderId\\\":\\\"1787952179",
+      "headers": {
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "accept-language": "ko-KR",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/onboarding/images",
+      "status": 200,
+      "len": 257,
+      "method": "GET",
+      "postData": null,
+      "body": "[\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_01.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_02.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_03.png\",\"https:\\/\\/static.peterpanz.com\\/guide\\/signin\\/pc\\/img_04.png\"]",
+      "headers": {
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/javascript, */*; q=0.01"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/brandPromotion/IconLists",
+      "status": 200,
+      "len": 37,
+      "method": "GET",
+      "postData": null,
+      "body": "{\"code\":200,\"success\":true,\"data\":[]}",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "x-peterpanz-uidx": "undefined"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "status": 200,
+      "len": 887,
+      "method": "GET",
+      "postData": null,
+      "body": "{\"result\":true,\"data\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"method\":\"geometry\",\"rate\":3,\"geometry\":{\"_id\":null,\"item_code\":\"11350105\",\"item_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_name\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"short_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_short_name\":\"\\uc11c\\uc6b8\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"location_type\":\"township\",\"state_code\":\"11\",\"district_code\":\"11350\",\"township_code\":\"11350105\",\"village_code\":\"1135010500\",\"jurisdiction_type\":\"legal\",\"bbox\":[127.04816152471014,37.63668765190952,127.09644725385846,37.69613746672266],\"geo_point\":{\"coordinates\":[127.07033776193619,37.67299338656389],\"type\":\"Point\"},\"geo_polygon\":null,\"last_updated_at\":null,\"created_at\":\"2026-02-16T00:06:19.884680\",\"updated_at\":\"2026-02-16T00:06:19.884684\",\"deleted_at\":null,\"manual_order\":null}}",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "x-peterpanz-uidx": "undefined"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "status": 200,
+      "len": 887,
+      "method": "GET",
+      "postData": null,
+      "body": "{\"result\":true,\"data\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"method\":\"geometry\",\"rate\":1,\"geometry\":{\"_id\":null,\"item_code\":\"11350105\",\"item_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_name\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"short_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_short_name\":\"\\uc11c\\uc6b8\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"location_type\":\"township\",\"state_code\":\"11\",\"district_code\":\"11350\",\"township_code\":\"11350105\",\"village_code\":\"1135010500\",\"jurisdiction_type\":\"legal\",\"bbox\":[127.04816152471014,37.63668765190952,127.09644725385846,37.69613746672266],\"geo_point\":{\"coordinates\":[127.07033776193619,37.67299338656389],\"type\":\"Point\"},\"geo_polygon\":null,\"last_updated_at\":null,\"created_at\":\"2026-02-16T00:06:19.884680\",\"updated_at\":\"2026-02-16T00:06:19.884684\",\"deleted_at\":null,\"manual_order\":null}}",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "x-peterpanz-uidx": "undefined"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/geo/addr_dong/37.6542/127.0568",
+      "status": 200,
+      "len": 887,
+      "method": "GET",
+      "postData": null,
+      "body": "{\"result\":true,\"data\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"method\":\"geometry\",\"rate\":3,\"geometry\":{\"_id\":null,\"item_code\":\"11350105\",\"item_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_name\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"short_name\":\"\\uc0c1\\uacc4\\ub3d9\",\"item_full_short_name\":\"\\uc11c\\uc6b8\\uc2dc \\ub178\\uc6d0\\uad6c \\uc0c1\\uacc4\\ub3d9\",\"location_type\":\"township\",\"state_code\":\"11\",\"district_code\":\"11350\",\"township_code\":\"11350105\",\"village_code\":\"1135010500\",\"jurisdiction_type\":\"legal\",\"bbox\":[127.04816152471014,37.63668765190952,127.09644725385846,37.69613746672266],\"geo_point\":{\"coordinates\":[127.07033776193619,37.67299338656389],\"type\":\"Point\"},\"geo_polygon\":null,\"last_updated_at\":null,\"created_at\":\"2026-02-16T00:06:19.884680\",\"updated_at\":\"2026-02-16T00:06:19.884684\",\"deleted_at\":null,\"manual_order\":null}}",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "x-peterpanz-uidx": "undefined"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/getRegionV2?zoomLevel=14&center=%7B%22y%22:37.6542,%22_lat%22:37.6542,%22x%22:127.0568,%22_lng%22:127.0568%7D&dong=&gungu=&filter=latitude:37.6281014~37.6802894%7C%7Clongitude:127.0430671~127.1185981%7C%7CbuildingType;%5B%22%EB%B9%8C%EB%9D%BC/%EC%A3%BC%ED%83%9D%22%5D&filter_version=5.1",
+      "status": 200,
+      "len": 7423,
+      "method": "GET",
+      "postData": null,
+      "body": "[{\"position\":{\"lat\":\"37.628428075000000000000\",\"lng\":\"127.075332600000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\uacf5\\ub989\\ub3d9\",\"name\":\"\\uacf5\\ub989\\ub3d9\",\"num\":4,\"bounds\":{\"max_lat\":\"37.62897810000000000\",\"min_lat\":\"37.62815190000000000\",\"max_lng\":\"127.08014230000000000\",\"min_lng\":\"127.07309150000000000\"},\"didx\":21092,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.631269800000000000000\",\"lng\":\"127.058220600000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\uc6d4\\uacc4\\ub3d9\",\"name\":\"\\uc6d4\\uacc4\\ub3d9\",\"num\":2,\"bounds\":{\"max_lat\":\"37.63315220000000000\",\"min_lat\":\"37.62938740000000000\",\"max_lng\":\"127.05835870000000000\",\"min_lng\":\"127.05808250000000000\"},\"didx\":21091,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.634527000000000000000\",\"lng\":\"127.071085700000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\ud558\\uacc4\\ub3d9\",\"name\":\"\\ud558\\uacc4\\ub3d9\",\"num\":1,\"bounds\":{\"max_lat\":\"37.63452700000000000\",\"min_lat\":\"37.63452700000000000\",\"max_lng\":\"127.07108570000000000\",\"min_lng\":\"127.07108570000000000\"},\"didx\":21093,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.646544800000000000000\",\"lng\":\"127.050129600000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub3c4\\ubd09\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub3c4\\ubd09\\uad6c\",\"dong\":\"\\ucc3d\\ub3d9\",\"name\":\"\\ucc3d\\ub3d9\",\"num\":1,\"bounds\":{\"max_lat\":\"37.64654480000000000\",\"min_lat\":\"37.64654480000000000\",\"max_lng\":\"127.05012960000000000\",\"min_lng\":\"127.05012960000000000\"},\"didx\":21088,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.650877150000000000000\",\"lng\":\"127.083434450000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\uc911\\uacc4\\ub3d9\",\"name\":\"\\uc911\\uacc4\\ub3d9\",\"num\":2,\"bounds\":{\"max_lat\":\"37.65093060000000000\",\"min_lat\":\"37.65082370000000000\",\"max_lng\":\"127.08366080000000000\",\"min_lng\":\"127.08320810000000000\"},\"didx\":21095,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.661049890076857142857\",\"lng\":\"127.067703645987142857143\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub178\\uc6d0\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\uc0c1\\uacc4\\ub3d9\",\"name\":\"\\uc0c1\\uacc4\\ub3d9\",\"num\":7,\"bounds\":{\"max_lat\":\"37.66688660000000000\",\"min_lat\":\"37.65225360000000000\",\"max_lng\":\"127.07081490000000000\",\"min_lng\":\"127.05934260000000000\"},\"didx\":21094,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.659548900000000000000\",\"lng\":\"127.113704966666666666667\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uacbd\\uae30\\ub3c4 \\ub0a8\\uc591\\uc8fc\\uc2dc\",\"sido\":\"\\uacbd\\uae30\\ub3c4\",\"sigungu\":\"\\ub0a8\\uc591\\uc8fc\\uc2dc\",\"dong\":\"\\ubcc4\\ub0b4\\ub3d9\",\"name\":\"\\ubcc4\\ub0b4\\ub3d9\",\"num\":3,\"bounds\":{\"max_lat\":\"37.67198590000000000\",\"min_lat\":\"37.65333040000000000\",\"max_lng\":\"127.11529810000000000\",\"min_lng\":\"127.11290840000000000\"},\"didx\":23353,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.662781025000000000000\",\"lng\":\"127.048668425000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub3c4\\ubd09\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub3c4\\ubd09\\uad6c\",\"dong\":\"\\ubc29\\ud559\\ub3d9\",\"name\":\"\\ubc29\\ud559\\ub3d9\",\"num\":4,\"bounds\":{\"max_lat\":\"37.66565590000000000\",\"min_lat\":\"37.66178030000000000\",\"max_lng\":\"127.05015700000000000\",\"min_lng\":\"127.04505180000000000\"},\"didx\":21087,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.670558650000000000000\",\"lng\":\"127.046454250000000000000\"},\"type\":\"cluster\",\"level\":\"dong\",\"parent\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc \\ub3c4\\ubd09\\uad6c\",\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub3c4\\ubd09\\uad6c\",\"dong\":\"\\ub3c4\\ubd09\\ub3d9\",\"name\":\"\\ub3c4\\ubd09\\ub3d9\",\"num\":2,\"bounds\":{\"max_lat\":\"37.67234930000000000\",\"min_lat\":\"37.66876800000000000\",\"max_lng\":\"127.04716300000000000\",\"min_lng\":\"127.04574550000000000\"},\"didx\":21089,\"ver\":\"v5\"},{\"position\":{\"lat\":\"37.63311400\",\"lng\":\"127.05883500\"},\"type\":\"subway\",\"parent\":\"\",\"name\":\"\\uc6d4\\uacc4\",\"num\":\"\\uc11c\\uc6b81\\ud638\\uc120\",\"sidx\":211},{\"position\":{\"lat\":\"37.63413500\",\"lng\":\"127.11480300\"},\"type\":\"subway\",\"parent\":\"\",\"name\":\"\\uac08\\ub9e4\",\"num\":\"\\uacbd\\ucd98\\uc120\",\"sidx\":67},{\"position\":{\"lat\":\"37.63595000\",\"lng\":\"127.06821300\"},\"type\":\"subway\",\"parent\":\"\",\"name\":\"\\ud558\\uacc4\",\"num\":\"\\uc11c\\uc6b87\\ud638\\uc120\",\"sidx\":514},{\"position\":{\"lat\":\"37.64459900\",\"lng\":\"127.05140600\"},\"type\":\"subway\",\"parent\":\"\",\"name\":\"\\ub179\\ucc9c\",\"num\":\"\\uc11c\\uc6b81\\ud638\\uc120\",\"sidx\":150},{\"position\":{\"lat\":\"37.64549400\",\"lng\":\"127.06390700\"},\"type\":\"subway\",\"parent\":\"\",\"name\":\"\\uc911\\uacc4\",\"num\":\"\\uc1",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "x-peterpanz-uidx": "undefined"
+      }
+    },
+    {
+      "url": "https://api.peterpanz.com/houses/area/pc?zoomLevel=14&center=%7B%22y%22:37.6542,%22_lat%22:37.6542,%22x%22:127.0568,%22_lng%22:127.0568%7D&dong=&gungu=&filter=latitude:37.6281014~37.6802894%7C%7Clongitude:127.0430671~127.1185981%7C%7CbuildingType;%5B%22%EB%B9%8C%EB%9D%BC/%EC%A3%BC%ED%83%9D%22%5D&&pageSize=50&pageIndex=1&search=&response_version=5.3&filter_version=5.1&order_by=random",
+      "status": 200,
+      "len": 93523,
+      "method": "GET",
+      "postData": null,
+      "body": "{\"houses\":{\"recommend\":{\"image\":[{\"hidx\":18747847,\"attribute\":{\"created_device\":\"android\",\"naverVerification\":true,\"safeDirectTrade\":false,\"withoutFee\":false,\"withoutFeeDiscount\":0,\"isZero\":false,\"isRentalManagement\":false,\"recommend\":true,\"isFa\":null,\"verificationType\":\"T\",\"isReported\":0,\"isMyReport\":0,\"smartContract\":0,\"userType\":\"user\",\"status_code\":\"0103\",\"isOwnerConfirm\":null,\"naverUpdatedAt\":\"2026-01-20 10:04:11\",\"peterVerified\":false,\"hasOwner\":false,\"peterVerifiedCheckVacancyDate\":\"\",\"peterOwnerCheckedAt\":null,\"is_recommend\":true,\"is_jjin\":false,\"is_premium\":0,\"hasOwnerMark\":false},\"info\":{\"temp_address\":\"\",\"vaddr\":0,\"subject\":\"\\uc911\\uacc4\\ub3d9 \\uc62c\\ub9ac\\ubaa8\\ub378\\ub9c1 \\ud2b9\\uae09 \\ub9e4\\ubb3c! \\ub0b4\\ubd80 \\ud480\\uc218\\ub9ac \\uc644\\ub8cc! \\ud559\\uad70+\\uad50\\ud1b5 \\uc6b0\\uc218\",\"room_count\":2,\"room_type\":\"\\ud22c\\ub8f8\",\"bedroom_count\":2,\"store_count\":null,\"thumbnail\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/1cae4b567cbd7655b837aedefb4e356d_thumb.jpg\",\"created_at\":\"2026-01-18 00:23:30\",\"live_start_date\":\"2026-01-20 00:00:00\",\"is_octop\":0,\"is_half_underground\":0,\"is_multilayer\":0,\"supplied_size\":63.6,\"supplied_pyeong\":19.23,\"real_size\":52.3,\"real_pyeong\":15.81,\"total_floor_size\":null,\"total_floor_size_pyeong\":0,\"site_size\":null,\"site_size_pyeong\":0,\"building_size\":null,\"building_size_pyeong\":0,\"naver_map\":1,\"livingroom_text\":\"\",\"special_pick\":null},\"type\":{\"contract_type\":\"\\ub9e4\\ub9e4\",\"trade_type\":\"recommend\",\"building_form\":\"\\ube4c\\ub77c\",\"building_type\":\"\\ube4c\\ub77c\\/\\uc8fc\\ud0dd\",\"building_type_text\":\"\\ube4c\\ub77c\",\"building_category\":null,\"building_code\":\"60\",\"isCafe\":false,\"fa3Code\":0},\"price\":{\"monthly_fee\":0,\"deposit\":320000000,\"maintenance_cost\":20000},\"floor\":{\"target\":3,\"total\":4,\"floor_type\":1,\"floor_text\":\"3\\uce35\",\"floor_text_detail\":\"3\\uce35\\/4\\uce35\"},\"location\":{\"coordinate\":{\"latitude\":\"37.6508237\",\"longitude\":\"127.0836608\"},\"address\":{\"sido\":\"\\uc11c\\uc6b8\\ud2b9\\ubcc4\\uc2dc\",\"sigungu\":\"\\ub178\\uc6d0\\uad6c\",\"dong\":\"\\uc911\\uacc4\\ub3d9\",\"aptName\":null,\"text\":\"\\ub178\\uc6d0\\uad6c \\uc911\\uacc4\\ub3d9\"}},\"favorite\":false,\"recentView\":false,\"additional_options\":{\"is_new_building\":0,\"have_parking_lot\":0,\"is_full_option\":0,\"have_elevator\":0,\"support_loan\":0,\"allow_pet\":0,\"is_main_road\":0},\"images\":{\"S\":[{\"id\":372046681,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/1cae4b567cbd7655b837aedefb4e356d_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":1},{\"id\":372046684,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/00ae8ac65d561ca880717ed37f0c2967_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":2},{\"id\":372046687,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/1408e112023a55890a42753b22d3e218_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":3},{\"id\":372046690,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/97924adbe55502a23c6aa4c0f3115a35_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":4},{\"id\":372046693,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/f536cd157e0a7c69e48051362c3d99be_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":5},{\"id\":372046696,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/0aa7fb58dc9947100e09459f24158e31_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":6},{\"id\":372046699,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/715dc2aacf62bc7fd7fbc2ec690b1b28_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":7},{\"id\":372046702,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/b70d5cc4d9f63f911b5b2c830df50385_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":8},{\"id\":372046705,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/4369407394c2200da2136153589fba52_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":9},{\"id\":372046708,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/c858a7b0a512dff8140bb7a5dab12284_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":10},{\"id\":372046711,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/2a0bda315aa780d624b0f8ac30544661_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":11},{\"id\":372046714,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/8a96262cb01424ed13514f4b3680e622_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":12},{\"id\":372046717,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/638d78916c08135cb7345e9748550b58_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":13},{\"id\":372046720,\"path\":\"https:\\/\\/img.peterpanz.com\\/photo\\/20251209\\/18563265\\/c32dde1efa7990a1d4049b45717aa6ab_thumb.jpg\",\"type\":\"S\",\"is_complex_photo\":0,\"order\":14}]}}]},\"withoutFee\":{\"image\":[{\"hidx\":18744079,\"attribute\":{\"created_device\":\"web\",\"naverVerification\":true,\"safeDirectTrade\":false,\"withoutFee\":false,\"withoutFeeDiscount\":0,\"isZero\":false,\"isRentalManagement\":false,\"recommend\":false,\"isFa\":null,\"verificationType\":\"M\",\"isReported\":0,\"isMyReport\":0,\"smartContract\":0,\"userType\":\"user\",\"status_code\":\"0103\",\"isOwnerConfirm\":nul",
+      "headers": {
+        "x-peterpanz-version": "3.60.0",
+        "x-peterpanz-page-id": "PAGE_MAP",
+        "sec-ch-ua-platform": "\"Mac OS X\"",
+        "referer": "https://www.peterpanz.com/",
+        "accept-language": "ko-KR",
+        "sec-ch-ua": "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+        "x-peterpanz-os": "web",
+        "sec-ch-ua-mobile": "?0",
+        "x-identifier-id": "586b44102648432010606eeb7805d130",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36",
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "x-peterpanz-uidx": "undefined"
+      }
+    }
+  ],
+  "housesAfterDrag": {
+    "count": 0,
+    "allHouseCount": 26
+  }
+}

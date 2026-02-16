@@ -1,0 +1,33 @@
+{
+  "runId": "dabang_1771222756825",
+  "success": true,
+  "sigungu": "노원구",
+  "sampleCap": 5,
+  "filters": {
+    "rentMax": 80,
+    "depositMax": 6000,
+    "minAreaM2": 40,
+    "minPyeong": 12
+  },
+  "categories": {
+    "onetwo": {
+      "captured": 23,
+      "unique": 23,
+      "totalFromApi": 52
+    },
+    "house": {
+      "captured": 23,
+      "unique": 23,
+      "totalFromApi": 42
+    }
+  },
+  "totalCaptured": 35,
+  "afterFilter": 20,
+  "totalListings": 5,
+  "detailFetched": 0,
+  "dataQuality": {
+    "grade": "PARTIAL"
+  },
+  "timestamp": "2026-02-16T06:19:16.825Z",
+  "durationMs": 16456
+}

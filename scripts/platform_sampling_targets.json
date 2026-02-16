@@ -1,0 +1,1935 @@
+{
+  "runMeta": {
+    "runId": "query_probe_20260216",
+    "createdAt": "2026-02-16T04:34:50.602Z",
+    "owner": "my-rent-finder"
+  },
+  "thresholds": {
+    "requiredFieldsRate": 0.85,
+    "violationRate": 0.08,
+    "parseFailRate": 0.08,
+    "imageValidRate": 0.9
+  },
+  "targets": [
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_001_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_002_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_003_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_004_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_005_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_006_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_007_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "직방",
+      "platform_code": "zigbang",
+      "source_id": "zigbang_008_query_probe_20260216",
+      "source_url": "https://www.zigbang.com/",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "검색 경로는 동적 변화 가능성 있음. 실패 시 수동/브라우저 방식으로 전환.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_001_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_002_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EB%9E%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_003_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%8F%99%EB%8C%80%EB%AC%B8%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_004_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EA%B4%91%EC%A7%84%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_005_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%B6%81%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_006_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_007_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "다방",
+      "platform_code": "dabang",
+      "source_id": "dabang_008_query_probe_20260216",
+      "source_url": "https://www.dabangapp.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A2%85%EB%A1%9C%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "robots가 검색 경로를 강하게 제약할 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_001_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EB%85%B8%EC%9B%90%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_002_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EC%A4%91%EB%9E%91%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_003_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EB%8F%99%EB%8C%80%EB%AC%B8%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_004_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EA%B4%91%EC%A7%84%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_005_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EC%84%B1%EB%B6%81%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_006_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EC%84%B1%EB%8F%99%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_007_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EC%A4%91%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네이버 부동산",
+      "platform_code": "naver",
+      "source_id": "naver_blocked_008_query_probe_20260216",
+      "source_url": "https://new.land.naver.com/houses?keyword=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EC%A2%85%EB%A1%9C%EA%B5%AC+%EC%9B%94%EC%84%B8+%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD+%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC+%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90+%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98+40m2%EC%9D%B4%EC%83%81",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "검색 페이지 접근 안정성이 낮을 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_001_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_002_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EB%9E%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_003_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%8F%99%EB%8C%80%EB%AC%B8%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_004_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EA%B4%91%EC%A7%84%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_005_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%B6%81%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_006_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_007_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "피터팬",
+      "platform_code": "peterpanz",
+      "source_id": "peterpanz_008_query_probe_20260216",
+      "source_url": "https://www.peterpanz.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A2%85%EB%A1%9C%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "검색 URL 구조가 자주 바뀔 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_001_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_002_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EB%9E%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_003_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%8F%99%EB%8C%80%EB%AC%B8%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_004_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EA%B4%91%EC%A7%84%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_005_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%B6%81%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_006_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_007_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "부동산114",
+      "platform_code": "r114",
+      "source_id": "r114_008_query_probe_20260216",
+      "source_url": "https://www.r114.com/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A2%85%EB%A1%9C%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "쿼리 파라미터 반영이 약할 수 있어 STEALTH_AUTOMATION 우선.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_001_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_002_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EB%9E%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_003_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EB%8F%99%EB%8C%80%EB%AC%B8%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_004_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EA%B4%91%EC%A7%84%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_005_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%B6%81%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_006_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%84%B1%EB%8F%99%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_007_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A4%91%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "네모",
+      "platform_code": "nemo",
+      "source_id": "nemo_008_query_probe_20260216",
+      "source_url": "https://www.nemoapp.kr/?q=%EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%A2%85%EB%A1%9C%EA%B5%AC%20%EC%9B%94%EC%84%B8%20%EB%B9%8C%EB%9D%BC%2F%EC%97%B0%EB%A6%BD%20%EB%8B%A8%EB%8F%85%2F%EB%8B%A4%EA%B0%80%EA%B5%AC%20%EC%B5%9C%EB%8C%8080%EB%A7%8C%EC%9B%90%20%EB%B3%B4%EC%A6%9D%EA%B8%886000%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98%2040m2%EC%9D%B4%EC%83%81",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "query_probe_url",
+      "notes": "서비스 성격 차이로 필드 누락 가능성 높음.",
+      "leaseType": "월세",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_001_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_002_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중랑구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_003_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "동대문구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_004_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "광진구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_005_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성북구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_006_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "성동구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_007_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "중구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    },
+    {
+      "platform": "호갱노노",
+      "platform_code": "hogangnono",
+      "source_id": "hogangnono_blocked_008_query_probe_20260216",
+      "source_url": "https://hogangnono.com/",
+      "mode": "BLOCKED",
+      "source_type": "blocked_seed_url",
+      "notes": "robots에서 일반 크롤러 전면 차단 경향.",
+      "leaseType": "월세",
+      "probe_status": "BLOCKED",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "종로구",
+        "dong": "",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "광진구",
+          "성북구",
+          "성동구",
+          "중구",
+          "종로구"
+        ],
+        "leaseType": "월세",
+        "rentMin": 0,
+        "rentMax": 80,
+        "depositMax": 6000,
+        "minAreaM2": 40,
+        "propertyTypes": [
+          "빌라/연립",
+          "단독/다가구"
+        ]
+      }
+    }
+  ]
+}

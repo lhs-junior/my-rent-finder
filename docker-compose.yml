@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: my-rent-finder-postgres
+    environment:
+      POSTGRES_DB: ${PGDATABASE:-my_rent_finder}
+      POSTGRES_USER: ${PGADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${PGADMIN_PASSWORD:-postgres}
+    ports:
+      - "${PGHOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGADMIN_USER:-postgres} -d ${PGDATABASE:-my_rent_finder}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  postgres_data:
