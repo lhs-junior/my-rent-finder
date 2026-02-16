@@ -415,14 +415,88 @@ function parseFloor(raw) {
   if (typeof raw === "number") return { floor: Number.isFinite(raw) ? raw : null, total_floor: null };
   const s = normalizeText(raw);
   if (!s) return { floor: null, total_floor: null };
-  const pair = /(\d+)\s*\/\s*(\d+)\s*층?/.exec(s);
+
+  const pair = /(\d{1,3})\s*\/\s*(\d{1,3})\s*층?/.exec(s);
   if (pair) return { floor: Number(pair[1]), total_floor: Number(pair[2]) };
-  const floor = /(\d+)\s*층/.exec(s);
-  const total = /총\s*(\d+)\s*층/.exec(s);
+
+  const pairWithLabels = /(\d+)\s*층\s*\/\s*(\d+)\s*층/.exec(s);
+  if (pairWithLabels) return { floor: Number(pairWithLabels[1]), total_floor: Number(pairWithLabels[2]) };
+
+  const halfBasement = /(반지하|반|반층|반지층)/.exec(s);
+  if (halfBasement) return { floor: -1, total_floor: null };
+
+  const basement = /(지하)\s*(\d+)?\s*층?/.exec(s);
+  if (basement) {
+    const level = Number(basement[2] || 1);
+    return { floor: -Math.max(1, level), total_floor: null };
+  }
+
+  const b2 = /b(\d+)/i.exec(s);
+  if (b2) return { floor: -Math.max(1, Number(b2[1] || 1)), total_floor: null };
+
+  if (/(옥탑|옥상|최상층|고층|저층)/.test(s)) {
+    return { floor: null, total_floor: null };
+  }
+
+  const floor = /총\s*(\d+)\s*층/.exec(s);
+  if (floor) {
+    return {
+      floor: null,
+      total_floor: Number(floor[1]),
+    };
+  }
+
+  const floorRange = /(\d+)\s*[-~]\s*(\d+)\s*층/.exec(s);
+  if (floorRange) {
+    return { floor: Number(floorRange[1]), total_floor: Number(floorRange[2]) };
+  }
+
+  const floorValue = /(\d+)(?:\.\d+)?\s*층/.exec(s);
+  if (floorValue) {
+    return {
+      floor: Number.parseFloat(floorValue[1]),
+      total_floor: null,
+    };
+  }
+
   return {
-    floor: floor ? Number(floor[1]) : null,
-    total_floor: total ? Number(total[1]) : null,
+    floor: null,
+    total_floor: null,
   };
+}
+
+function parseDirectionFallback(value) {
+  const s = normalizeText(value);
+  if (!s) return null;
+
+  const directionRules = [
+    [/남서향|남서|남서쪽/.test(s), "남서향"],
+    [/남동향|남동|남동쪽/.test(s), "남동향"],
+    [/북서향|북서|북서쪽/.test(s), "북서향"],
+    [/북동향|북동|북동쪽/.test(s), "북동향"],
+    [/남향|남쪽/.test(s), "남향"],
+    [/북향|북쪽/.test(s), "북향"],
+    [/동향|동쪽/.test(s), "동향"],
+    [/서향|서쪽/.test(s), "서향"],
+  ];
+
+  for (const [condition, label] of directionRules) {
+    if (condition) return label;
+  }
+
+  return s;
+}
+
+function parseBuildingUseFallback(value) {
+  const s = normalizeText(value);
+  if (!s) return null;
+
+  if (/(오피스텔)/.test(s)) return "오피스텔";
+  if (/(단독|다가구|다세대|다가지구|주택)/.test(s)) return "단독/다가구";
+  if (/(연립|빌라)/.test(s)) return "빌라/연립";
+
+  if (/(원룸|투룸|쓰리룸|오픈형|오피스텔)/.test(s)) return s;
+  return s;
 }
 
 function parseRoom(raw) {

@@ -137,6 +137,8 @@ body {
 
 .chip-success { background: #e7f7ec; color: var(--ok); }
 .chip-danger { background: #fdecec; color: var(--danger); }
+.chip-warn { background: #fff8e1; color: #e6a700; }
+.chip-info { background: #e3f2fd; color: #1976d2; }
 
 .view-shell {
   display: grid;
@@ -375,6 +377,8 @@ pre {
 
 .chip-success,
 .chip-danger,
+.chip-warn,
+.chip-info,
 .chip-neutral {
   border-color: transparent;
 }
