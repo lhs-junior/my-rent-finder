@@ -243,6 +243,312 @@ function normalizeLeaseTypeFilter(rawFilter) {
   return filter.size > 0 ? filter : null;
 }
 
+const CP_IMAGE_HOSTS = new Set(["image.bizmk.kr", "land.mk.co.kr", "homesdid.co.kr", "image.neonet.co.kr"]);
+const CP_IMAGE_HOST_SUFFIXES = [".mk.co.kr", ".homesdid.co.kr", ".bizmk.kr"];
+const CP_IMAGE_PATH_HINTS = ["/memulPhoto/", "/files/", "/files_new_", "/photo/"];
+const CP_NEONET_IMAGE_PATH_HINT = "/service/neonet/images/maemul/";
+const CP_IMAGE_EXTENSION_RE = /\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\\s"'<>]*)?$/i;
+const CP_IMAGE_TIMEOUT_MS = 9000;
+const CP_IMAGE_FETCH_RETRIES = 2;
+const CP_IMAGE_FETCH_DELAY_MS = 250;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isAllowedCpImageHost(hostname) {
+  if (!hostname) return false;
+  const host = hostname.toLowerCase();
+  if (CP_IMAGE_HOSTS.has(host)) return true;
+  return CP_IMAGE_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(suffix));
+}
+
+function isAllowedCpImagePath(pathname) {
+  if (CP_IMAGE_PATH_HINTS.some((hint) => pathname.includes(hint))) {
+    return true;
+  }
+
+  if (!pathname) return false;
+  if (pathname.includes(CP_NEONET_IMAGE_PATH_HINT)) {
+    return !/(?:offerings_navi_|offerings_navi|offerings_menu|offerings_divide|mc_btn_|mmc_|icon_|btn_|home\/.+\.(gif|jpg|png)|common\/.+\.(gif|jpg|png)|search|blank\.gif|qr\.|banner|logo|copyright)/i.test(
+      pathname,
+    );
+  }
+
+  return false;
+}
+
+function normalizeCpImageUrl(raw, baseUrl = null) {
+  const text = normalizeText(raw);
+  if (!text) return null;
+
+  let normalized = text;
+  if (normalized.startsWith("//")) {
+    normalized = `https:${normalized}`;
+  } else if (!/^[a-z][a-z0-9+.-]*:/i.test(normalized)) {
+    if (!baseUrl) return null;
+    try {
+      normalized = new URL(normalized, baseUrl).toString();
+    } catch {
+      return null;
+    }
+  }
+
+  const normalizedUrl = normalizeHttpUrl(normalized);
+  if (!normalizedUrl) return null;
+
+  let parsed;
+  try {
+    parsed = new URL(normalizedUrl);
+  } catch {
+    return null;
+  }
+
+  const path = parsed.pathname || "";
+  const host = parsed.hostname.toLowerCase();
+  if (!isAllowedCpImageHost(host) && !isAllowedCpImagePath(path)) {
+    return null;
+  }
+  if (String(path).includes("/main/")) {
+    return null;
+  }
+  if (!CP_IMAGE_EXTENSION_RE.test(normalizedUrl)) {
+    return null;
+  }
+
+  return parsed.toString();
+}
+
+function extractMkGalleryParamsFromHtml(html, key) {
+  const match = new RegExp(`['"]${key}['"]\\s*:\\s*['"]([^'"]+)['"]`, "i").exec(html);
+  return match?.[1] || null;
+}
+
+function buildMkGalleryUrl(detailPageUrl, html) {
+  const parsedBase = (() => {
+    try {
+      return new URL(detailPageUrl);
+    } catch {
+      return null;
+    }
+  })();
+  if (!parsedBase || parsedBase.hostname !== "land.mk.co.kr") return null;
+
+  const aptcode = extractMkGalleryParamsFromHtml(html, "aptcode");
+  const scalecode = extractMkGalleryParamsFromHtml(html, "scalecode");
+  const mseq = extractMkGalleryParamsFromHtml(html, "mseq");
+  if (!mseq) return null;
+
+  const galleryUrl = new URL("/memul/popGallery.php", parsedBase);
+  galleryUrl.searchParams.set("aptcode", aptcode || "0");
+  galleryUrl.searchParams.set("scalecode", scalecode || "0");
+  galleryUrl.searchParams.set("mseq", mseq);
+  galleryUrl.searchParams.set("pc", "Y");
+  return galleryUrl.toString();
+}
+
+function resolveRedirectFromValue(rawValue, baseUrl) {
+  const value = normalizeText(rawValue);
+  if (!value) return null;
+
+  const concatMatch = /^['"]([^'"]+)['"]\s*\+\s*(location\.(?:search|hash|pathname|href|host|hostname))/i.exec(value);
+  if (concatMatch && baseUrl) {
+    try {
+      const base = new URL(baseUrl);
+      let suffix = "";
+      if (concatMatch[2] === "location.search") suffix = base.search;
+      if (concatMatch[2] === "location.hash") suffix = base.hash;
+      if (concatMatch[2] === "location.pathname") suffix = base.pathname;
+      if (concatMatch[2] === "location.href") suffix = base.href;
+      if (concatMatch[2] === "location.host") suffix = base.host;
+      if (concatMatch[2] === "location.hostname") suffix = base.hostname;
+      return new URL(`${concatMatch[1]}${suffix}`, baseUrl).toString();
+    } catch {
+      return null;
+    }
+  }
+
+  const quotedOnly = /^['"]([^'"]+)['"]$/.exec(value);
+  if (quotedOnly) {
+    try {
+      return new URL(quotedOnly[1], baseUrl).toString();
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function extractRedirectFromHtml(html, baseUrl) {
+  const patterns = [
+    /location\.replace\(\s*['"]([^'"]+)['"]/i,
+    /window\.location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/i,
+    /window\.location\.(?:href|replace)\s*=\s*["']([^"']+)["']/i,
+    /location\s*=\s*['"]([^'"]+)['"]/i,
+    /location\.assign\(\s*['"]([^'"]+)['"]/i,
+    /location\.replace\(\s*([^)]+)\)/i,
+    /window\.location\s*=\s*([^\s;]+)\s*;/i,
+    /<meta[^>]+http-equiv=['"]refresh['"][^>]*url=([^'">\\s]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (!match || !match[1]) continue;
+    const resolved = resolveRedirectFromValue(match[1], baseUrl);
+    if (resolved) {
+      return resolved;
+    }
+    try {
+      return new URL(match[1], baseUrl).toString();
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+async function fetchTextWithRetry(url, {
+  timeoutMs = CP_IMAGE_TIMEOUT_MS,
+  retries = CP_IMAGE_FETCH_RETRIES,
+  maxRedirects = 3,
+} = {}) {
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+  };
+
+  let currentUrl = normalizeHttpUrl(url);
+  if (!currentUrl) return { ok: false, status: null, text: "" };
+
+  let pageAttempts = 0;
+  let networkAttempts = 0;
+  let aggregatedText = "";
+  let finalUrl = currentUrl;
+
+  while (pageAttempts <= maxRedirects && networkAttempts <= retries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(currentUrl, {
+        method: "GET",
+        headers,
+        redirect: "manual",
+        signal: controller.signal,
+      });
+      const text = await response.text();
+      clearTimeout(timer);
+      aggregatedText += `\n${text}`;
+
+      if (response.status === 429 && networkAttempts < retries) {
+        networkAttempts += 1;
+        await sleep(CP_IMAGE_FETCH_DELAY_MS * (networkAttempts + 1) * 2);
+        continue;
+      }
+      if (response.status >= 300 && response.status < 400 && response.headers.get("location")) {
+        const redirectTarget = response.headers.get("location");
+        const nextUrl = new URL(redirectTarget, currentUrl).toString();
+        currentUrl = nextUrl;
+        finalUrl = nextUrl;
+        pageAttempts += 1;
+        continue;
+      }
+
+      const redirectedUrl = extractRedirectFromHtml(text, currentUrl);
+      if (redirectedUrl && redirectedUrl !== finalUrl) {
+        currentUrl = redirectedUrl;
+        finalUrl = redirectedUrl;
+        pageAttempts += 1;
+        continue;
+      }
+
+      return {
+        ok: response.ok,
+        status: response.status,
+        text: aggregatedText,
+        finalUrl,
+      };
+    } catch (error) {
+      clearTimeout(timer);
+      if (networkAttempts >= retries) {
+        return { ok: false, status: null, text: "", finalUrl, error: String(error?.message || error) };
+      }
+      networkAttempts += 1;
+      await sleep(CP_IMAGE_FETCH_DELAY_MS * (networkAttempts + 1) * 2);
+    }
+  }
+
+  return { ok: false, status: null, text: aggregatedText, finalUrl };
+}
+
+function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
+  if (!html) return [];
+  const imageRegex = /(?:src|href|data-src)\s*=\s*["']([^"']+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^"']*)?)["']/gi;
+  const absoluteImageRegex = /(?:https?:)?\/\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^'"\\s<>]*)?/gi;
+  const relativeImageRegex = /\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^'"\\s<>]*)?/gi;
+  const out = [];
+  const seen = new Set();
+
+  for (const match of html.matchAll(imageRegex)) {
+    const normalized = normalizeCpImageUrl(match[1], baseUrl);
+    if (!normalized) continue;
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+    if (out.length >= imageLimit) break;
+  }
+
+  if (out.length < imageLimit) {
+    for (const match of html.matchAll(absoluteImageRegex)) {
+      const normalized = normalizeCpImageUrl(match[0], baseUrl);
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      out.push(normalized);
+      if (out.length >= imageLimit) break;
+    }
+  }
+
+  if (out.length < imageLimit) {
+    for (const match of html.matchAll(relativeImageRegex)) {
+      const normalized = normalizeCpImageUrl(match[0], baseUrl);
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      out.push(normalized);
+      if (out.length >= imageLimit) break;
+    }
+  }
+
+  return out;
+}
+
+async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
+  if (!articleUrl) return [];
+  const normalizedArticleUrl = normalizeHttpUrl(articleUrl);
+  if (!normalizedArticleUrl) return [];
+
+  const fetchResult = await fetchTextWithRetry(normalizedArticleUrl);
+  if (!fetchResult.ok) return [];
+
+  const articleUrlForBase = fetchResult.finalUrl || normalizedArticleUrl;
+  const cpImageUrls = extractCpImageUrlsFromHtml(fetchResult.text, imageLimit, articleUrlForBase);
+  if (cpImageUrls.length > 0) return cpImageUrls;
+
+  const mkGalleryUrl = buildMkGalleryUrl(articleUrlForBase, fetchResult.text);
+  if (!mkGalleryUrl) return [];
+
+  const mkGalleryResult = await fetchTextWithRetry(mkGalleryUrl);
+  if (!mkGalleryResult.ok) return [];
+
+  return extractCpImageUrlsFromHtml(
+    mkGalleryResult.text,
+    imageLimit,
+    mkGalleryResult.finalUrl || mkGalleryUrl,
+  );
+}
+
 function parseDealOrWarrantPrc(value) {
   const s = normalizeText(value);
   if (!s) return { deposit: null, rent: null, raw: null };
@@ -805,6 +1111,10 @@ export class NaverListingAdapter extends BaseListingAdapter {
     this.imageLimit = Number.isFinite(Number(options.imageLimit))
       ? Math.max(1, Math.min(24, Number(options.imageLimit)))
       : 12;
+    this.imageFallbackEnabled = options.imageFallbackEnabled !== false;
+    this.imageFallbackLimit = Number.isFinite(Number(options.imageFallbackLimit))
+      ? Math.max(1, Math.min(24, Number(options.imageFallbackLimit)))
+      : this.imageLimit;
     this.leaseTypeFilter = normalizeLeaseTypeFilter(
       options.leaseTypeFilter || options.leaseType,
     );
@@ -818,7 +1128,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
     return this.leaseTypeFilter.has(leaseType);
   }
 
-  normalizeFromRawRecord(rawRecord) {
+  async normalizeFromRawRecord(rawRecord) {
     const payload = rawRecord.payload_json || rawRecord.payload || rawRecord._payload || {};
     if (!payload || typeof payload !== "object") return [];
 
@@ -855,13 +1165,15 @@ export class NaverListingAdapter extends BaseListingAdapter {
       }
     }
 
-    return Array.from(bestBySource.values())
-      .map((entry) => entry.row)
-      .map((item) => this.normalizeOne(item, rawRecord))
-      .filter((item) => item !== null);
+    const normalized = [];
+    for (const entry of Array.from(bestBySource.values())) {
+      const normalizedItem = await this.normalizeOne(entry.row, rawRecord);
+      if (normalizedItem) normalized.push(normalizedItem);
+    }
+    return normalized;
   }
 
-  normalizeOne(item, rawRecord) {
+  async normalizeOne(item, rawRecord) {
     const sourceRef =
       pick(item, [
         "atclNo",
@@ -1002,6 +1314,14 @@ export class NaverListingAdapter extends BaseListingAdapter {
       "roomType",
     ], null);
 
+    const imageUrls = collectImageUrls(item, { imageLimit: this.imageLimit });
+    const fallbackImageUrls = imageUrls.length === 0 && this.imageFallbackEnabled
+      ? await enrichImageUrlsFromCpArticleUrl(
+          pick(item, ["cpPcArticleUrl", "cpPcArticleLink", "cpPcArticleBridgeUrl"], null),
+          Math.max(1, this.imageFallbackLimit),
+        )
+      : [];
+
     const normalized = {
       platform_code: "naver",
       collected_at: rawRecord.collected_at || new Date().toISOString(),
@@ -1054,7 +1374,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
       agent_phone: pick(item, ["agentPhone", "realtorPhone", "tel", "phone", "contact"], null),
       listed_at: pick(item, ["atclCrtYmd", "createdAt", "등록일", "등록일시"], null),
       available_date: pick(item, ["useDate", "availableDate", "입주가능일"], null),
-      image_urls: collectImageUrls(item, { imageLimit: this.imageLimit }),
+      image_urls: imageUrls.length > 0 ? imageUrls : fallbackImageUrls,
       raw_attrs: {
         atclNo: pick(item, ["atclNo"], null),
         articleNo: pick(item, ["articleNo", "articleId", "id"], null),

@@ -152,7 +152,7 @@ export class BaseListingAdapter {
       parsedRawRecords += 1;
       let items = [];
       try {
-        items = this.normalizeFromRawRecord(rawRecord) || [];
+        items = (await this.normalizeFromRawRecord(rawRecord)) || [];
       } catch (err) {
         const code = normalizeErrorCode(err);
         parseFailure += 1;
