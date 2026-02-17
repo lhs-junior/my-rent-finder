@@ -79,13 +79,19 @@ export function toText(value, fallback = "") {
 }
 
 export function toNumber(value, fallback = null) {
-  const n = Number(value);
+  if (value === null || value === undefined) return fallback;
+  const raw = String(value).trim();
+  if (!raw) return fallback;
+  const n = Number(raw);
   if (Number.isFinite(n)) return n;
   return fallback;
 }
 
 export function toInt(value, fallback = null) {
-  const n = Number(value);
+  if (value === null || value === undefined) return fallback;
+  const raw = String(value).trim();
+  if (!raw) return fallback;
+  const n = Number(raw);
   if (Number.isFinite(n)) return Math.trunc(n);
   return fallback;
 }
@@ -123,10 +129,54 @@ export function normalizeLeaseType(raw) {
   return "기타";
 }
 
+function hasKoreanBoundaryToken(value, token) {
+  const normalized = String(value || "").toLowerCase();
+  if (!normalized) return false;
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const boundaryRe = new RegExp(`(^|[^가-힣a-z0-9])${escaped}(?=$|[^가-힣a-z0-9])`, "i");
+  return boundaryRe.test(` ${normalized} `);
+}
+
 export function normalizeAreaClaimed(raw) {
-  const v = toText(raw, "exclusive");
-  if (v === "gross" || v === "range" || v === "estimated") return v;
-  return "exclusive";
+  const normalized = toText(raw, "").trim().toLowerCase();
+
+  if (!normalized) {
+    return "estimated";
+  }
+
+  if (normalized === "exclusive" || /(?:^|[^a-z])exclusive(?:$|[^a-z])/i.test(normalized)
+    || hasKoreanBoundaryToken(normalized, "전용")
+    || hasKoreanBoundaryToken(normalized, "전용면적")
+    || hasKoreanBoundaryToken(normalized, "실면적")
+    || /실\s*면적/.test(normalized)
+  ) {
+    return "exclusive";
+  }
+
+  if (normalized === "gross" || /\bgross\b/i.test(normalized)
+    || hasKoreanBoundaryToken(normalized, "공급")
+    || hasKoreanBoundaryToken(normalized, "연면적")
+    || hasKoreanBoundaryToken(normalized, "건물면적")
+    || hasKoreanBoundaryToken(normalized, "총면적")
+    || /실제\s*면적/.test(normalized)
+  ) {
+    return "gross";
+  }
+
+  if (normalized === "range" || /\brange\b/i.test(normalized)
+    || hasKoreanBoundaryToken(normalized, "범위")
+  ) {
+    return "range";
+  }
+
+  if (normalized === "estimated" || /estimated/i.test(normalized)
+    || hasKoreanBoundaryToken(normalized, "추정")
+    || hasKoreanBoundaryToken(normalized, "대략")
+  ) {
+    return "estimated";
+  }
+
+  return "estimated";
 }
 
 export function ensureFnv11(value) {
