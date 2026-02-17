@@ -168,7 +168,16 @@ function parseRoomDesc(roomDesc) {
   const area = areaMatch ? parseFloat(areaMatch[1].replace(/,/g, "")) : null;
 
   const floorMatch = roomDesc.match(/(반지하|옥탑|\d+층|저층|중층|고층)/);
-  const floor = floorMatch ? floorMatch[1] : null;
+  let floor = null;
+  if (floorMatch) {
+    const raw = floorMatch[1];
+    if (raw === "반지하") floor = -1;
+    else if (raw === "옥탑") floor = 99;
+    else {
+      const n = parseInt(raw, 10);
+      floor = Number.isFinite(n) ? n : null;
+    }
+  }
 
   return { area, floor };
 }
@@ -362,12 +371,11 @@ async function collectDabang() {
         await sleep(6000);
 
         // ---- Pagination: fetch additional pages via browser context ----
-        // The API returns 24 items per page. If we need more, request page 2, 3...
-        if (capturedBboxUrl && capturedRoomLists.length < sampleCap * 3) {
-          const maxPages = Math.min(5, Math.ceil((sampleCap * 3) / 24));
+        // The API returns 24 items per page. Paginate until hasMore === false.
+        if (capturedBboxUrl) {
+          const maxPages = 30; // safety limit (24×30 = 720 items max)
 
           for (let pg = 2; pg <= maxPages; pg++) {
-            if (capturedRoomLists.length >= sampleCap * 3) break;
 
             try {
               const pgUrl = new URL(capturedBboxUrl);
@@ -469,9 +477,8 @@ async function collectDabang() {
     log(`Total unique across categories: ${allCaptured.length}`);
 
     const filtered = filterListings(allCaptured);
-    const capped = filtered.slice(0, sampleCap);
 
-    log(`After filter + cap: ${capped.length} items`);
+    log(`After filter: ${filtered.length} items`);
 
     // ========================================================================
     // Optional: Fetch detail for each listing via browser context
@@ -479,8 +486,8 @@ async function collectDabang() {
 
     let detailSuccessCount = 0;
 
-    if (fetchDetail && capped.length > 0) {
-      log(`Fetching detail for ${capped.length} listings via browser context...`);
+    if (fetchDetail && filtered.length > 0) {
+      log(`Fetching detail for ${filtered.length} listings via browser context...`);
 
       const detailPage = await context.newPage();
 
@@ -496,11 +503,11 @@ async function collectDabang() {
         vlog("Main page load for session - continuing anyway");
       }
 
-      for (let i = 0; i < capped.length; i++) {
-        const item = capped[i];
+      for (let i = 0; i < filtered.length; i++) {
+        const item = filtered[i];
         const detailUrl = `https://www.dabangapp.com/api/v5/room/${item.id}`;
 
-        vlog(`  [${i + 1}/${capped.length}] id:${item.id} ...`);
+        vlog(`  [${i + 1}/${filtered.length}] id:${item.id} ...`);
 
         try {
           const result = await withTimeout(
@@ -544,14 +551,14 @@ async function collectDabang() {
       }
 
       await detailPage.close();
-      log(`Detail fetch: ${detailSuccessCount}/${capped.length} succeeded`);
+      log(`Detail fetch: ${detailSuccessCount}/${filtered.length} succeeded`);
     }
 
     // ========================================================================
     // Write raw JSONL
     // ========================================================================
 
-    for (const item of capped) {
+    for (const item of filtered) {
       const record = {
         platform_code: "dabang",
         collected_at: new Date().toISOString(),
@@ -587,21 +594,21 @@ async function collectDabang() {
     // ========================================================================
 
     let dataQualityGrade = "EMPTY";
-    if (capped.length >= 10) dataQualityGrade = "GOOD";
-    else if (capped.length > 0) dataQualityGrade = "PARTIAL";
+    if (filtered.length >= 10) dataQualityGrade = "GOOD";
+    else if (filtered.length > 0) dataQualityGrade = "PARTIAL";
 
     const totalDurationMs = Date.now() - startTime;
 
     const metadata = {
       runId: `dabang_${Date.now()}`,
-      success: capped.length > 0,
+      success: filtered.length > 0,
       sigungu,
       sampleCap,
       filters: { rentMax, depositMax, minAreaM2, minPyeong },
       categories: categoryStats,
       totalCaptured: allCaptured.length,
       afterFilter: filtered.length,
-      totalListings: capped.length,
+      totalListings: filtered.length,
       detailFetched: detailSuccessCount,
       dataQuality: { grade: dataQualityGrade },
       timestamp: new Date().toISOString(),
@@ -614,7 +621,7 @@ async function collectDabang() {
     log("");
     log("=== Collection Complete ===");
     log(`Success: ${metadata.success}`);
-    log(`Total listings: ${capped.length}`);
+    log(`Total listings: ${filtered.length}`);
     log(`Data quality: ${dataQualityGrade}`);
     log(`Duration: ${Math.round(totalDurationMs / 1000)}s`);
     log(`Raw data: ${outputRaw}`);
@@ -626,10 +633,10 @@ async function collectDabang() {
     }
 
     // Sample listings
-    if (capped.length > 0) {
+    if (filtered.length > 0) {
       log("");
       log("Sample listings:");
-      for (const item of capped.slice(0, 3)) {
+      for (const item of filtered.slice(0, 3)) {
         const price = parsePriceTitle(item.priceTitle);
         const desc = parseRoomDesc(item.roomDesc);
         log(`  - [${item.roomTypeName}] ${item.priceTitle} (보증금${price.deposit}만/월세${price.rent}만) ${desc.area}m² ${item.dongName} "${item.roomTitle?.substring(0, 30)}..."`);

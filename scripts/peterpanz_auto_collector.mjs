@@ -12,11 +12,7 @@
  * Required custom headers: x-peterpanz-version, x-peterpanz-page-id, x-peterpanz-os
  */
 
-import { chromium } from "playwright-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
-
-chromium.use(StealthPlugin());
 
 // ============================================================================
 // CLI Arguments
@@ -58,7 +54,6 @@ const depositMax = getIntArg("--deposit-max", 6000); // 만원
 const minAreaM2 = getIntArg("--min-area", 40); // m²
 const outputRaw = getArg("--output-raw", "scripts/peterpanz_raw_samples.jsonl");
 const outputMeta = getArg("--output-meta", "scripts/peterpanz_capture_results.json");
-const headless = !hasFlag("--headed");
 const verbose = hasFlag("--verbose");
 
 // ============================================================================
@@ -272,130 +267,68 @@ async function collectPeterpanz() {
   log(`Target: ${sigungu} (lat=${district.lat}, lng=${district.lng})`);
   log(`Sample cap: ${sampleCap}`);
   log(`Filters: rent<=${rentMax}만원, deposit<=${depositMax}만원, area>=${minAreaM2}m²`);
-  log(`Headless: ${headless}`);
   log("");
 
-  const browser = await chromium.launch({
-    headless,
-    args: [
-      "--disable-blink-features=AutomationControlled",
-      "--disable-dev-shm-usage",
-      "--no-sandbox",
-    ],
-  });
+  const API_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+    "x-peterpanz-version": "5.3",
+    "x-peterpanz-page-id": "villa",
+    "x-peterpanz-os": "pc",
+    "Referer": "https://www.peterpanz.com/",
+    "Origin": "https://www.peterpanz.com",
+  };
 
   try {
-    const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
-      viewport: { width: 1440, height: 900 },
-      locale: "ko-KR",
-      timezoneId: "Asia/Seoul",
-    });
+    // ---- Direct API pagination ----
+    const allHouses = [];
+    const seen = new Set();
+    let pageIndex = 1;
+    const pageSize = 50;
 
-    const page = await context.newPage();
-    const pageUrl = buildPeterpanzUrl();
-    log(`Page URL: ${pageUrl.slice(0, 120)}...`);
+    while (pageIndex <= 20) { // Safety limit
+      const url = buildApiUrl(pageIndex, pageSize);
+      vlog(`Fetching page ${pageIndex}...`);
 
-    // ---- Inject full filter params into SPA's API requests via route ----
-    // The SPA strips contractType/checkMonth/checkDeposit/checkRealSize from its
-    // own API requests. We intercept outgoing /houses/area/pc requests and inject
-    // the missing filter params so the server returns pre-filtered results.
-    const extraFilters = [
-      `checkDeposit:0~${depositMax * 10000}`,
-      `checkMonth:0~${rentMax * 10000}`,
-      `checkRealSize:${minAreaM2}~999`,
-      'contractType;["월세"]',
-      'roomType;["투룸","원룸","쓰리룸"]',
-    ].join("||");
-
-    await page.route("**/houses/area/pc**", async (route) => {
-      const origUrl = route.request().url();
-      try {
-        const u = new URL(origUrl);
-        const currentFilter = u.searchParams.get("filter") || "";
-        // Only inject if our filters aren't already present
-        if (!currentFilter.includes("contractType")) {
-          u.searchParams.set("filter", currentFilter + "||" + extraFilters);
-          vlog(`Injected filters into API request`);
-        }
-        await route.continue({ url: u.toString() });
-      } catch {
-        await route.continue();
+      const res = await fetch(url, { headers: API_HEADERS });
+      if (!res.ok) {
+        log(`API HTTP ${res.status} on page ${pageIndex}`);
+        break;
       }
-    });
 
-    // ---- Intercept API responses ----
-    let interceptedHouses = [];
+      const body = await res.json();
+      const items = extractHousesFromResponse(body);
+      const totalCount = body.totalCount || 0;
 
-    page.on("response", async (response) => {
-      const url = response.url();
-      if (!url.includes("/houses/area/pc")) return;
-      if (response.status() !== 200) return;
-      try {
-        const body = await response.json();
-        const items = extractHousesFromResponse(body);
-        interceptedHouses.push(...items);
-        vlog(`Intercepted /houses/area/pc: ${items.length} items`);
-      } catch { /* non-JSON */ }
-    });
-
-    // ---- Navigate & establish session ----
-    log("Navigating to PeterPanz...");
-    await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await sleep(5000);
-
-    // Map drag triggers the SPA to call /houses/area/pc (now with injected filters)
-    log("Triggering map interaction...");
-    await page.mouse.move(720, 400);
-    await page.mouse.down();
-    await page.mouse.move(740, 415, { steps: 5 });
-    await page.mouse.up();
-    await sleep(5000);
-
-    log(`After map interaction: ${interceptedHouses.length} items`);
-
-    // ---- Additional map drags if we need more data ----
-    if (interceptedHouses.length < sampleCap && interceptedHouses.length > 0) {
-      log("Performing additional map drags for more data...");
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const dx = (attempt + 1) * 30;
-        await page.mouse.move(720, 400);
-        await page.mouse.down();
-        await page.mouse.move(720 + dx, 400 - dx, { steps: 5 });
-        await page.mouse.up();
-        await sleep(4000);
-        if (interceptedHouses.length >= sampleCap * 2) break;
+      let newCount = 0;
+      for (const item of items) {
+        if (!item?.hidx || seen.has(item.hidx)) continue;
+        seen.add(item.hidx);
+        allHouses.push(item);
+        newCount++;
       }
-      log(`After extra drags: ${interceptedHouses.length} items`);
+
+      vlog(`Page ${pageIndex}: ${items.length} items (${newCount} new), totalCount: ${totalCount}`);
+
+      if (items.length === 0) break;
+      if (newCount === 0 && pageIndex > 1) break; // All duplicates
+      pageIndex++;
+      await sleep(500); // Rate limit courtesy
     }
 
-    const allHouses = interceptedHouses;
-
-    // ---- Deduplicate ----
-    const seen = new Set();
-    const uniqueItems = allHouses.filter((item) => {
-      if (seen.has(item.hidx)) return false;
-      seen.add(item.hidx);
-      return true;
-    });
-    log(`Total unique: ${uniqueItems.length}`);
+    log(`Total fetched: ${allHouses.length} unique items`);
 
     // ---- Filter ----
-    const filtered = filterListings(uniqueItems);
-    const capped = filtered.slice(0, sampleCap);
-    log(`After filter + cap: ${capped.length} items`);
+    const filtered = filterListings(allHouses);
+    log(`After filter: ${filtered.length} items`);
 
-    // ========================================================================
-    // Write raw JSONL
-    // ========================================================================
-
-    for (const item of capped) {
+    // ---- Write raw JSONL ----
+    for (const item of filtered) {
       const record = {
         platform_code: "peterpanz",
         collected_at: new Date().toISOString(),
         source_url: `https://www.peterpanz.com/house/${item.hidx}`,
-        request_url: buildApiUrl(1, 50),
+        request_url: buildApiUrl(1, pageSize),
         response_status: 200,
         sigungu,
         payload_json: item,
@@ -404,29 +337,23 @@ async function collectPeterpanz() {
     }
 
     rawStream.end();
-    await page.close();
-    await browser.close();
 
-    // ========================================================================
-    // Write metadata
-    // ========================================================================
-
+    // ---- Write metadata ----
     let dataQualityGrade = "EMPTY";
-    if (capped.length >= 10) dataQualityGrade = "GOOD";
-    else if (capped.length > 0) dataQualityGrade = "PARTIAL";
+    if (filtered.length >= 10) dataQualityGrade = "GOOD";
+    else if (filtered.length > 0) dataQualityGrade = "PARTIAL";
 
     const totalDurationMs = Date.now() - startTime;
 
     const metadata = {
       runId: `peterpanz_${Date.now()}`,
-      success: capped.length > 0,
+      success: filtered.length > 0,
       sigungu,
       sampleCap,
       filters: { rentMax, depositMax, minAreaM2 },
-      totalIntercepted: allHouses.length,
-      totalUnique: uniqueItems.length,
+      totalFetched: allHouses.length,
       afterFilter: filtered.length,
-      totalListings: capped.length,
+      totalListings: filtered.length,
       dataQuality: { grade: dataQualityGrade },
       timestamp: new Date().toISOString(),
       durationMs: totalDurationMs,
@@ -437,17 +364,16 @@ async function collectPeterpanz() {
     log("");
     log("=== Collection Complete ===");
     log(`Success: ${metadata.success}`);
-    log(`Total listings: ${capped.length}`);
+    log(`Total listings: ${filtered.length}`);
     log(`Data quality: ${dataQualityGrade}`);
     log(`Duration: ${Math.round(totalDurationMs / 1000)}s`);
     log(`Raw data: ${outputRaw}`);
     log(`Metadata: ${outputMeta}`);
 
-    // Sample listings
-    if (capped.length > 0) {
+    if (filtered.length > 0) {
       log("");
       log("Sample listings:");
-      for (const item of capped.slice(0, 5)) {
+      for (const item of filtered.slice(0, 5)) {
         const rent = item.price?.monthly_fee ? Math.round(item.price.monthly_fee / 10000) : "?";
         const dep = item.price?.deposit ? Math.round(item.price.deposit / 10000) : "?";
         const area = item.info?.real_size || "?";
@@ -460,8 +386,6 @@ async function collectPeterpanz() {
     return metadata;
 
   } catch (err) {
-    try { await browser.close(); } catch { /* ignore */ }
-
     const totalDurationMs = Date.now() - startTime;
     const metadata = {
       runId: `peterpanz_${Date.now()}`,

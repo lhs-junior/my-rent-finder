@@ -183,7 +183,7 @@ async function collectDistrict(districtName) {
 
     // Use page.evaluate to call the API with browser cookies/session
     // The API is a standard jQuery AJAX POST
-    for (let pageNum = 1; pageNum <= 3; pageNum++) {
+    for (let pageNum = 1; pageNum <= 20; pageNum++) {
       try {
         const html = await page.evaluate(
           async ({ addr1, addr2, pageNum: pn }) => {
@@ -232,15 +232,18 @@ async function collectDistrict(districtName) {
           );
         }
 
+        let newCount = 0;
         for (const l of monthlyListings) {
           if (seenIds.has(l.id)) continue;
           seenIds.add(l.id);
           l._category = category.code;
           l._categoryName = category.name;
           allListings.push(l);
+          newCount++;
         }
 
         if (listings.length === 0) break; // No more pages
+        if (newCount === 0 && pageNum > 1) break; // All duplicates — API looping
       } catch (e) {
         if (verbose) console.log(`  [${category.name}] 페이지 ${pageNum} 에러: ${e.message}`);
         break;
@@ -287,11 +290,9 @@ async function main() {
     stats[district] = {
       total: result.total,
       filtered: result.filtered,
-      capped: Math.min(result.filtered, sampleCap),
     };
 
-    const capped = result.items.slice(0, sampleCap);
-    for (const item of capped) {
+    for (const item of result.items) {
       const record = {
         platform_code: "r114",
         collected_at: new Date().toISOString(),
@@ -362,7 +363,7 @@ async function main() {
   console.log("\n=== 수집 결과 ===");
   for (const [district, s] of Object.entries(stats)) {
     console.log(
-      `  ${district}: 전체 ${s.total} → 조건충족 ${s.filtered} → cap ${s.capped}`,
+      `  ${district}: 전체 ${s.total} → 조건충족 ${s.filtered}`,
     );
   }
   console.log(`  총 수집: ${allRecords.length}건`);

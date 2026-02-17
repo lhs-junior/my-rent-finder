@@ -25,6 +25,11 @@ function getArg(name, fallback = null) {
   return args[idx].split("=").slice(1).join("=") ?? fallback;
 }
 
+function parseBooleanArg(name, fallback = true) {
+  const raw = getArg(name, fallback ? "true" : "false");
+  return String(raw).toLowerCase() !== "false";
+}
+
 function hasFlag(name) {
   return args.includes(name);
 }
@@ -79,6 +84,7 @@ const outputMeta = getArg(
 );
 const headless = !hasFlag("--headed");
 const verbose = hasFlag("--verbose");
+const showArticle = parseBooleanArg("--show-article", true);
 const filterProbe = hasFlag("--filter-probe");
 const filterProbeOnly = hasFlag("--filter-probe-only");
 const filterProbeDelayMs = getIntArg("--filter-probe-delay-ms", 900);
@@ -179,6 +185,10 @@ function buildArticleFilterProfile(overrides = {}) {
   const requestedRentMax = Number(overrides.rentMax ?? rentMax);
   const requestedDepositMax = Number(overrides.depositMax ?? depositMax);
   const requestedMinArea = Number(overrides.minAreaSqm ?? minAreaSqm);
+  const requestedShowArticle = parseBooleanArg(
+    `--show-article`,
+    overrides.showArticle ?? showArticle,
+  );
 
   return {
     tradeType: normalizeTradeType(overrides.tradeType || tradeType),
@@ -197,6 +207,7 @@ function buildArticleFilterProfile(overrides = {}) {
       ) || realEstateTypes,
     order: overrides.order || "rank",
     priceType: overrides.priceType || undefined,
+    showArticle: requestedShowArticle,
   };
 }
 
@@ -230,7 +241,7 @@ function buildArticleApiQuery(state, overrides = {}) {
     recentlyBuildYears: "",
     minHouseHoldCount: "",
     maxHouseHoldCount: "",
-    showArticle: "false",
+    showArticle: String(filterProfile.showArticle === false ? "false" : "true"),
     sameAddressGroup: "false",
     minMaintenanceCost: "",
     maxMaintenanceCost: "",
@@ -294,12 +305,9 @@ async function captureDirectArticleAPI(page, capturedResponses, rawStream, overr
 
   const maxPages = Math.max(
     1,
-    Math.min(
-      Number.isFinite(Number(overrides.maxPages))
-        ? Math.floor(Number(overrides.maxPages))
-        : 4,
-      sampleCap,
-    ),
+    Number.isFinite(Number(overrides.maxPages))
+      ? Math.floor(Number(overrides.maxPages))
+      : 10,
   );
   for (let pageNo = 1; pageNo <= maxPages; pageNo += 1) {
     baseParsed.searchParams.set("page", String(pageNo));
@@ -453,6 +461,7 @@ async function captureNaverData() {
     priceMin: "0",
     priceMax: String(depositMax),
     areaMin: String(minAreaSqm),
+    showArticle: showArticle ? "true" : "false",
     realEstateType: realEstateTypes,
   };
 
@@ -640,7 +649,7 @@ async function captureNaverData() {
       }
       await captureDirectArticleAPI(page, capturedResponses, rawStream, {
         ...step.overrides,
-        maxPages: 1,
+        maxPages: 5,
       });
     }
   };
@@ -660,6 +669,7 @@ async function captureNaverData() {
     }
   }
 
+  let noMarkerStreak = 0;
   for (
     let attempt = 0;
     attempt < maxAttempts && clickedCount < sampleCap;
@@ -673,11 +683,17 @@ async function captureNaverData() {
         .all();
 
       if (markers.length === 0) {
-        console.log("  ℹ️  No markers found, scrolling map...");
+        noMarkerStreak++;
+        if (noMarkerStreak >= 10) {
+          console.log("  ℹ️  No markers found after 10 attempts, skipping to API collection...");
+          break;
+        }
+        if (noMarkerStreak <= 3) console.log("  ℹ️  No markers found, scrolling map...");
         await page.mouse.wheel(0, 200);
         await randomDelay(1000, 2000);
         continue;
       }
+      noMarkerStreak = 0;
 
       // Click random marker
       const randomIndex = Math.floor(Math.random() * markers.length);

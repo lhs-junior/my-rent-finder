@@ -21,11 +21,13 @@ function getArg(name, fallback = null) {
 const hasFlag = (name) => args.includes(name);
 
 const sigungu = getArg("--sigungu", "노원구");
-const sampleCap = Number(getArg("--sample-cap", "10"));
+const sampleCap = Number(getArg("--sample-cap", "0")) || Infinity;
 const rentMax = Number(getArg("--rent-max", "80"));
 const depositMax = Number(getArg("--deposit-max", "6000"));
 const minAreaM2 = Number(getArg("--min-area", "40"));
 const verbose = hasFlag("--verbose");
+const outputRaw = getArg("--output-raw", null);
+const outputMeta = getArg("--output-meta", null);
 
 // ── 구별 당근 location ID 매핑 ──
 // 당근 URL: https://www.daangn.com/kr/realty/?in=x-{id}
@@ -91,16 +93,173 @@ function parsePropertyType(name) {
   return "기타";
 }
 
-// ── 면적 파싱 (description에서 추출) ──
-function parseArea(description) {
-  if (!description) return null;
-  // 패턴: "전용 39.6㎡", "면적 40m²", "12평", "15py", "39.6m2"
-  const m2Match = description.match(/([0-9,.]+)\s*(?:㎡|m²|m2)/i);
-  if (m2Match) return parseFloat(m2Match[1].replace(/,/g, ""));
+function toNumber(value) {
+  if (value === null || value === undefined) return null;
+  const s = String(value).replace(/,/g, "").replace(/\s+/g, "");
+  const n = Number.parseFloat(s);
+  return Number.isFinite(n) ? n : null;
+}
 
-  const pyeongMatch = description.match(/([0-9,.]+)\s*(?:평|py)/i);
-  if (pyeongMatch) return parseFloat(pyeongMatch[1].replace(/,/g, "")) * 3.306;
+function normalizeAreaValue(value, unitText = "") {
+  const n = toNumber(value);
+  if (n === null) return null;
+  const u = String(unitText).toUpperCase();
+  if (/PY|PYEONG|평|坪|PYUNG/.test(u)) {
+    return n * 3.306;
+  }
+  return n;
+}
 
+function parseAreaTextValue(rawNumber, rawUnit = "") {
+  const n = toNumber(rawNumber);
+  if (n === null) return null;
+  const unit = String(rawUnit).trim().toUpperCase();
+  if (/PY|PYEONG|평|坪|PYUNG/.test(unit)) return n * 3.306;
+  return n;
+}
+
+function parseAreaFromFloorSize(floorSize) {
+  if (!floorSize) return null;
+
+  if (typeof floorSize === "number" || typeof floorSize === "string") {
+    return normalizeAreaValue(floorSize);
+  }
+
+  if (typeof floorSize !== "object") return null;
+  const candidates = [
+    floorSize.value,
+    floorSize.size,
+    floorSize.area,
+    floorSize.sqm,
+    floorSize.m2,
+  ];
+
+  for (const candidate of candidates) {
+    const value = normalizeAreaValue(candidate, floorSize.unitCode || floorSize.unit || floorSize.unitText);
+    if (value !== null) return value;
+  }
+
+  return null;
+}
+
+function parseAreaFromText(description) {
+  if (!description) {
+    return {
+      value: null,
+      claimed: null,
+    };
+  }
+
+  const patterns = [
+    {
+      claimed: "exclusive",
+      re: /(?:전용|실|실면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+    },
+    {
+      claimed: "gross",
+      re: /(?:공급|연면적|건물면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+    },
+    {
+      claimed: "estimated",
+      re: /([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+    },
+  ];
+
+  for (const pattern of patterns) {
+    const match = pattern.re.exec(String(description));
+    if (!match) continue;
+    const value = parseAreaTextValue(match[1], match[2]);
+    if (value !== null) {
+      return {
+        value,
+        claimed: pattern.claimed,
+      };
+    }
+  }
+
+  return {
+    value: null,
+    claimed: null,
+  };
+}
+
+function parseArea(item) {
+  const fromSchema = parseAreaFromFloorSize(item.floorSize);
+  if (fromSchema !== null) {
+    return {
+      value: fromSchema,
+      claimed: "estimated",
+    };
+  }
+
+  const fromDescription = parseAreaFromText(item.description || "");
+  if (fromDescription.value !== null) {
+    return fromDescription;
+  }
+
+  return parseAreaFromText(item.name || "");
+}
+
+function coerceImageUrls(rawImage) {
+  const out = [];
+  const seen = new Set();
+  const normalized = [];
+  const push = (value) => {
+    if (typeof value !== "string") return;
+    const s = value.replace(/&amp;/g, "&").replace(/\s+/g, "").trim();
+    if (!/^https?:\/\//i.test(s)) return;
+    if (seen.has(s)) return;
+    seen.add(s);
+    out.push(s);
+  };
+
+  const walk = (v, depth = 0) => {
+    if (!v || out.length >= 24 || depth > 6) return;
+    if (typeof v === "string") {
+      push(v);
+      return;
+    }
+    if (Array.isArray(v)) {
+      for (const item of v) walk(item, depth + 1);
+      return;
+    }
+    if (typeof v === "object") {
+      for (const val of Object.values(v)) walk(val, depth + 1);
+    }
+  };
+
+  walk(rawImage);
+  for (const url of out) {
+    if (normalized.length >= 12) break;
+    normalized.push(url);
+  }
+  return normalized;
+}
+
+function parseFloor(item) {
+  if (item?.floorLevel !== undefined) {
+    const bySchema = toNumber(item.floorLevel);
+    if (bySchema !== null) {
+      if (bySchema === 0 && /반지하/.test(item.description || "")) {
+        return -1;
+      }
+      return bySchema;
+    }
+  }
+
+  const txt = `${item.description || ""} ${item.name || ""}`;
+  if (/반지하/.test(txt)) return -1;
+  const basement = /지하\s*(\d+)?\s*층?/.exec(txt);
+  if (basement) {
+    const level = Number(basement[1] || 1);
+    return -Math.max(1, level);
+  }
+
+  const b2 = /b(\d+)/i.exec(txt);
+  if (b2) return -Math.max(1, Number(b2[1] || 1));
+
+  const floorTextMatch = /(\d+)(?:\.\d+)?\s*층/.exec(txt);
+  if (floorTextMatch) return Number.parseInt(floorTextMatch[1], 10);
   return null;
 }
 
@@ -171,8 +330,12 @@ async function collectDistrict(districtName, locationId) {
     if (depositMax > 0 && price.deposit > depositMax) continue;
 
     // 면적 체크 (있으면)
-    const area = parseArea(item.description || "");
-    if (minAreaM2 > 0 && area && area < minAreaM2) continue;
+    const area = parseArea(item);
+    if (minAreaM2 > 0) {
+      if (area === null || area < minAreaM2) continue;
+    }
+
+    const floor = parseFloor(item);
 
     const propertyType = parsePropertyType(item.name || "");
 
@@ -184,6 +347,7 @@ async function collectDistrict(districtName, locationId) {
         priceType: price.type,
         propertyType,
         area,
+        floor,
         district: districtName,
       },
     });
@@ -221,17 +385,15 @@ async function main() {
     }
 
     const result = await collectDistrict(district, locationId);
+    const cappedItems = result.items.slice(0, sampleCap);
     stats[district] = {
       total: result.total,
       residential: result.residential,
       filtered: result.items.length,
-      capped: Math.min(result.items.length, sampleCap),
+      capped: cappedItems.length,
     };
 
-    // sampleCap 적용
-    const capped = result.items.slice(0, sampleCap);
-
-    for (const item of capped) {
+    for (const item of cappedItems) {
       const parsed = item._parsed;
       // 고유 ID 추출 (URL의 마지막 path segment)
       const idMatch = item.identifier?.match(/-([a-z0-9]+)$/);
@@ -253,6 +415,8 @@ async function main() {
           deposit: parsed.deposit,
           rent: parsed.rent,
           area: parsed.area,
+          floor: parsed.floor,
+          floorLevel: item.floorLevel,
           images: item.image || [],
           address: item.address,
         },
@@ -272,13 +436,13 @@ async function main() {
 
   // ── JSONL 저장 ──
   const outputDir = path.join(process.cwd(), "scripts");
-  const rawFile = path.join(outputDir, "daangn_raw_samples.jsonl");
+  const rawFile = outputRaw || path.join(outputDir, "daangn_raw_samples.jsonl");
   const lines = allRecords.map((r) => JSON.stringify(r));
   fs.writeFileSync(rawFile, lines.join("\n") + "\n", "utf8");
   console.log(`\n📁 Raw JSONL: ${rawFile} (${allRecords.length}건)`);
 
   // ── 결과 JSON ──
-  const resultFile = path.join(outputDir, "daangn_capture_results.json");
+  const resultFile = outputMeta || path.join(outputDir, "daangn_capture_results.json");
   const resultData = {
     runId: `daangn_${Date.now()}`,
     success: allRecords.length > 0,
@@ -311,7 +475,7 @@ async function main() {
       console.log(`  ${district}: ❌ ${s.error}`);
     } else {
       console.log(
-        `  ${district}: 전체 ${s.total} → 주거 ${s.residential} → 조건충족 ${s.filtered} → cap ${s.capped}`,
+        `  ${district}: 전체 ${s.total} → 주거 ${s.residential} → 조건충족 ${s.filtered}`,
       );
     }
   }

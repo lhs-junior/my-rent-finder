@@ -61,6 +61,7 @@ const outputRaw = getArg("--output-raw", "scripts/zigbang_raw_samples.jsonl");
 const outputMeta = getArg("--output-meta", "scripts/zigbang_capture_results.json");
 const headless = !hasFlag("--headed");
 const verbose = hasFlag("--verbose");
+const enrichDetail = !hasFlag("--skip-item-detail");
 
 // Zigbang uses 원 (won), our CLI uses 만원 -> multiply by 10000
 const rentMaxWon = rentMax * 10000;
@@ -163,6 +164,46 @@ function makeRecord(payload, requestUrl, sourceUrl = "", responseStatus = 200) {
   };
 }
 
+function getItemId(item) {
+  const id =
+    item?.item_id ??
+    item?.itemId ??
+    item?.item_no ??
+    item?.itemNo ??
+    item?.id ??
+    item?.roomId ??
+    item?.room_id ??
+    null;
+  if (id === null || id === undefined) return null;
+  const normalized = String(id).trim();
+  return normalized ? normalized : null;
+}
+
+function normalizeDetailItem(detail) {
+  if (!detail || typeof detail !== "object") return null;
+  return detail.item && typeof detail.item === "object" ? detail.item : detail;
+}
+
+function toNumberOrNull(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function extractDetailAreaM2(areaValue) {
+  if (areaValue == null) return null;
+  if (typeof areaValue === "number") return toNumberOrNull(areaValue);
+  if (typeof areaValue === "string") return toNumberOrNull(areaValue);
+  if (typeof areaValue !== "object") return null;
+
+  return (
+    toNumberOrNull(areaValue.전용면적M2) ??
+    toNumberOrNull(areaValue.m2) ??
+    toNumberOrNull(areaValue.area) ??
+    toNumberOrNull(areaValue.size_m2) ??
+    null
+  );
+}
+
 /**
  * Extract listing fields from a raw Zigbang item for filtering.
  * Zigbang API responses use various field names across versions.
@@ -251,6 +292,144 @@ const ZIGBANG_HEADERS = {
   Referer: "https://www.zigbang.com/",
 };
 
+async function fetchZigbangV3ItemDetail(itemId) {
+  if (!itemId) return null;
+  const safeId = String(itemId).trim();
+  if (!safeId) return null;
+
+  const detailUrl =
+    `https://apis.zigbang.com/v3/items/${encodeURIComponent(safeId)}?version=&domain=zigbang`;
+
+  try {
+    const response = await withTimeout(
+      fetch(detailUrl, {
+        headers: {
+          ...ZIGBANG_HEADERS,
+        },
+      }),
+      12000,
+      `item detail ${safeId}`,
+    );
+
+    if (!response.ok) {
+      vlog(`Detail API HTTP ${response.status} for item ${safeId}`);
+      return null;
+    }
+
+    const body = await response.json();
+    const detail = normalizeDetailItem(body);
+    return detail && typeof detail === "object" ? detail : null;
+  } catch (err) {
+    vlog(`Detail API error for item ${safeId}: ${err.message}`);
+    return null;
+  }
+}
+
+function mergeZigbangDetail(item, detailItem) {
+  const merged = { ...item, ...detailItem };
+
+  if (detailItem?.price && typeof detailItem.price === "object") {
+    const detailDeposit = toNumberOrNull(detailItem.price.deposit);
+    const detailRent = toNumberOrNull(detailItem.price.rent);
+    if (detailDeposit != null && merged.deposit == null) merged.deposit = detailDeposit;
+    if (detailRent != null && merged.rent == null) merged.rent = detailRent;
+  }
+
+  const detailArea = extractDetailAreaM2(detailItem?.area);
+  if (detailArea != null) {
+    if (merged.size_m2 == null) merged.size_m2 = detailArea;
+    merged.area = detailArea;
+  }
+
+  if (detailItem?.serviceType && merged.service_type == null) {
+    merged.service_type = detailItem.serviceType;
+  }
+
+  if (detailItem?.salesType && merged.sales_type == null) {
+    merged.sales_type = detailItem.salesType;
+  }
+
+  if (detailItem?.roomDirection && merged.direction == null) {
+    merged.direction = detailItem.roomDirection;
+  }
+
+  if (detailItem?.roomType && merged.room_type == null) {
+    merged.room_type = detailItem.roomType;
+  }
+
+  if (detailItem?.floor && typeof detailItem.floor === "object") {
+    if (detailItem.floor.floor != null && merged.floor_string == null) {
+      merged.floor_string = String(detailItem.floor.floor);
+    }
+    if (detailItem.floor.allFloors != null && merged.building_floor == null) {
+      merged.building_floor = String(detailItem.floor.allFloors);
+    }
+    if (detailItem.floor.floor != null && merged.floor == null) {
+      merged.floor = String(detailItem.floor.floor);
+    }
+  }
+
+  if (detailItem?.randomLocation && merged.random_location == null) {
+    merged.random_location = detailItem.randomLocation;
+  }
+
+  if (detailItem?.location && merged.location == null) {
+    merged.location = detailItem.location;
+  }
+
+  if (Array.isArray(detailItem?.images) && detailItem.images.length > 0) {
+    merged.images = detailItem.images;
+  }
+
+  if (detailItem?.imageThumbnail && !merged.images_thumbnail) {
+    merged.images_thumbnail = detailItem.imageThumbnail;
+  }
+
+  if (merged.item_id == null && detailItem?.itemId != null) {
+    merged.item_id = String(detailItem.itemId);
+  }
+
+  merged._detailSourceUrl = `https://apis.zigbang.com/v3/items/${encodeURIComponent(String(merged.item_id || merged.itemId || ""))}?version=&domain=zigbang`;
+
+  return merged;
+}
+
+async function enrichListingsWithV3Detail(listings) {
+  const result = {
+    attempted: 0,
+    success: 0,
+    failed: 0,
+    skipped: 0,
+    listings: [],
+  };
+
+  if (!enrichDetail) {
+    return { ...result, listings };
+  }
+
+  for (const item of listings) {
+    const id = getItemId(item);
+    if (!id) {
+      result.skipped++;
+      result.listings.push(item);
+      continue;
+    }
+
+    result.attempted++;
+    const detail = await fetchZigbangV3ItemDetail(id);
+    if (detail) {
+      result.success++;
+      result.listings.push(mergeZigbangDetail(item, detail));
+      await randomDelay(250, 700);
+    } else {
+      result.failed++;
+      result.listings.push(item);
+    }
+  }
+
+  return result;
+}
+
 // ============================================================================
 // Strategy 1: Direct API Call (no browser)
 // ============================================================================
@@ -319,14 +498,12 @@ async function strategyDirectApi() {
 
   vlog(`Pre-filter by area (>=${minArea}m2): ${allItems.length} -> ${preFiltered.length} items`);
 
-  // Extract item IDs; limit to reasonable batch for detail API
-  const maxDetailBatch = Math.max(sampleCap * 5, 60);
+  // Extract item IDs for detail API (no batch limit — fetch all)
   const itemIds = preFiltered
     .map((it) => (typeof it === "object" && it !== null ? it.itemId ?? it.item_id ?? it.id : it))
-    .filter((id) => id !== null && id !== undefined)
-    .slice(0, maxDetailBatch);
+    .filter((id) => id !== null && id !== undefined);
 
-  vlog(`Got ${itemIds.length} item IDs from v2 (batch limit: ${maxDetailBatch})`);
+  vlog(`Got ${itemIds.length} item IDs from v2`);
 
   if (itemIds.length === 0) {
     return {
@@ -383,7 +560,7 @@ async function strategyDirectApi() {
   if (detailedItems.length === 0) {
     // Fall back to v2 items (no detail available)
     log(`Detail API returned no items, using v2 data only`);
-    const partialListings = filterListings(allItems).slice(0, sampleCap);
+    const partialListings = filterListings(allItems);
     return {
       success: partialListings.length > 0,
       listings: partialListings,
@@ -397,18 +574,17 @@ async function strategyDirectApi() {
 
   vlog(`Got ${detailedItems.length} detailed items from detail API`);
 
-  // Apply filters and cap
+  // Apply filters (no cap — collect all matching)
   const filtered = filterListings(detailedItems);
-  const capped = filtered.slice(0, sampleCap);
 
   return {
     success: true,
-    listings: capped,
+    listings: filtered,
     details: {
       v2Items: allItems.length,
       detailItems: detailedItems.length,
       afterFilter: filtered.length,
-      returned: capped.length,
+      returned: filtered.length,
       geohash,
       source: "v2+detail",
     },
@@ -568,16 +744,15 @@ async function strategyNetworkIntercept() {
     }
 
     const filtered = filterListings(collectedListings);
-    const capped = filtered.slice(0, sampleCap);
 
     return {
       success: true,
-      listings: capped,
+      listings: filtered,
       details: {
         interceptedResponses: interceptedResponses.length,
         rawListings: collectedListings.length,
         afterFilter: filtered.length,
-        returned: capped.length,
+        returned: filtered.length,
       },
     };
   } catch (err) {
@@ -755,16 +930,15 @@ async function strategyBrowserApi() {
     }
 
     const filtered = filterListings(allListings);
-    const capped = filtered.slice(0, sampleCap);
 
     return {
       success: true,
-      listings: capped,
+      listings: filtered,
       details: {
         v2Items: allItems.length,
         v3Items: allListings.length,
         afterFilter: filtered.length,
-        returned: capped.length,
+        returned: filtered.length,
         source: "browser_context",
       },
     };
@@ -924,15 +1098,14 @@ async function strategyDomParse() {
     });
 
     const filtered = filterListings(parsedListings);
-    const capped = filtered.slice(0, sampleCap);
 
     return {
       success: true,
-      listings: capped,
+      listings: filtered,
       details: {
         rawParsed: parsedListings.length,
         afterFilter: filtered.length,
-        returned: capped.length,
+        returned: filtered.length,
         source: "dom",
       },
     };
@@ -1070,6 +1243,16 @@ async function collectZigbang() {
     }
   }
 
+  const detailStats = await enrichListingsWithV3Detail(finalListings);
+  finalListings = detailStats.listings;
+
+  if (enrichDetail) {
+    log(`Detail image enrichment: ${detailStats.success}/${detailStats.attempted} success` +
+      ` (${detailStats.failed} failed, ${detailStats.skipped} skipped)`);
+  } else {
+    log("Detail image enrichment skipped (--skip-item-detail)");
+  }
+
   // Write raw JSONL
   const sourceUrl = `https://www.zigbang.com/home/oneroom/map?lat=${district.lat}&lng=${district.lng}&zoom=15`;
   for (const listing of finalListings) {
@@ -1110,6 +1293,13 @@ async function collectZigbang() {
     winningStrategy,
     totalListings: finalListings.length,
     dataQuality: { grade: dataQualityGrade },
+    detailImageEnrichment: {
+      enabled: enrichDetail,
+      attempted: detailStats.attempted,
+      success: detailStats.success,
+      failed: detailStats.failed,
+      skipped: detailStats.skipped,
+    },
     timestamp: new Date().toISOString(),
     durationMs: totalDurationMs,
   };

@@ -145,6 +145,34 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
   return { listings: collected, status: capturedStatus };
 }
 
+// ── 매물 이미지 URL 수집 (phtoList API) ──
+async function fetchImageUrls(page, listingId) {
+  try {
+    const url = `https://api.kbland.kr/land-property/property/phtoList?${encodeURIComponent("매물일련번호")}=${listingId}`;
+    const result = await page.evaluate(async (u) => {
+      const r = await fetch(u);
+      return await r.json();
+    }, url);
+    const photos = result?.dataBody?.data?.psalePhtoList || [];
+    return photos
+      .map((p) => p["전체이미지경로"])
+      .filter((u) => typeof u === "string" && u.startsWith("http"));
+  } catch (e) {
+    console.warn(`     ⚠ 이미지 조회 실패 (${listingId}): ${e.message}`);
+    return [];
+  }
+}
+
+// ── 층수 파싱 (KB 원본: "B1층"→-1, "3층"→3, "B2층"→-2) ──
+function parseFloor(raw) {
+  if (raw == null) return null;
+  const s = String(raw).trim().replace(/층$/, "");
+  if (/^B(\d+)$/i.test(s)) return -parseInt(s.slice(1), 10);
+  if (/^(저|중간|고)$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
 // ── 매물 레코드 → 출력 형식 변환 ──
 function toRecord(item, district) {
   const rent = item.월세가 ? parseInt(item.월세가, 10) : null;
@@ -225,7 +253,9 @@ function toJsonlRecord(record, district) {
       agencyName: record.중개업소명,
       description: record.특징광고,
       imageCount: record.이미지수,
+      imageUrls: record._imageUrls || [],
     },
+    image_urls: record._imageUrls || [],
     list_data: {
       priceTitle: `보증금 ${record.월세보증금 ?? "?"}만 / 월세 ${record.월세가 ?? "?"}만`,
       roomTitle: `${record.건물명 || record.매물종별구분명} ${record.읍면동명}`,
@@ -259,12 +289,13 @@ function toNormalizedRecord(record, district) {
     address_text: address,
     address_code: "",
     room_count: record.방수 != null ? parseInt(record.방수, 10) : null,
-    floor: record.해당층수 != null ? parseInt(record.해당층수, 10) : null,
-    total_floor: record.총층수 != null ? parseInt(record.총층수, 10) : null,
+    floor: parseFloor(record.해당층수),
+    total_floor: parseFloor(record.총층수),
     building_use: buildingUse,
     building_name: record.건물명 || null,
     agent_name: record.중개업소명 || null,
     listed_at: record.등록년월일 || null,
+    image_urls: record._imageUrls || [],
   };
 }
 
@@ -386,6 +417,17 @@ async function main() {
     };
 
     console.log(`     원본 ${districtRecords.length} → 필터 ${filtered.length} → 최종 ${capped.length}`);
+
+    // 4단계: 이미지 URL 수집 (이미지 있는 매물만)
+    const withImages = capped.filter((r) => r.이미지수 > 0);
+    if (withImages.length > 0) {
+      console.log(`  4) 이미지 URL 수집 (${withImages.length}건)...`);
+      for (const r of withImages) {
+        const urls = await fetchImageUrls(page, r.매물일련번호);
+        r._imageUrls = urls;
+        if (urls.length > 0) console.log(`     • ${r.매물일련번호}: ${urls.length}장`);
+      }
+    }
 
     // 샘플 출력
     for (const r of capped.slice(0, 3)) {
