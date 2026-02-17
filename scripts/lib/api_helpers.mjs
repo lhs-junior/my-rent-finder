@@ -218,9 +218,17 @@ export function parseImageMap(rows) {
 export async function resolveLatestBaseRunId(client, runId) {
   if (runId) return runId;
   const latest = await client.query(`
-    SELECT COALESCE(extra->>'base_run_id', split_part(run_id, '::', 1)) AS base_run_id
-    FROM collection_runs
-    ORDER BY started_at DESC NULLS LAST
+    WITH base_runs AS (
+      SELECT
+        COALESCE(extra->>'base_run_id', split_part(run_id, '::', 1)) AS base_run_id,
+        MAX(started_at) AS latest_started_at,
+        COUNT(DISTINCT platform_code) AS platform_count
+      FROM collection_runs
+      GROUP BY COALESCE(extra->>'base_run_id', split_part(run_id, '::', 1))
+    )
+    SELECT base_run_id
+    FROM base_runs
+    ORDER BY platform_count DESC, latest_started_at DESC NULLS LAST
     LIMIT 1
   `);
   return safeText(latest.rows?.[0]?.base_run_id, null);

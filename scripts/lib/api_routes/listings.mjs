@@ -31,6 +31,9 @@ export async function handleListings(req, res) {
   const maxArea = url.searchParams.has("max_area")
     ? parseQueryNumber(url.searchParams.get("max_area"), null)
     : null;
+  const minFloor = url.searchParams.has("min_floor")
+    ? parseQueryInt(url.searchParams.get("min_floor"), null)
+    : null;
   const limit = Math.max(1, parseQueryInt(url.searchParams.get("limit"), 50));
   const offset = Math.max(0, parseQueryInt(url.searchParams.get("offset"), 0));
 
@@ -38,16 +41,11 @@ export async function handleListings(req, res) {
     const cond = ["1=1"];
     const params = [];
     const normalizedRunId = normalizeBaseRunId(runId);
-    const effectiveRunId = normalizedRunId || (await resolveLatestBaseRunId(client, null));
-    if (!effectiveRunId) {
-      return {
-        rows: [],
-        listingIds: [],
-      };
+    if (normalizedRunId) {
+      const effectiveRunId = normalizedRunId;
+      params.push(`${effectiveRunId}::%`);
+      cond.push(`rl.run_id LIKE $${params.length}`);
     }
-
-    params.push(`${effectiveRunId}::%`);
-    cond.push(`rl.run_id LIKE $${params.length}`);
 
     if (platform) {
       params.push(platform);
@@ -73,6 +71,18 @@ export async function handleListings(req, res) {
       params.push(maxArea);
       cond.push(`COALESCE(nl.area_exclusive_m2, nl.area_gross_m2) <= $${params.length}`);
     }
+    if (minFloor !== null) {
+      params.push(minFloor);
+      cond.push(`(nl.floor IS NULL OR nl.floor = 0 OR nl.floor >= $${params.length})`);
+    }
+
+    const countResult = await client.query(`
+      SELECT COUNT(*) AS total
+      FROM normalized_listings nl
+      JOIN raw_listings rl ON rl.raw_id = nl.raw_id
+      WHERE ${cond.join(" AND ")}
+    `, [...params]);
+    const total = parseInt(countResult.rows?.[0]?.total || "0", 10);
 
     params.push(limit);
     params.push(offset);
@@ -145,11 +155,13 @@ export async function handleListings(req, res) {
     return {
       rows: mappedRows,
       listingIds,
+      total,
     };
   });
 
   sendJson(res, 200, {
     items: listingRows.rows,
+    total: listingRows.total,
     count: listingRows.rows.length,
     limit,
     offset,

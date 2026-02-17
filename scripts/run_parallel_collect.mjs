@@ -57,7 +57,13 @@ function unique(arr) {
 }
 
 const scriptPaths = {
-  probe: path.resolve(process.cwd(), "scripts/platform_query_probe.mjs"),
+  probe: (() => {
+    const candidates = [
+      path.resolve(process.cwd(), "scripts/platform_query_probe.mjs"),
+      path.resolve(process.cwd(), "scripts/archive/platform_query_probe.mjs"),
+    ];
+    return candidates.find((candidate) => fs.existsSync(candidate)) || candidates[0];
+  })(),
   collect: path.resolve(process.cwd(), "scripts/platform_sampling_collect.mjs"),
   naverCollect: path.resolve(process.cwd(), "scripts/naver_auto_collector.mjs"),
   naverNormalize: path.resolve(process.cwd(), "scripts/naver_normalize.mjs"),
@@ -96,6 +102,26 @@ const maxParallel = Math.max(1, getInt(args, "--parallel", 3));
 const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
 const persistToDb = getBool(args, "--persist-to-db", false);
+const platformAlias = {
+  zigbang: "zigbang",
+  "직방": "zigbang",
+  dabang: "dabang",
+  다방: "dabang",
+  naver: "naver",
+  "네이버 부동산": "naver",
+  "네이버부동산": "naver",
+  r114: "r114",
+  부동산114: "r114",
+  피터팬: "peterpanz",
+  peterpanz: "peterpanz",
+  네모: "nemo",
+  nemo: "nemo",
+  호갱노노: "hogangnono",
+  hogangnono: "hogangnono",
+  당근: "daangn",
+  당근마켓: "daangn",
+  daangn: "daangn",
+};
 const selectedPlatforms = getList(args, "--platforms", [
   "zigbang",
   "dabang",
@@ -103,6 +129,9 @@ const selectedPlatforms = getList(args, "--platforms", [
   "peterpanz",
   "daangn",
 ]);
+function normalizePlatform(raw) {
+  return platformAlias[raw] || String(raw || "").trim().toLowerCase();
+}
 const disabledPlatforms = new Set(["r114"]);
 const normalizedRequestedPlatforms = selectedPlatforms
   .map((p) => normalizePlatform(p))
@@ -129,31 +158,6 @@ const overrideTradeType = getArg(args, "--trade-type", null);
 const overridePropertyTypes = getList(args, "--property-types", []);
 
 const timeoutMs = Math.max(500, getInt(args, "--timeout-ms", 12000));
-
-const platformAlias = {
-  zigbang: "zigbang",
-  "직방": "zigbang",
-  dabang: "dabang",
-  다방: "dabang",
-  naver: "naver",
-  "네이버 부동산": "naver",
-  "네이버부동산": "naver",
-  r114: "r114",
-  부동산114: "r114",
-  피터팬: "peterpanz",
-  peterpanz: "peterpanz",
-  네모: "nemo",
-  nemo: "nemo",
-  호갱노노: "hogangnono",
-  hogangnono: "hogangnono",
-  당근: "daangn",
-  당근마켓: "daangn",
-  daangn: "daangn",
-};
-
-function normalizePlatform(raw) {
-  return platformAlias[raw] || String(raw || "").trim().toLowerCase();
-}
 
 function runNode(label, script, args, options = {}) {
   return new Promise((resolve, reject) => {

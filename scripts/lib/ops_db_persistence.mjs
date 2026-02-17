@@ -82,6 +82,8 @@ function extractExternalIdCandidates(raw) {
     "listing_id",
     "external_id",
     "externalId",
+    "item_id",
+    "itemId",
     "source_ref",
     "sourceRef",
     "uuid",
@@ -484,6 +486,13 @@ async function upsertNormalizedListing(
     rawId = await resolveRawIdBySourceUrl(client, platform, sourceUrl);
   }
   if (!rawId) return null;
+
+  await client.query(
+    `DELETE FROM normalized_listings
+     WHERE raw_id = $1
+       AND platform_code = $2`,
+    [rawId, platform],
+  ).catch(() => {});
 
   const rentAmount = toNumber(item?.rent_amount ?? item?.rentAmount ?? item?.rent, null);
   const depositAmount = toNumber(item?.deposit_amount ?? item?.depositAmount ?? item?.deposit, null);
