@@ -294,6 +294,7 @@ export default function MapSidePanel({
 }) {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const detailRequestRef = useRef(0);
@@ -306,9 +307,12 @@ export default function MapSidePanel({
     const selectedMarker = normalizedId
       ? markers.find((item) => String(item?.listing_id) === normalizedId)
       : null;
+    const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "");
+    const detailUrl = `${normalizedApiBase ? normalizedApiBase.replace(/\/$/, "") : ""}/api/listings/${encodeURIComponent(normalizedId || "")}`;
 
-    if (!normalizedId || !apiBase) {
+    if (!normalizedId) {
       setDetail(null);
+      setDetailError("");
       setDetailLoading(false);
       detailRequestRef.current += 1;
       if (detailControllerRef.current) {
@@ -327,7 +331,8 @@ export default function MapSidePanel({
     detailControllerRef.current = controller;
 
     setDetailLoading(true);
-    fetch(`${apiBase}/api/listings/${detailId}`, { signal: controller.signal })
+    setDetailError("");
+    fetch(detailUrl, { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
@@ -335,16 +340,19 @@ export default function MapSidePanel({
       .then((data) => {
         if (requestId !== detailRequestRef.current) return;
         if (!controller.signal.aborted) {
-          if (data?.listing) setDetail(data.listing);
-          else if (!selectedMarker) setDetail(null);
+          if (data?.listing) {
+            setDetail(data.listing);
+          } else {
+            if (!selectedMarker) setDetail(null);
+            setDetailError("상세 조회 결과가 비어 있습니다.");
+          }
         }
       })
       .catch((err) => {
         if (err?.name === "AbortError") return;
         if (requestId !== detailRequestRef.current || controller.signal.aborted) return;
-        if (!selectedMarker) {
-          setDetail(null);
-        }
+        if (!selectedMarker) setDetail(null);
+        setDetailError(`상세 조회 실패: ${String(err?.message || err)}`);
       })
       .finally(() => {
         if (requestId === detailRequestRef.current && !controller.signal.aborted) {
@@ -411,6 +419,7 @@ export default function MapSidePanel({
       </div>
 
       {error && <div className="error-box">{error}</div>}
+      {detailError && <div className="error-box">{detailError}</div>}
 
       <div className="map-side-list-wrap">
         <div className="map-side-list" ref={listRef}>
