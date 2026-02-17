@@ -567,20 +567,6 @@ async function collectDabang() {
         response_status: 200,
         sigungu,
         payload_json: item._detail || item,
-        // Also store the list-level data for the adapter
-        list_data: {
-          id: item.id,
-          seq: item.seq,
-          roomTypeName: item.roomTypeName,
-          priceTitle: item.priceTitle,
-          roomDesc: item.roomDesc,
-          roomTitle: item.roomTitle,
-          dongName: item.dongName,
-          complexName: item.complexName,
-          randomLocation: item.randomLocation,
-          imgUrlList: item.imgUrlList,
-          isDirect: item.isDirect,
-        },
       };
       rawStream.write(JSON.stringify(record) + "\n");
     }

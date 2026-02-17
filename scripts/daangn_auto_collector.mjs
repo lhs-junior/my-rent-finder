@@ -28,6 +28,110 @@ const minAreaM2 = Number(getArg("--min-area", "40"));
 const verbose = hasFlag("--verbose");
 const outputRaw = getArg("--output-raw", null);
 const outputMeta = getArg("--output-meta", null);
+const DETAIL_FETCH_CONCURRENCY = 4;
+const DAANGN_IMAGE_URL_HOST_HINTS = [
+  /(^|\.)kr\.gcp-karroter\.net$/i,
+  /(^|\.)kakaocdn\.net$/i,
+  /(^|\.)kakao\.com$/i,
+  /(^|\.)daangn\.com$/i,
+  /(^|\.)cloudfront\.net$/i,
+  /(^|\.)imgur\.com$/i,
+];
+const DAANGN_IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
+const DAANGN_IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
+const DAANGN_IMAGE_PATH_HINT_RE = /(?:^|\/)(?:realty\/(?:article|origin)|img|image|photo|upload|media|cdn|files?)\/?/i;
+const DAANGN_IMAGE_PATH_BLACKLIST_RE = /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy)(?:$|[./?\/])/i;
+const DAANGN_LD_IMAGE_FIELDS = [
+  "image",
+  "images",
+  "imgUrlList",
+  "media",
+  "mediaUrl",
+  "media_url",
+  "photo",
+  "photoList",
+  "photo_url",
+  "thumbnail",
+  "thumbnailUrl",
+  "thumbnail_url",
+];
+
+function parseDaangnNumeric(rawValue) {
+  const normalized = String(rawValue ?? "")
+    .trim()
+    .replace(/\s+/g, "");
+  if (!normalized) return null;
+
+  let candidate = normalized;
+  if (/^\d+,\d+$/.test(candidate) && !/\./.test(candidate)) {
+    candidate = candidate.replace(",", ".");
+  } else {
+    candidate = candidate.replace(/,/g, "");
+  }
+
+  const n = Number.parseFloat(candidate);
+  return Number.isFinite(n) ? n : null;
+}
+
+function isLikelyDaangnImageUrl(candidate) {
+  if (!candidate) return false;
+  try {
+    const parsed = new URL(candidate);
+    const host = parsed.hostname || "";
+    const path = parsed.pathname || "";
+    const lowerPath = path.toLowerCase().replace(/\/+$/, "");
+    const hasDaangnListingPath = /^\/kr\/realty\/[^/?#]+$/.test(lowerPath);
+    if (hasDaangnListingPath) return false;
+    const hintMatch = DAANGN_IMAGE_URL_HOST_HINTS.some((re) => re.test(host));
+    const extensionMatch = DAANGN_IMAGE_EXT_RE.test(path);
+    const queryMatch = DAANGN_IMAGE_QUERY_HINT_RE.test(`${parsed.search}${parsed.hash || ""}`);
+    const pathHintMatch = DAANGN_IMAGE_PATH_HINT_RE.test(lowerPath);
+    if (DAANGN_IMAGE_PATH_BLACKLIST_RE.test(lowerPath)) return false;
+    if (!(extensionMatch || queryMatch || pathHintMatch)) return false;
+    if (!hintMatch && !pathHintMatch && !queryMatch) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function hasDaangnKoreanBoundaryToken(text, token) {
+  const normalized = String(text || "").toLowerCase();
+  if (!normalized) return false;
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const boundaryRe = new RegExp(`(^|[^가-힣a-z0-9])${escaped}(?=$|[^가-힣a-z0-9])`, "i");
+  return boundaryRe.test(` ${normalized} `);
+}
+
+function normalizeDaangnAreaClaim(raw) {
+  const text = String(raw || "").trim().toLowerCase();
+  if (!text) return null;
+  if (text.includes("exclusive")
+    || hasDaangnKoreanBoundaryToken(text, "전용")
+    || hasDaangnKoreanBoundaryToken(text, "전용면적")
+    || hasDaangnKoreanBoundaryToken(text, "실면적")
+    || /실\s*면적/.test(text)
+  ) {
+    return "exclusive";
+  }
+  if (text.includes("gross")
+    || hasDaangnKoreanBoundaryToken(text, "공급")
+    || hasDaangnKoreanBoundaryToken(text, "연면적")
+    || hasDaangnKoreanBoundaryToken(text, "건물면적")
+    || hasDaangnKoreanBoundaryToken(text, "총면적")
+  ) {
+    return "gross";
+  }
+  if (text.includes("range")) return "range";
+  if (text.includes("estimated")) return "estimated";
+  return null;
+}
+const DAANGN_FETCH_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  Accept: "text/html,application/xhtml+xml",
+  "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
+};
 
 // ── 구별 당근 location ID 매핑 ──
 // 당근 URL: https://www.daangn.com/kr/realty/?in=x-{id}
@@ -77,6 +181,44 @@ function parsePrice(name) {
   }
 
   return null;
+}
+
+function isLikelySwappedMonthlyPrice(detailPrice, titlePrice) {
+  if (!detailPrice || !titlePrice) return false;
+  if (detailPrice.type !== "monthly" || titlePrice.type !== "monthly") return false;
+
+  const detailDeposit = toNumber(detailPrice.deposit);
+  const detailRent = toNumber(detailPrice.rent);
+  const titleDeposit = toNumber(titlePrice.deposit);
+  const titleRent = toNumber(titlePrice.rent);
+
+  if ([detailDeposit, detailRent, titleDeposit, titleRent].some((v) => v === null)) {
+    return false;
+  }
+
+  const exactInversion =
+    detailDeposit === titleRent &&
+    detailRent === titleDeposit;
+
+  const suspiciousSwapPattern =
+    detailRent > 250 &&
+    detailDeposit < 100 &&
+    detailRent > detailDeposit * 3 &&
+    titleRent <= 90 &&
+    titleDeposit >= 200;
+
+  return exactInversion || suspiciousSwapPattern;
+}
+
+function resolveMonthlyPrice(rawTitle, detailPrice) {
+  const titlePrice = parsePrice(rawTitle || "");
+  if (!titlePrice) return detailPrice;
+
+  if (!detailPrice || detailPrice.type !== "monthly") return titlePrice;
+  if (titlePrice.type !== "monthly") return detailPrice;
+
+  if (isLikelySwappedMonthlyPrice(detailPrice, titlePrice)) return titlePrice;
+  return detailPrice;
 }
 
 // ── 매물 타입 파싱 (name에서 추출) ──
@@ -169,17 +311,183 @@ function buildDetailKeys(identifier) {
   return keys;
 }
 
-function collectDaangnDetails(html) {
+function collectDaangnLookupCandidates(record) {
+  if (!record) return [];
+
+  const rawValues = new Set();
+  const add = (value) => {
+    if (value === null || value === undefined) return;
+
+    if (Array.isArray(value)) {
+      for (const item of value) add(item);
+      return;
+    }
+
+    if (typeof value === "number" || typeof value === "string") {
+      const text = String(value).trim();
+      if (text) rawValues.add(text);
+      return;
+    }
+
+    if (typeof value !== "object") return;
+
+    const candidates = [
+      value.id,
+      value.identifier,
+      value.source_ref,
+      value.sourceRef,
+      value.external_id,
+      value.externalId,
+      value.articleNo,
+      value.article_id,
+      value.articleId,
+      value.itemId,
+      value.item_id,
+      value.url,
+      value.href,
+      value.path,
+      value.slug,
+      value._id,
+      value.uuid,
+      value.realtyPostId,
+      value.realty_post_id,
+      value.postId,
+      value.post_id,
+      value.source_url,
+      value.request_url,
+      value.home_url,
+      value.location,
+      value.code,
+    ];
+
+    for (const candidate of candidates) {
+      add(candidate);
+    }
+  };
+
+  add(record);
+  if (record && typeof record === "object") {
+    add(record.payload_json);
+    add(record.list_data);
+    add(record._detail);
+  }
+
+  const out = new Set();
+  for (const rawValue of rawValues) {
+    for (const key of buildDetailKeys(rawValue)) {
+      out.add(key);
+    }
+  }
+  return Array.from(out);
+}
+
+function parseRemixContextFromHtml(html) {
   const marker = "window.__remixContext = ";
   const start = html.indexOf(marker);
-  if (start === -1) return new Map();
-
+  if (start === -1) return null;
   const end = html.indexOf(";</script>", start);
-  if (end === -1) return new Map();
+  if (end === -1) return null;
+  try {
+    return JSON.parse(html.slice(start + marker.length, end));
+  } catch {
+    return null;
+  }
+}
+
+function parseDaangnJsonLdCandidates(html) {
+  const candidates = [];
+  try {
+    const ldMatches = html.matchAll(/<script type=\"application\/ld\+json\">([\s\S]*?)<\/script>/g);
+    for (const match of ldMatches) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        if (parsed && typeof parsed === "object") {
+          candidates.push(parsed);
+        }
+      } catch {
+        // noop
+      }
+    }
+  } catch {
+    // noop
+  }
+  return candidates;
+}
+
+function hasDaangnValue(value) {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "string") return value.trim() !== "";
+  if (typeof value === "object") {
+    return Object.keys(value).length > 0;
+  }
+  return true;
+}
+
+function scoreDaangnJsonLdRecord(record) {
+  const keys = [
+    "@type",
+    "name",
+    "address",
+    "description",
+    "trades",
+    "floor",
+    "floorLevel",
+    "floorSize",
+    "area",
+    "areaPyeong",
+    "supplyArea",
+    "supplyAreaPyeong",
+    ...DAANGN_LD_IMAGE_FIELDS,
+  ];
+  let score = 0;
+  for (const key of keys) {
+    if (hasDaangnValue(record[key])) score += 1;
+  }
+  return score;
+}
+
+function pickDaangnDetailFromJsonLd(candidates) {
+  let best = null;
+  let bestScore = -1;
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const t = String(candidate["@type"] || "").toLowerCase();
+    if (t === "breadcrumblist" || t === "listitem") continue;
+
+    const score = scoreDaangnJsonLdRecord(candidate);
+    if (score > bestScore) {
+      bestScore = score;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+function isMissingDaangnField(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string") return value.trim() === "";
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+}
+
+function mergeDaangnDetails(primary, fallback) {
+  if (!fallback || typeof fallback !== "object") return primary || null;
+  const merged = { ...(primary || {}) };
+  for (const [key, value] of Object.entries(fallback)) {
+    if (isMissingDaangnField(merged[key])) {
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+function collectDaangnDetails(html) {
+  const context = parseRemixContextFromHtml(html);
+  if (!context || typeof context !== "object") return new Map();
 
   try {
-    const jsonText = html.slice(start + marker.length, end);
-    const context = JSON.parse(jsonText);
     const routeData = context?.state?.loaderData?.["routes/kr.realty._index"];
     const rawPosts = Array.isArray(routeData?.realtyPosts?.realtyPosts)
       ? routeData.realtyPosts.realtyPosts
@@ -190,7 +498,23 @@ function collectDaangnDetails(html) {
 
     for (const post of rawPosts) {
       if (!post || typeof post !== "object") continue;
-      for (const key of buildDetailKeys(post.id)) {
+      const keys = collectDaangnLookupCandidates(post);
+      if (keys.length === 0) {
+        for (const key of buildDetailKeys(post.id)) {
+          detailMap.set(key, post);
+        }
+        for (const key of buildDetailKeys(post.identifier)) {
+          detailMap.set(key, post);
+        }
+        for (const key of buildDetailKeys(post.href)) {
+          detailMap.set(key, post);
+        }
+        for (const key of buildDetailKeys(post.url)) {
+          detailMap.set(key, post);
+        }
+        continue;
+      }
+      for (const key of keys) {
         detailMap.set(key, post);
       }
     }
@@ -200,12 +524,314 @@ function collectDaangnDetails(html) {
   }
 }
 
-function getDaangnDetail(detailMap, identifier) {
-  for (const key of buildDetailKeys(identifier)) {
-    const found = detailMap.get(key);
+function collectDaangnDetailFromContext(context) {
+  if (!context || typeof context !== "object") return null;
+  const loaderData = context?.state?.loaderData;
+  if (!loaderData || typeof loaderData !== "object") return null;
+
+  const direct = loaderData["routes/kr.realty.$realty_post_id"]?.realtyPost;
+  if (direct && typeof direct === "object") return direct;
+
+  const walkForRealtyPost = (value, depth = 0) => {
+    if (!value || typeof value !== "object" || depth > 8) return null;
+
+    if (value.__typename === "RealtyPost" && value.id) return value;
+    if (value.realtyPost && typeof value.realtyPost === "object") return value.realtyPost;
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = walkForRealtyPost(item, depth + 1);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    for (const current of Object.values(value)) {
+      const found = walkForRealtyPost(current, depth + 1);
+      if (found) return found;
+    }
+
+    return null;
+  };
+
+  for (const payload of Object.values(loaderData)) {
+    if (!payload || typeof payload !== "object") continue;
+    if (payload.realtyPost && typeof payload.realtyPost === "object") {
+      return payload.realtyPost;
+    }
+    if (Array.isArray(payload?.realtyPosts) && payload.realtyPosts.length > 0) {
+      const first = payload.realtyPosts[0];
+      if (first && typeof first === "object") return first;
+    }
+
+    const found = walkForRealtyPost(payload);
     if (found) return found;
   }
   return null;
+}
+
+function normalizeDaangnHtmlText(rawText) {
+  if (rawText === null || rawText === undefined) return "";
+  if (typeof rawText === "string") {
+    return rawText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+  if (Array.isArray(rawText)) {
+    return rawText
+      .map((item) => normalizeDaangnHtmlText(item))
+      .filter(Boolean)
+      .join(" ");
+  }
+  if (typeof rawText === "object") {
+    if (rawText.text) return normalizeDaangnHtmlText(rawText.text);
+    const values = [];
+    for (const value of Object.values(rawText)) {
+      if (typeof value === "string" || Array.isArray(value) || typeof value === "object") {
+        values.push(normalizeDaangnHtmlText(value));
+      }
+    }
+    return values.filter(Boolean).join(" ");
+  }
+  return "";
+}
+
+function toDaangnUrl(identifier) {
+  if (!identifier) return null;
+  const normalized = String(identifier).trim();
+  if (!normalized) return null;
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  if (normalized.startsWith("/")) return `https://www.daangn.com${normalized}`;
+  return `https://www.daangn.com/kr/realty/${normalized}`;
+}
+
+function coerceCandidateToAbsoluteImage(rawValue) {
+  const noAmp = String(rawValue)
+    .replace(/&amp;/g, "&")
+    .replace(/\u0026/g, "&")
+    .trim()
+    .replace(/\s+/g, "");
+  if (!noAmp) return null;
+  if (/^\/\//.test(noAmp)) return `https:${noAmp}`;
+  if (/^\//.test(noAmp)) return `https://www.daangn.com${noAmp}`;
+  if (/^[A-Za-z0-9.-]+\.[A-Za-z0-9.-]+\//.test(noAmp)) return `https://${noAmp}`;
+  if (/^https?:\/\//i.test(noAmp)) return noAmp;
+  return null;
+}
+
+async function fetchDaangnDetail(identifier) {
+  const url = toDaangnUrl(identifier);
+  if (!url) return null;
+
+  const res = await fetch(url, { headers: DAANGN_FETCH_HEADERS });
+  if (!res.ok) return null;
+
+  const html = await res.text();
+  const context = parseRemixContextFromHtml(html);
+  const routeDetail = collectDaangnDetailFromContext(context);
+  const ldDetail = pickDaangnDetailFromJsonLd(parseDaangnJsonLdCandidates(html));
+
+  if (routeDetail && typeof routeDetail === "object") {
+    return mergeDaangnDetails(routeDetail, ldDetail);
+  }
+
+  if (ldDetail && typeof ldDetail === "object") {
+    return ldDetail;
+  }
+  return null;
+}
+
+function shouldHydrateDetail(item) {
+  const detail = item?._detail || {};
+  const hasValue = (value) => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim() !== "";
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "object") return Object.keys(value).length > 0;
+    return String(value).trim() !== "";
+  };
+  const hasArea =
+    hasValue(detail.floorSize) ||
+    hasValue(detail.area) ||
+    hasValue(detail.areaPyeong) ||
+    hasValue(detail.supplyArea) ||
+    hasValue(detail.supplyAreaPyeong);
+  const hasFloor =
+    hasValue(detail.floor) ||
+    hasValue(detail.topFloor) ||
+    hasValue(detail.totalFloor) ||
+    hasValue(detail.floorText) ||
+    hasValue(detail.floorLevel) ||
+    hasValue(detail.floor_level);
+  const hasDirection =
+    hasValue(detail.direction) ||
+    hasValue(detail.directionText) ||
+    hasValue(detail.orientation) ||
+    hasValue(detail.facing) ||
+    hasValue(detail.facingDirection) ||
+    hasValue(detail.buildingOrientation) ||
+    hasValue(detail.building_orientation) ||
+    hasValue(detail.house_facing) ||
+    hasValue(detail.houseFacing);
+  const hasImage = coerceImageUrls([
+    detail.images,
+    detail.imgUrlList,
+    detail.image_urls,
+    detail.image,
+    detail.image_url,
+    detail.imageUrl,
+    detail.photo,
+    detail.photoList,
+    detail.photo_url,
+    detail.photoUrl,
+    detail.media,
+    detail.mediaUrl,
+    detail.media_urls,
+  ]).length > 0;
+  return !(hasArea && hasFloor && hasDirection && hasImage);
+}
+
+async function hydrateItemsWithDetail(items) {
+  const cache = new Map();
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const item = items[cursor++];
+      if (!item) continue;
+
+      if (!shouldHydrateDetail(item)) continue;
+
+      const key =
+        extractListingId(item.identifier) ||
+        extractListingId(item.id) ||
+        extractListingId(item.source_ref) ||
+        extractListingId(item.sourceRef) ||
+        extractListingId(item.url) ||
+        extractListingId(item.href) ||
+        extractListingId(item.external_id) ||
+        extractListingId(item.externalId);
+      if (!key) continue;
+
+      const seedCandidates = new Set(
+        [
+          key,
+          item.source_url,
+          item.url,
+          item.href,
+          item.identifier,
+          item.id,
+          item.source_ref,
+          item.sourceRef,
+          item.external_id,
+          item.externalId,
+          ...collectDaangnLookupCandidates(item),
+        ].filter(Boolean),
+      );
+
+      const detailLookupCandidates = new Set();
+      for (const candidate of seedCandidates) {
+        for (const detailKey of buildDetailKeys(candidate)) {
+          detailLookupCandidates.add(detailKey);
+        }
+      }
+
+      let cachedDetail = null;
+      let cacheHit = false;
+      for (const detailKey of detailLookupCandidates) {
+        if (!cache.has(detailKey)) continue;
+        cacheHit = true;
+        cachedDetail = cache.get(detailKey);
+        break;
+      }
+
+      if (cacheHit) {
+        if (cachedDetail) {
+          item._detail = { ...item._detail, ...cachedDetail };
+        }
+        continue;
+      }
+
+      const fetchInputs = new Set(detailLookupCandidates);
+      for (const candidate of detailLookupCandidates) {
+        const toUrl = toDaangnUrl(candidate);
+        if (toUrl) fetchInputs.add(toUrl);
+      }
+
+      let detail = null;
+      for (const input of fetchInputs) {
+        const fetchedDetail = await fetchDaangnDetail(input);
+        if (fetchedDetail && typeof fetchedDetail === "object") {
+          detail = fetchedDetail;
+          break;
+        }
+      }
+
+      for (const detailKey of detailLookupCandidates) {
+        cache.set(detailKey, detail);
+      }
+
+      if (detail && typeof detail === "object") {
+        item._detail = { ...item._detail, ...detail };
+      }
+    }
+  };
+
+  await Promise.all(
+    new Array(Math.min(DETAIL_FETCH_CONCURRENCY, Math.max(1, items.length))).fill(0).map(() => worker()),
+  );
+}
+
+function getDaangnDetail(detailMap, identifier) {
+  const detailKeys = collectDaangnLookupCandidates(identifier);
+  const candidates = detailKeys.length > 0 ? detailKeys : buildDetailKeys(identifier);
+  for (const key of candidates) {
+    const found = detailMap.get(key);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
+function parseDaangnAreaFromAny(value, unitText = "") {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const parsed = parseDaangnAreaFromAny(item, unitText);
+      if (parsed !== null) return parsed;
+    }
+    return null;
+  }
+
+  if (typeof value === "object") {
+    const unitFromValue = [
+      value.unit,
+      value.unitCode,
+      value.unitText,
+      value.unit_name,
+      unitText,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const candidates = [
+      value.value,
+      value.area,
+      value.size,
+      value.sqM,
+      value.sqm,
+      value.sq,
+      value.m2,
+      value.min,
+      value.max,
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = normalizeAreaValue(candidate, unitFromValue);
+      if (parsed !== null) return parsed;
+    }
+    return null;
+  }
+
+  return normalizeAreaValue(value, unitText);
 }
 
 function parseAreaFromDetail(detail) {
@@ -216,36 +842,48 @@ function parseAreaFromDetail(detail) {
     };
   }
 
-  const area = toNumber(detail.area);
-  if (area !== null) {
+  const areaFromText = parseAreaFromText(detail.areaText || detail.area_text || "");
+  if (areaFromText.value !== null && Number.isFinite(areaFromText.value)) {
+    return areaFromText;
+  }
+
+  const areaCandidates = [
+    { value: detail.area, unit: detail.areaUnit || detail.area_unit || detail.areaUnitText || detail.unit, claimed: "exclusive" },
+    { value: detail.area?.value, unit: detail.area?.unit || detail.area?.unitCode || detail.area?.unitText || detail.area?.unit_name || detail.areaUnit || detail.unit, claimed: "exclusive" },
+    { value: detail.area?.min, unit: detail.area?.unit || detail.area?.unitCode || detail.area?.unitText || detail.area?.unit_name || detail.areaUnit || detail.unit, claimed: "exclusive" },
+    { value: detail.size, unit: detail.areaUnit || detail.area_unit || detail.unit, claimed: "exclusive" },
+    { value: detail.exclusiveArea, unit: detail.areaUnit || detail.unit, claimed: "exclusive" },
+    { value: detail.exclusiveArea?.value, unit: detail.exclusiveArea?.unit || detail.exclusiveArea?.unitCode || detail.exclusiveArea?.unitText || detail.exclusiveArea?.unit_name || detail.areaUnit || detail.unit, claimed: "exclusive" },
+    { value: detail.exclusiveArea?.min, unit: detail.exclusiveArea?.unit || detail.exclusiveArea?.unitCode || detail.exclusiveArea?.unitText || detail.exclusiveArea?.unit_name || detail.areaUnit || detail.unit, claimed: "exclusive" },
+    { value: detail.areaPyeong, unit: "평", claimed: "exclusive" },
+    { value: detail.supplyArea, unit: detail.supplyAreaUnit || detail.supplyUnit || detail.areaUnit || detail.unit, claimed: "gross" },
+    { value: detail.supplyArea?.value, unit: detail.supplyArea?.unit || detail.supplyArea?.unitCode || detail.supplyArea?.unitText || detail.supplyArea?.unit_name || detail.supplyAreaUnit || detail.supplyUnit || detail.areaUnit || detail.unit, claimed: "gross" },
+    { value: detail.supplyAreaText, unit: detail.supplyAreaUnit || detail.supplyUnit || detail.unit, claimed: "gross" },
+    { value: detail.supplyAreaPyeong, unit: "평", claimed: "gross" },
+  ];
+
+  for (const candidate of areaCandidates) {
+    const normalized = parseDaangnAreaFromAny(candidate.value, candidate.unit || "");
+    if (normalized !== null && Number.isFinite(normalized)) {
+      return {
+        value: normalized,
+        claimed: candidate.claimed,
+      };
+    }
+  }
+
+  const fromFloorSize = parseAreaFromFloorSize(detail.floorSize);
+  if (fromFloorSize !== null && Number.isFinite(fromFloorSize)) {
     return {
-      value: area,
-      claimed: "exclusive",
+      value: fromFloorSize,
+      claimed: "estimated",
     };
   }
 
-  const areaByPyeong = parseAreaTextValue(detail.areaPyeong, "평");
-  if (areaByPyeong !== null) {
-    return {
-      value: areaByPyeong,
-      claimed: "exclusive",
-    };
-  }
-
-  const gross = toNumber(detail.supplyArea);
-  if (gross !== null) {
-    return {
-      value: gross,
-      claimed: "gross",
-    };
-  }
-
-  const grossByPyeong = parseAreaTextValue(detail.supplyAreaPyeong, "평");
-  if (grossByPyeong !== null) {
-    return {
-      value: grossByPyeong,
-      claimed: "gross",
-    };
+  const description = normalizeDaangnHtmlText(detail.content || detail.description || "");
+  const fromDescription = parseAreaFromText(description);
+  if (fromDescription.value !== null && Number.isFinite(fromDescription.value)) {
+    return fromDescription;
   }
 
   return {
@@ -258,7 +896,9 @@ function parsePriceFromDetail(detail) {
   if (!detail || typeof detail !== "object") return null;
   const trades = Array.isArray(detail.trades) ? detail.trades : [];
   const monthlyTrade = trades.find((trade) =>
-    ["MONTH", "MONTHLY", "LEASE"].includes(String(trade?.type || "").toUpperCase()),
+    ["MONTH", "MONTHLY", "LEASE", "MONTHLY_RENT", "MONTHLY_RENTAL", "JEONSE"].includes(
+      String(trade?.type || "").toUpperCase(),
+    ),
   );
   if (!monthlyTrade) return null;
 
@@ -284,10 +924,13 @@ function parsePriceFromDetail(detail) {
 function parseFloorValue(value) {
   if (value === null || value === undefined) return null;
 
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "number" && Number.isFinite(value)) return normalizeDaangnCollectorFloor(value);
   if (typeof value === "string") {
     const trim = value.trim();
     if (!trim) return null;
+    const normalized = trim.replace(/\s+/g, "");
+    const floorPairMatch = /(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/.exec(normalized);
+    if (floorPairMatch) return normalizeDaangnCollectorFloor(floorPairMatch[1]);
     if (/반지하/.test(trim)) return -1;
     const basement = /지하\s*(\d+)?\s*층?/.exec(trim);
     if (basement) {
@@ -296,17 +939,26 @@ function parseFloorValue(value) {
     }
     const b2 = /b(\d+)/i.exec(trim);
     if (b2) return -Math.max(1, Number(b2[1] || 1));
-    const floorTextMatch = /(\d+(?:\.\d+)?)\s*층/.exec(trim);
-    if (floorTextMatch) return Number.parseFloat(floorTextMatch[1]);
-    return toNumber(trim);
+    const floorTextMatch = /(\d+(?:[.,]\d+)?)\s*층/.exec(trim);
+    if (floorTextMatch) return normalizeDaangnCollectorFloor(floorTextMatch[1]);
+    const floorOnlyPair = /(\d+(?:[.,]\d+)?)\/(\d+(?:[.,]\d+)?)/.exec(trim);
+    if (floorOnlyPair) return normalizeDaangnCollectorFloor(floorOnlyPair[1]);
+    return normalizeDaangnCollectorFloor(toNumber(trim));
   }
   return null;
 }
 
+function normalizeDaangnCollectorFloor(value) {
+  const floor = toNumber(value);
+  if (floor === null) return null;
+  if (floor === 0.5 || floor === -0.5) return -1;
+  return floor;
+}
+
 function normalizeAreaValue(value, unitText = "") {
-  const n = toNumber(value);
+  const n = parseDaangnNumeric(value);
   if (n === null) return null;
-  const u = String(unitText).toUpperCase();
+  const u = `${String(value)} ${String(unitText)}`.toUpperCase();
   if (/PY|PYEONG|평|坪|PYUNG/.test(u)) {
     return n * 3.306;
   }
@@ -314,7 +966,7 @@ function normalizeAreaValue(value, unitText = "") {
 }
 
 function parseAreaTextValue(rawNumber, rawUnit = "") {
-  const n = toNumber(rawNumber);
+  const n = parseDaangnNumeric(rawNumber);
   if (n === null) return null;
   const unit = String(rawUnit).trim().toUpperCase();
   if (/PY|PYEONG|평|坪|PYUNG/.test(unit)) return n * 3.306;
@@ -388,24 +1040,46 @@ function parseAreaFromText(description) {
 
 function parseArea(item) {
   const detailArea = parseAreaFromDetail(item?._detail);
-  if (detailArea.value !== null) {
+  if (
+    detailArea.value !== null
+    && Number.isFinite(detailArea.value)
+    && detailArea.claimed === "exclusive"
+  ) {
     return detailArea;
   }
 
-  const fromSchema = parseAreaFromFloorSize(item.floorSize);
-  if (fromSchema !== null) {
+  const fromSchema = parseAreaFromFloorSize(item.floorSize ?? item?._detail?.floorSize);
+  if (fromSchema !== null && Number.isFinite(fromSchema)) {
     return {
       value: fromSchema,
       claimed: "estimated",
     };
   }
 
-  const fromDescription = parseAreaFromText(item.description || "");
-  if (fromDescription.value !== null) {
+  const fromDescription = parseAreaFromText(
+    `${item.description || ""} ${normalizeDaangnHtmlText(item.content || "")}`,
+  );
+  if (
+    fromDescription.value !== null
+    && Number.isFinite(fromDescription.value)
+    && fromDescription.claimed === "exclusive"
+  ) {
     return fromDescription;
   }
 
-  return parseAreaFromText(item.name || "");
+  const fromName = parseAreaFromText(item.name || "");
+  if (
+    fromName.value !== null
+    && Number.isFinite(fromName.value)
+    && fromName.claimed === "exclusive"
+  ) {
+    return fromName;
+  }
+
+  return {
+    value: null,
+    claimed: null,
+  };
 }
 
 function extractListingId(identifier) {
@@ -415,9 +1089,24 @@ function extractListingId(identifier) {
   const segment = path.split("/").filter(Boolean).pop();
   if (!segment) return null;
 
-  if (/^[0-9A-Za-z]+$/.test(segment)) return segment;
-  const lastDash = segment.split("-").filter(Boolean).pop();
-  return lastDash ? lastDash : segment;
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
+    }
+  })();
+
+  const candidates = [segment, decoded];
+  for (const value of candidates) {
+    if (/^[0-9A-Za-z]+$/.test(value)) return value;
+    const lastMatch = value.match(/([0-9A-Za-z]+)$/);
+    if (lastMatch?.[1]) return lastMatch[1];
+    const lastDash = value.split("-").filter(Boolean).pop();
+    if (lastDash) return lastDash;
+  }
+
+  return segment;
 }
 
 function coerceImageUrls(rawImage) {
@@ -425,9 +1114,17 @@ function coerceImageUrls(rawImage) {
   const seen = new Set();
   const normalized = [];
   const push = (value) => {
-    if (typeof value !== "string") return;
-    const s = value.replace(/&amp;/g, "&").replace(/\s+/g, "").trim();
-    if (!/^https?:\/\//i.test(s)) return;
+    const s = coerceCandidateToAbsoluteImage(value);
+    if (!s) return;
+
+  try {
+    const parsed = new URL(s);
+    const path = parsed.pathname.toLowerCase();
+    if (!isLikelyDaangnImageUrl(s)) return;
+  } catch {
+    return;
+  }
+
     if (seen.has(s)) return;
     seen.add(s);
     out.push(s);
@@ -456,8 +1153,103 @@ function coerceImageUrls(rawImage) {
   return normalized;
 }
 
+function normalizeDaangnImageSources(detail, item) {
+  return coerceImageUrls([
+    detail,
+    item,
+    detail?.image,
+    detail?.imageUrl,
+    detail?.image_url,
+    detail?.image_urls,
+    detail?.img,
+    detail?.imgUrl,
+    detail?.imgUrlList,
+    detail?.photo,
+    detail?.photoUrl,
+    detail?.photoList,
+    detail?.photoList?.edges,
+    detail?.media,
+    detail?.mediaUrl,
+    detail?.media_url,
+    detail?.media?.nodes,
+    detail?.media?.edges,
+    detail?.photoList?.nodes,
+    detail?.photo_url,
+    detail?.thumbnail,
+    detail?.thumbnailUrl,
+    detail?.thumbnail_url,
+    detail?.images?.url,
+    detail?.images?.item,
+    detail?.imgList,
+    detail?.imgListURL,
+    item?.image,
+    item?.images,
+    item?.imageUrl,
+    item?.image_url,
+    item?.image_urls,
+    item?.img,
+    item?.imgUrl,
+    item?.imgUrlList,
+    item?.photoList,
+    item?.photoList?.edges,
+    item?.photo_url,
+    item?.photo,
+    item?.media,
+    item?.mediaUrl,
+    item?.media_url,
+    item?.media?.nodes,
+    item?.media?.edges,
+    item?.photoList?.nodes,
+    item?.thumbnail,
+    item?.thumbnailUrl,
+    item?.thumbnail_url,
+  ]);
+}
+
+function extractDaangnDirection(detail = {}, listData = {}) {
+  const candidates = [
+    listData.buildingOrientation,
+    listData.building_orientation,
+    listData.direction,
+    listData.orientation,
+    listData.facing,
+    listData.facingDirection,
+    listData.houseFacing,
+    listData.house_facing,
+    listData.directionText,
+    listData.direction_desc,
+    detail.direction,
+    detail.orientation,
+    detail.houseFacing,
+    detail.facing,
+    detail.buildingOrientation,
+    detail.building_orientation,
+    detail.directionText,
+    detail.facingDirection,
+    detail.direction_desc,
+    detail.floor_desc,
+    detail.directionText || "",
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+    const text = String(candidate).trim();
+    if (!text) continue;
+    const parsedDirection = parseDaangnDirection(text);
+    return parsedDirection || text;
+  }
+  return "";
+}
+
 function parseFloor(item) {
-  const detailFloor = parseFloorValue(item?._detail?.floor ?? item?._detail?.floorText);
+  const detailFloorCandidate =
+    item?._detail?.floor ??
+    item?._detail?.floorText ??
+    item?._detail?.floorLevel ??
+    item?._detail?.floorLevelText ??
+    item?._detail?.floor_level ??
+    item?._detail?.floor_text;
+  const detailFloor = parseFloorValue(detailFloorCandidate);
   if (detailFloor !== null) return detailFloor;
 
   if (item?.floorLevel !== undefined) {
@@ -466,7 +1258,7 @@ function parseFloor(item) {
       if (bySchema === 0 && /반지하/.test(item.description || "")) {
         return -1;
       }
-      return bySchema;
+      return normalizeDaangnCollectorFloor(bySchema);
     }
   }
 
@@ -481,8 +1273,58 @@ function parseFloor(item) {
   const b2 = /b(\d+)/i.exec(txt);
   if (b2) return -Math.max(1, Number(b2[1] || 1));
 
-  const floorTextMatch = /(\d+)(?:\.\d+)?\s*층/.exec(txt);
-  if (floorTextMatch) return Number.parseInt(floorTextMatch[1], 10);
+  const floorTextMatch = /(\d+)(?:[.,]\d+)?\s*층/.exec(txt);
+  if (floorTextMatch) return normalizeDaangnCollectorFloor(floorTextMatch[1]);
+  const floorPairMatch = /(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/.exec(txt);
+  if (floorPairMatch) return normalizeDaangnCollectorFloor(floorPairMatch[1]);
+  return null;
+}
+
+function normalizeTextForDirection(raw) {
+  return String(raw || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseDaangnDirection(raw) {
+  const text = normalizeTextForDirection(raw);
+  if (!text) return null;
+
+  const uppercase = text.toUpperCase();
+  if (/_FACING$/.test(uppercase) || /(^|\s)(NORTH|SOUTH|EAST|WEST)/.test(uppercase)) {
+    const hasNorth = /NORTH/.test(uppercase);
+    const hasSouth = /SOUTH/.test(uppercase);
+    const hasEast = /EAST/.test(uppercase);
+    const hasWest = /WEST/.test(uppercase);
+    if (hasNorth && hasEast) return "북동향";
+    if (hasSouth && hasEast) return "남동향";
+    if (hasNorth && hasWest) return "북서향";
+    if (hasSouth && hasWest) return "남서향";
+    if (hasNorth) return "북향";
+    if (hasSouth) return "남향";
+    if (hasEast) return "동향";
+    if (hasWest) return "서향";
+  }
+
+  const candidates = [
+    [/남서향|남서|남서쪽/.test(text), "남서향"],
+    [/남동향|남동|남동쪽/.test(text), "남동향"],
+    [/북서향|북서|북서쪽/.test(text), "북서향"],
+    [/북동향|북동|북동쪽/.test(text), "북동향"],
+    [/남향|남쪽|남방향/.test(text), "남향"],
+    [/북향|북쪽|북방향/.test(text), "북향"],
+    [/동향|동쪽|동방향/.test(text), "동향"],
+    [/서향|서쪽|서방향/.test(text), "서향"],
+    [/\bE\b/i.test(text), "동향"],
+    [/\bW\b/i.test(text), "서향"],
+    [/\bS\b/i.test(text), "남향"],
+    [/\bN\b/i.test(text), "북향"],
+  ];
+
+  for (const [match, value] of candidates) {
+    if (match) return value;
+  }
+
   return null;
 }
 
@@ -492,12 +1334,7 @@ async function collectDistrict(districtName, locationId) {
   if (verbose) console.log(`  [${districtName}] Fetching: ${url}`);
 
   const res = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      Accept: "text/html,application/xhtml+xml",
-      "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
-    },
+    headers: DAANGN_FETCH_HEADERS,
   });
 
   if (!res.ok) {
@@ -515,7 +1352,13 @@ async function collectDistrict(districtName, locationId) {
     return { items: [], total: 0 };
   }
 
-  const ld = JSON.parse(ldMatch[1]);
+  let ld;
+  try {
+    ld = JSON.parse(ldMatch[1]);
+  } catch {
+    console.error(`  [${districtName}] JSON-LD parse failed`);
+    return { items: [], total: 0 };
+  }
   const allItems = (ld.itemListElement || []).map((e) => e.item);
   if (verbose)
     console.log(
@@ -524,7 +1367,7 @@ async function collectDistrict(districtName, locationId) {
 
   // 1. 해당 구 매물만 필터링
   const districtItems = allItems.filter((item) => {
-    const detail = getDaangnDetail(detailMap, item.identifier);
+    const detail = getDaangnDetail(detailMap, item);
     if (detail?.region?.name2 === districtName) return true;
     return (
       item.address?.addressRegion === "서울특별시" &&
@@ -540,9 +1383,10 @@ async function collectDistrict(districtName, locationId) {
   const residentialItems = districtItems
     .map((item) => ({
       ...item,
-      _detail: getDaangnDetail(detailMap, item.identifier),
+      _detail: getDaangnDetail(detailMap, item),
     }))
     .filter((item) => RESIDENTIAL_TYPES.has(item["@type"]));
+  await hydrateItemsWithDetail(residentialItems);
   if (verbose)
     console.log(
       `  [${districtName}] 주거용 매물: ${residentialItems.length}건`,
@@ -551,7 +1395,8 @@ async function collectDistrict(districtName, locationId) {
   // 3. 가격 파싱 및 조건 필터
   const filtered = [];
   for (const item of residentialItems) {
-    const price = parsePriceFromDetail(item._detail) || parsePrice(item.name || "");
+    const detailPrice = parsePriceFromDetail(item._detail);
+    const price = resolveMonthlyPrice(item.name || "", detailPrice);
     if (!price) continue;
     if (price.type !== "monthly") continue; // 월세만
 
@@ -561,8 +1406,10 @@ async function collectDistrict(districtName, locationId) {
 
     // 면적 체크 (있으면)
     const area = parseArea(item);
+    const areaClaim = normalizeDaangnAreaClaim(area?.claimed);
+    const areaValue = Number.isFinite(area.value) ? area.value : null;
     if (minAreaM2 > 0) {
-      if (area.value === null || area.value < minAreaM2) continue;
+      if (areaClaim !== "exclusive" || areaValue === null || areaValue < minAreaM2) continue;
     }
 
     const floor = parseFloor(item);
@@ -605,6 +1452,7 @@ async function main() {
 
   const districts = sigungu.split(",").map((s) => s.trim());
   const allRecords = [];
+  const dedupeBySourceRef = new Set();
   const stats = {};
 
   for (const district of districts) {
@@ -625,35 +1473,70 @@ async function main() {
     };
 
     for (const item of cappedItems) {
-    const parsed = item._parsed;
-    // 고유 ID 추출 (URL의 마지막 path segment)
-      const sourceImageUrls = coerceImageUrls(
-        item.image || item.images || item._detail?.images || [],
-      );
-      const externalId = extractListingId(item.identifier);
+      const parsed = item._parsed;
       const detail = item._detail || {};
+      const directionHint = extractDaangnDirection(detail, item);
+      const areaClaim = normalizeDaangnAreaClaim(parsed.area?.claimed);
+      const areaValue = Number.isFinite(parsed.area?.value) ? parsed.area.value : null;
+      const sourceImageUrls = normalizeDaangnImageSources(detail, item);
+      const normalizedDescription = normalizeDaangnHtmlText(
+        `${item.description || ""} ${detail.content || detail.description || ""}`,
+      );
+      const detailForPayload = detail && typeof detail === "object" ? detail : null;
+      const sourceIdentifier = item.identifier || item.id || item.url || item.href;
+      const requestUrl = `https://www.daangn.com/kr/realty/?in=x-${locationId}`;
+      const sourceRef = extractListingId(sourceIdentifier);
+      const sourceUrl = toDaangnUrl(sourceIdentifier)
+        || toDaangnUrl(item?.identifier)
+        || toDaangnUrl(item?.url)
+        || toDaangnUrl(item?.href)
+        || requestUrl;
+      const dedupeKey = (sourceRef || sourceUrl || "").toLowerCase();
+      if (dedupeKey) {
+        if (dedupeBySourceRef.has(dedupeKey)) continue;
+        dedupeBySourceRef.add(dedupeKey);
+      }
+
+      const externalId = sourceRef || null;
+      const totalFloor = detail.topFloor ?? detail.totalFloor ?? detail.total_floor ?? detail.floor_total;
+      const normalizedTotalFloor =
+        totalFloor != null && String(totalFloor).trim() !== "" ? `${String(totalFloor).trim()}층` : null;
 
       const record = {
         platform_code: "daangn",
         collected_at: new Date().toISOString(),
-        source_url: item.identifier,
+        source_url: sourceUrl || requestUrl,
         request_url: `https://www.daangn.com/kr/realty/?in=x-${locationId}`,
         response_status: 200,
         sigungu: district,
         payload_json: {
           id: externalId,
+          source_ref: sourceRef,
           name: item.name,
-          description: item.description,
+          description: normalizedDescription,
           schemaType: item["@type"],
           propertyType: parsed.propertyType,
           deposit: parsed.deposit,
           rent: parsed.rent,
-          area: parsed.area.value,
-          areaClaimed: parsed.area.claimed,
+          area: areaValue,
+          areaClaimed: areaClaim || parsed.area?.claimed || null,
+          _parsed: parsed,
+          _detail: detailForPayload,
           floor: parsed.floor,
-          floorLevel: detail.floor,
+          floorLevel: detail.floorLevel || detail.floor_level || detail.floor_level_text,
+          floorSize: detail.floorSize,
+          floorLevelText: detail.floorLevelText,
           floorText: detail.floorText,
+          topFloor: detail.topFloor,
+          totalFloor: detail.totalFloor,
+          total_floor: normalizedTotalFloor,
+          buildingOrientation: detail.buildingOrientation || detail.building_orientation,
+          direction: directionHint,
+          directionText: directionHint,
           supplyArea: detail.supplyArea,
+          floorDesc: detail.floorText,
+          floor_desc: detail.floorText,
+          direction_desc: directionHint,
           areaPyeong: detail.areaPyeong,
           supplyAreaPyeong: detail.supplyAreaPyeong,
           images: sourceImageUrls,
@@ -661,12 +1544,20 @@ async function main() {
           detailSource: detail.__typename || "unknown",
         },
         list_data: {
+          source_ref: sourceRef,
           priceTitle: `${parsed.deposit}/${parsed.rent}`,
           roomTitle: item.name?.replace(/ \| 당근부동산$/, "") || "",
           dongName: item.address?.streetAddress || "",
           propertyType: parsed.propertyType,
           floor: parsed.floor,
+          floorLevel: detail.floorLevel || detail.floor_level || detail.floorLevelText,
+          total_floor: normalizedTotalFloor,
+          topFloor: detail.topFloor,
           floorText: detail.floorText || "",
+          direction: directionHint,
+          directionText: directionHint,
+          floor_desc: detail.floorText,
+          direction_desc: directionHint,
           imgUrlList: sourceImageUrls.map((img) => img.replace(/&amp;/g, "&")),
         },
       };
