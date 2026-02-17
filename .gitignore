@@ -47,9 +47,17 @@ frontend_ui_smoke_check.mjs
 
 # QA/debug temp files
 tmp_*
+scripts/_*
 scripts/*_check_ultrawork*
 scripts/*_fixcheck*
 scripts/*_adapter_output*
+scripts/*_adapter_test_output*
+scripts/*_target_out*
+scripts/*_target_raw*
+scripts/*_tmp_*
+scripts/*_fidelity_*
+scripts/platform_fidelity_gate_*
+QA_*.md
 
 # Editor
 .vscode/
