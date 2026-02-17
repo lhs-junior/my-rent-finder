@@ -203,7 +203,11 @@ export function normalizeDate(value) {
 
 export function getDbConfig() {
   if (toSafeString(process.env.DATABASE_URL)) {
-    return { connectionString: process.env.DATABASE_URL };
+    const cfg = { connectionString: process.env.DATABASE_URL };
+    if (process.env.DATABASE_URL.includes("neon.tech") || process.env.DATABASE_URL.includes("sslmode=require")) {
+      cfg.ssl = { rejectUnauthorized: false };
+    }
+    return cfg;
   }
 
   const cfg = {

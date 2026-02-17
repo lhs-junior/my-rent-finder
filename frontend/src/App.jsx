@@ -36,8 +36,13 @@ const DEFAULT_API_BASE = (() => {
   if (typeof window === "undefined" || window.location.protocol === "file:") {
     return "http://127.0.0.1:4100";
   }
-  const proto = window.location.protocol || "http:";
   const hostname = window.location.hostname || "127.0.0.1";
+  // Production (Vercel etc): API is same-origin
+  if (hostname !== "127.0.0.1" && hostname !== "localhost") {
+    return "";
+  }
+  // Local dev: proxy to API server on port 4100
+  const proto = window.location.protocol || "http:";
   const hostPort = window.location.port || "4100";
   const port = hostPort === "5173" || hostPort === "4173" ? "4100" : hostPort;
   return `${proto}//${hostname}:${port}`;

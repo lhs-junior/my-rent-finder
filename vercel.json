@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd frontend && npm install && npx vite build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/handler" }
+  ],
+  "functions": {
+    "api/handler.mjs": {
+      "maxDuration": 30
+    }
+  }
+}
