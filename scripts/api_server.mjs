@@ -26,6 +26,16 @@ import { handleListings, handleListingDetail, handleListingsGeo } from "./lib/ap
 import { handleMatches, handleMatchGroup } from "./lib/api_routes/matches.mjs";
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "./lib/api_routes/favorites.mjs";
 
+function resolveRequestPath(req) {
+  const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
+  if (typeof headerPath === "string" && headerPath.trim()) {
+    const pathOnly = headerPath.split("?")[0].trim();
+    if (pathOnly) return pathOnly;
+  }
+
+  return new URL(req.url, "http://localhost").pathname;
+}
+
 // ---------------------------------------------------------------------------
 // CLI args
 // ---------------------------------------------------------------------------
@@ -135,8 +145,7 @@ async function route(req, res) {
     return;
   }
 
-  const url = new URL(req.url, "http://localhost");
-  const pathname = url.pathname;
+  const pathname = resolveRequestPath(req);
 
   if (pathname === "/api/health" || pathname.startsWith("/api/")) {
     if (pathname === "/api/health") {

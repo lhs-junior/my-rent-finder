@@ -15,6 +15,20 @@ import { handleListings, handleListingDetail, handleListingsGeo } from "../scrip
 import { handleMatches, handleMatchGroup } from "../scripts/lib/api_routes/matches.mjs";
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "../scripts/lib/api_routes/favorites.mjs";
 
+function resolveRequestPath(req) {
+  const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
+  if (typeof headerPath === "string" && headerPath.trim()) {
+    const pathOnly = headerPath.split("?")[0].trim();
+    if (pathOnly) return pathOnly;
+  }
+
+  if (typeof req.url === "string" && req.url.startsWith("/api/")) {
+    return new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
+  }
+
+  return "/api/handler";
+}
+
 function parseJsonBody(req) {
   return new Promise((resolve) => {
     if (req._parsedBody !== undefined) { resolve(); return; }
@@ -51,8 +65,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-    const pathname = url.pathname;
+    const pathname = resolveRequestPath(req);
 
     if (pathname === "/api/health") {
       await handleHealth(req, res);

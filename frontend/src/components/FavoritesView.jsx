@@ -29,11 +29,12 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
+
   useEffect(() => {
-    if (!apiBase) return;
     setLoading(true);
     setError(null);
-    fetch(`${apiBase}/api/favorites`)
+    fetch(`${normalizedApiBase}/api/favorites`)
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
@@ -41,7 +42,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
       .then((data) => setItems(data.items || []))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [apiBase, favoriteIds.size]);
+  }, [normalizedApiBase, favoriteIds.size]);
 
   const handleRemove = async (listingId) => {
     await toggleFavorite(listingId);
