@@ -1,20 +1,19 @@
 {
-  "runId": "peterpanz_1771226500951",
+  "runId": "peterpanz_1771264844084",
   "success": true,
-  "sigungu": "광진구",
-  "sampleCap": 20,
+  "sigungu": "노원구",
+  "sampleCap": null,
   "filters": {
     "rentMax": 80,
     "depositMax": 6000,
     "minAreaM2": 40
   },
-  "totalIntercepted": 12,
-  "totalUnique": 6,
-  "afterFilter": 5,
-  "totalListings": 5,
+  "totalFetched": 4,
+  "afterFilter": 4,
+  "totalListings": 4,
   "dataQuality": {
     "grade": "PARTIAL"
   },
-  "timestamp": "2026-02-16T07:21:40.951Z",
-  "durationMs": 20027
+  "timestamp": "2026-02-16T18:00:44.084Z",
+  "durationMs": 861
 }

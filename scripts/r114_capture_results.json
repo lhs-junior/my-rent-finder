@@ -1,23 +1,22 @@
 {
-  "runId": "r114_1771229288860",
-  "success": false,
-  "districts": "종로구",
-  "sampleCap": 3,
+  "runId": "r114_1771264461184",
+  "success": true,
+  "districts": "노원구",
+  "sampleCap": null,
   "filters": {
     "rentMax": 80,
     "depositMax": 6000,
     "minAreaM2": 40
   },
   "stats": {
-    "종로구": {
-      "total": 10,
-      "filtered": 0,
-      "capped": 0
+    "노원구": {
+      "total": 1,
+      "filtered": 1
     }
   },
-  "totalListings": 0,
+  "totalListings": 1,
   "dataQuality": {
-    "grade": "EMPTY"
+    "grade": "PARTIAL"
   },
-  "timestamp": "2026-02-16T08:08:08.860Z"
+  "timestamp": "2026-02-16T17:54:21.184Z"
 }

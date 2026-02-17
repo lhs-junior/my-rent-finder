@@ -1,5 +1,5 @@
 {
-  "runId": "kbland_1771258184018",
+  "runId": "kbland_1771293422167",
   "success": true,
   "districts": "노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구",
   "sampleCap": 9999,
@@ -14,41 +14,41 @@
       "clusters": 33,
       "skippedClusters": 0,
       "visitedClusters": 33,
-      "raw": 245,
-      "filtered": 53,
-      "final": 53
+      "raw": 54,
+      "filtered": 12,
+      "final": 12
     },
     "중랑구": {
       "clusters": 34,
       "skippedClusters": 0,
       "visitedClusters": 34,
-      "raw": 660,
-      "filtered": 119,
-      "final": 119
+      "raw": 531,
+      "filtered": 113,
+      "final": 113
     },
     "동대문구": {
       "clusters": 33,
       "skippedClusters": 2,
       "visitedClusters": 31,
-      "raw": 484,
-      "filtered": 89,
-      "final": 89
+      "raw": 443,
+      "filtered": 85,
+      "final": 85
     },
     "광진구": {
       "clusters": 33,
       "skippedClusters": 1,
       "visitedClusters": 32,
-      "raw": 620,
-      "filtered": 83,
-      "final": 83
+      "raw": 487,
+      "filtered": 52,
+      "final": 52
     },
     "성북구": {
       "clusters": 29,
       "skippedClusters": 15,
       "visitedClusters": 14,
-      "raw": 138,
-      "filtered": 17,
-      "final": 17
+      "raw": 107,
+      "filtered": 10,
+      "final": 10
     },
     "성동구": {
       "clusters": 33,
@@ -62,7 +62,7 @@
       "clusters": 29,
       "skippedClusters": 17,
       "visitedClusters": 12,
-      "raw": 112,
+      "raw": 68,
       "filtered": 4,
       "final": 4
     },
@@ -75,11 +75,11 @@
       "final": 24
     }
   },
-  "totalListings": 394,
+  "totalListings": 305,
   "dataQuality": {
     "grade": "GOOD"
   },
-  "timestamp": "2026-02-16T16:09:44.018Z",
+  "timestamp": "2026-02-17T01:57:02.167Z",
   "results": [
     {
       "platform": "kbland",
@@ -87,8 +87,8 @@
       "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/kbland_normalized.jsonl",
       "ok": true,
       "sigungu": "노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구",
-      "startedAt": "2026-02-16T16:09:44.007Z",
-      "finishedAt": "2026-02-16T16:09:44.018Z"
+      "startedAt": "2026-02-17T01:57:02.159Z",
+      "finishedAt": "2026-02-17T01:57:02.167Z"
     }
   ]
 }

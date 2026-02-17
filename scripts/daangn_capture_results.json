@@ -1,8 +1,8 @@
 {
-  "runId": "daangn_1771227504444",
+  "runId": "daangn_1771264239591",
   "success": true,
-  "districts": "노원구,동대문구,광진구",
-  "sampleCap": 10,
+  "districts": "노원구",
+  "sampleCap": null,
   "filters": {
     "rentMax": 80,
     "depositMax": 6000,
@@ -10,30 +10,17 @@
   },
   "stats": {
     "노원구": {
-      "total": 154,
+      "total": 153,
       "residential": 59,
-      "filtered": 21,
-      "capped": 10
-    },
-    "동대문구": {
-      "total": 269,
-      "residential": 158,
-      "filtered": 29,
-      "capped": 10
-    },
-    "광진구": {
-      "total": 367,
-      "residential": 298,
-      "filtered": 74,
-      "capped": 10
+      "filtered": 21
     }
   },
-  "totalListings": 30,
+  "totalListings": 21,
   "dataQuality": {
     "grade": "GOOD",
     "addressRate": 1,
-    "imageRate": 0.9666666666666667,
-    "areaRate": 0.03333333333333333
+    "imageRate": 1,
+    "areaRate": 0
   },
-  "timestamp": "2026-02-16T07:38:24.444Z"
+  "timestamp": "2026-02-16T17:50:39.592Z"
 }

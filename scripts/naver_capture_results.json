@@ -1,5 +1,5 @@
 {
-  "runId": "naver_1771218554057",
+  "runId": "naver_1771264893525",
   "success": true,
   "dataQuality": {
     "grade": "GOOD",
@@ -13,7 +13,7 @@
   },
   "sigungu": "노원구",
   "cortarNo": "1135000000",
-  "sampleCap": 5,
+  "sampleCap": null,
   "filters": {
     "tradeType": "B2",
     "rentMax": 80,
@@ -73,6 +73,6 @@
   },
   "responsesCapture": 61,
   "clickedListings": 0,
-  "timestamp": "2026-02-16T05:09:14.057Z",
-  "durationMs": 51061
+  "timestamp": "2026-02-16T18:01:33.525Z",
+  "durationMs": 48827
 }
