@@ -52,7 +52,7 @@ export async function handleMatchGroup(req, res, groupId) {
       SELECT m.listing_id, m.score, nl.platform_code, nl.address_text, nl.address_code, nl.rent_amount, nl.deposit_amount, nl.area_exclusive_m2, nl.area_gross_m2
       FROM match_group_members m
       JOIN normalized_listings nl ON nl.listing_id = m.listing_id
-      WHERE m.group_id = $1
+      WHERE m.group_id = $1 AND nl.deleted_at IS NULL
       ORDER BY m.score DESC
     `, [parsedGroupId]);
     const imageRows = await client.query(`SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`, [members.rows.map((r) => toInt(r.listing_id, null)).filter((v) => v !== null)]);

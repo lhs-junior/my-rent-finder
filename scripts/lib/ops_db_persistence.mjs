@@ -17,6 +17,108 @@ import {
   withDbClient,
 } from "./db_client.mjs";
 
+const DAANGN_MIN_AREA_M2 = (() => {
+  const rawMinArea = process.env.DAANGN_MIN_AREA_M2 ?? process.env.MIN_AREA_M2;
+  const parsed = rawMinArea === undefined ? NaN : Number.parseFloat(String(rawMinArea));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 40;
+})();
+
+const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
+const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
+const IMAGE_PATH_BLACKLIST_RE = /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy)(?:$|[./?\/])/i;
+const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
+
+function isLikelyImageSource(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    const protocol = parsed.protocol || "";
+    if (!/^https?:$/i.test(protocol)) return false;
+    const path = (parsed.pathname || "").toLowerCase();
+    const queryHint = `${parsed.search}${parsed.hash || ""}`.toLowerCase();
+    if (!path && !queryHint) return false;
+    if (IMAGE_PATH_BLACKLIST_RE.test(path)) return false;
+    if (IMAGE_EXT_RE.test(path)) return true;
+    if (IMAGE_QUERY_HINT_RE.test(queryHint)) return true;
+    if (IMAGE_HINT_PATH_RE.test(path)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeCandidateImageUrl(value, seen, out) {
+  if (!value || typeof value !== "string") return;
+  const trimmed = value.trim().replace(/^["']|["']$/g, "");
+  if (!trimmed) return;
+  if (trimmed.length > 4096) return;
+  if (/^\/\//.test(trimmed)) {
+    return normalizeCandidateImageUrl(`https:${trimmed}`, seen, out);
+  }
+  if (/^\w[\w.-]*\.[a-z0-9.-]+\//i.test(trimmed) && !/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+    return normalizeCandidateImageUrl(`https://${trimmed}`, seen, out);
+  }
+
+  const normalized = trimmed
+    .replace(/&amp;/g, "&")
+    .replace(/\u0026/g, "&")
+    .trim();
+
+  if (!normalized) return;
+
+  if (!/^https?:\/\//i.test(normalized)) return;
+  if (!isLikelyImageSource(normalized)) return;
+  if (seen.has(normalized)) return;
+  seen.add(normalized);
+  out.push(normalized);
+}
+
+function collectImageValues(value, seen, out, depth = 4) {
+  if (!value || depth <= 0 || out.length >= 24) return;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectImageValues(item, seen, out, depth - 1);
+      if (out.length >= 24) return;
+    }
+    return;
+  }
+  if (typeof value === "string") {
+    const asText = toText(value, "");
+    if (!asText) return;
+    if ((asText.startsWith("[") && asText.endsWith("]")) || (asText.startsWith("{") && asText.endsWith("}"))) {
+      try {
+        collectImageValues(JSON.parse(asText), seen, out, depth - 1);
+        return;
+      } catch {
+        // ignore non-JSON strings
+      }
+    }
+    const chunks = asText.split(/[\s,]+/g);
+    for (const chunk of chunks) {
+      normalizeCandidateImageUrl(chunk, seen, out);
+      if (out.length >= 24) return;
+    }
+    return;
+  }
+  if (typeof value !== "object") return;
+
+  const keys = Object.keys(value);
+  for (const key of keys) {
+    const candidate = value[key];
+    const keyText = String(key || "").toLowerCase();
+    if (!candidate) continue;
+    if (
+      /(url|uri|src|image|photo|thumb|thumbnail|media|path|link|href)/.test(keyText)
+      || keyText === "images"
+      || keyText === "image_urls"
+      || keyText === "imageUrl"
+      || keyText === "img"
+      || keyText === "media"
+    ) {
+      collectImageValues(candidate, seen, out, depth - 1);
+    }
+  }
+}
+
 function readJsonSafe(filePath) {
   if (!filePath || !fs.existsSync(filePath)) return null;
   try {
@@ -32,11 +134,107 @@ function safeDate(value, fallback = new Date().toISOString()) {
   return Number.isFinite(t) ? new Date(t).toISOString() : fallback;
 }
 
+function normalizeDaangnReference(value) {
+  const raw = toText(value, "");
+  if (!raw) return null;
+  const path = raw.split("?")[0].split("#")[0];
+  if (!path) return null;
+  const segment = path.split("/").filter(Boolean).pop();
+  if (!segment) return null;
+
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
+    }
+  })();
+
+  const candidates = [segment, decoded];
+  for (const candidate of candidates) {
+    if (isLikelyDaangnReference(candidate)) return candidate;
+    const matched = /([0-9A-Za-z]+)$/.exec(candidate);
+    if (matched?.[1] && isLikelyDaangnReference(matched[1])) return matched[1];
+    const dashed = candidate.split("-").filter(Boolean).pop();
+    if (dashed && isLikelyDaangnReference(dashed)) return dashed;
+  }
+
+  return isLikelyDaangnReference(segment) ? segment : null;
+}
+
+function isLikelyDaangnReference(value) {
+  if (!value) return false;
+  if (!/^[0-9A-Za-z._-]+$/.test(value)) return false;
+  if (value.length < 5) return false;
+  const lowered = String(value).toLowerCase();
+  if (["realty", "listing", "listingdetail", "profile"].includes(lowered)) return false;
+  if (!/[A-Za-z]/.test(value)) return value.length >= 7;
+  return true;
+}
+
+function normalizePlatformSourceRef(platform, value) {
+  const platformCode = normalizePlatform(platform);
+  if (platformCode === "daangn") {
+    return normalizeDaangnReference(value);
+  }
+  return toText(value, null);
+}
+
+function normalizePlatformSourceUrl(platform, value) {
+  const platformCode = normalizePlatform(platform);
+  const rawUrl = toText(value, "");
+  if (!rawUrl) return "";
+
+  if (platformCode === "daangn") {
+    try {
+      const parsed = new URL(rawUrl);
+      const path = parsed.pathname.replace(/\/+$/, "");
+      if (/daangn\.com/i.test(parsed.hostname) && path) {
+        return `https://www.daangn.com${path}`;
+      }
+    } catch {
+      return rawUrl;
+    }
+  }
+
+  return rawUrl;
+}
+
 function normalizeImageList(item) {
-  if (Array.isArray(item?.image_urls)) return item.image_urls.filter((v) => typeof v === "string");
-  if (Array.isArray(item?.imageUrls)) return item.imageUrls.filter((v) => typeof v === "string");
-  if (Array.isArray(item?.images)) return item.images.filter((v) => typeof v === "string");
-  return [];
+  const out = [];
+  const seen = new Set();
+  const candidates = [
+    item?.image_urls,
+    item?.imageUrls,
+    item?.image_url,
+    item?.imageUrl,
+    item?.image,
+    item?.img,
+    item?.images,
+    item?.photo,
+    item?.photoList,
+    item?.photos,
+    item?.media,
+    item?._raw,
+    item?.payload_json,
+    item?.list_data,
+    item?.thumbnail,
+    item?.thumb,
+    item?.image_list,
+    item?.imageList,
+    item?.photo_list,
+  ];
+
+  for (const candidate of candidates) {
+    collectImageValues(candidate, seen, out, 5);
+    if (out.length >= 24) break;
+  }
+
+  if (!out.length && item) {
+    collectImageValues(item, seen, out, 4);
+  }
+
+  return out;
 }
 
 function toCandidateText(value) {
@@ -88,6 +286,16 @@ function extractExternalIdCandidates(raw) {
     "sourceRef",
     "uuid",
     "_id",
+    "identifier",
+    "path",
+    "slug",
+    "sourceUrl",
+    "url",
+    "href",
+    "code",
+    "request_url",
+    "requestUrl",
+    "link",
     "articleNo",
     "article_no",
     "atclNo",
@@ -98,6 +306,9 @@ function extractExternalIdCandidates(raw) {
   const sources = [
     raw,
     raw?.payload_json,
+    raw?.list_data,
+    raw?.payload_json?.list_data,
+    raw?.payload_json?.result,
     raw?.payload_json?.result,
     raw?.payload_json?.body,
     raw?.payload_json?.items,
@@ -117,11 +328,66 @@ function extractExternalIdCandidates(raw) {
   return Array.from(collected);
 }
 
+function selectBestDaangnExternalId(candidates = []) {
+  const isLikelyDaangnListItem = (candidate) => {
+    const normalized = normalizePlatformSourceRef("daangn", candidate);
+    if (!normalized) return null;
+    if (/^(\d+)$/.test(normalized) && normalized.length <= 6) return null;
+    return normalized;
+  };
+
+  let bestWithLetters = null;
+  let bestFallback = null;
+
+  for (const candidate of candidates) {
+    const normalized = isLikelyDaangnListItem(candidate);
+    if (!normalized) continue;
+
+    if (!bestFallback) {
+      bestFallback = normalized;
+    }
+    if (/[A-Za-z]/.test(normalized)) {
+      bestWithLetters = normalized;
+      break;
+    }
+  }
+
+  return bestWithLetters || bestFallback;
+}
+
+async function cleanupNormalizedRowsForSourceRef(client, platform, sourceRef) {
+  const platformCode = normalizePlatform(platform);
+  const normalizedSourceRef = normalizePlatformSourceRef(platformCode, toText(sourceRef, ""));
+  if (!platformCode || !normalizedSourceRef) return;
+
+  const lookup = await client.query(
+    `
+      SELECT listing_id
+      FROM normalized_listings
+      WHERE platform_code = $1
+        AND source_ref = $2
+    `,
+    [platformCode, normalizedSourceRef],
+  );
+
+  const listingIds = lookup.rows
+    .map((row) => toInt(row?.listing_id, null))
+    .filter((id) => id !== null);
+  await cleanupNormalizedRowsByListingIds(client, listingIds);
+}
+
 function toSafeSourceUrl(raw) {
   return toText(
     raw?.source_url
       || raw?.request_url
       || raw?.url
+      || raw?.sourceUrl
+      || raw?.payload_json?.source_url
+      || raw?.payload_json?.sourceUrl
+      || raw?.payload_json?.url
+      || raw?.payload_json?.request_url
+      || raw?.list_data?.source_url
+      || raw?.list_data?.url
       || raw?.link
       || raw?.home_url,
     "",
@@ -129,13 +395,44 @@ function toSafeSourceUrl(raw) {
 }
 
 function extractExternalId(raw, platformCode) {
-  for (const candidate of extractExternalIdCandidates(raw)) {
-    if (candidate) return candidate;
+  const platform = normalizePlatform(platformCode);
+  if (platform === "daangn") {
+    const selected = selectBestDaangnExternalId(extractExternalIdCandidates(raw));
+    if (selected) return selected;
+  } else {
+    for (const candidate of extractExternalIdCandidates(raw)) {
+      const normalized = normalizePlatformSourceRef(platform, candidate);
+      if (normalized) return normalized;
+    }
   }
-
-  const fallbackSeed = toText(raw?.request_url || raw?.source_ref || raw?.sourceRef || toSafeSourceUrl(raw), "");
+  const fallbackSeed = (() => {
+    if (platform === "daangn") {
+      return toText(
+        raw?.source_ref
+          || raw?.sourceRef
+          || raw?.source_url
+          || raw?.sourceUrl
+          || raw?.payload_json?.source_ref
+          || raw?.payload_json?.sourceRef
+          || raw?.payload_json?.source_url
+          || raw?.payload_json?.url
+          || raw?.payload_json?.request_url
+          || raw?.list_data?.source_ref
+          || raw?.list_data?.sourceRef
+          || raw?.list_data?.source_url
+          || raw?.url
+          || raw?.link
+          || raw?.home_url
+          || "",
+        "",
+      );
+    }
+    return toText(raw?.request_url || raw?.source_ref || raw?.sourceRef || toSafeSourceUrl(raw), "");
+  })();
   if (!fallbackSeed) return null;
-  return ensureFnv11(fallbackSeed) || null;
+  const normalizedFallback = normalizePlatformSourceRef(platform, fallbackSeed);
+  if (!normalizedFallback) return null;
+  return platform === "daangn" ? normalizedFallback : ensureFnv11(normalizedFallback) || null;
 }
 
 function extractRawStatus(raw) {
@@ -158,6 +455,141 @@ function extractCollectedAt(raw) {
 function buildCanonicalKey(platformCode, sourceRef, sourceUrl, addressCode, rentAmount, depositAmount, areaExclusive) {
   const seed = `${platformCode}|${sourceRef || ""}|${sourceUrl || ""}|${addressCode || ""}|${toText(rentAmount, "")}|${toText(depositAmount, "")}|${toText(areaExclusive, "")}`;
   return ensureFnv11(seed) || ensureFnv11(`${platformCode}|${sourceRef || sourceUrl || addressCode || "listing"}`) || "11000000000";
+}
+
+async function cleanupNormalizedRowsByListingIds(client, listingIds) {
+  const normalized = listingIds
+    .map((id) => toInt(id, null))
+    .filter((id) => id !== null);
+  if (!normalized.length) return;
+
+  await client.query(
+    `DELETE FROM image_fetch_jobs
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM contract_violations
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM quality_reports
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM match_group_members
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM listing_matches
+     WHERE source_listing_id = ANY($1::bigint[])
+        OR target_listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM listing_images
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+  await client.query(
+    `DELETE FROM normalized_listings
+     WHERE listing_id = ANY($1::bigint[])`,
+    [normalized],
+  );
+}
+
+async function cleanupNormalizedRowsForRawId(client, platform, rawId) {
+  const platformCode = normalizePlatform(platform);
+  if (!platformCode || rawId === null || rawId === undefined) return;
+
+  const lookup = await client.query(
+    `
+      SELECT listing_id
+      FROM normalized_listings
+      WHERE platform_code = $1
+        AND raw_id = $2
+    `,
+    [platformCode, rawId],
+  );
+
+  const listingIds = lookup.rows
+    .map((row) => toInt(row?.listing_id, null))
+    .filter((id) => id !== null);
+  await cleanupNormalizedRowsByListingIds(client, listingIds);
+}
+
+async function cleanupNormalizedRowsForSourceUrl(client, platform, sourceUrl) {
+  const platformCode = normalizePlatform(platform);
+  const normalizedSourceUrl = normalizePlatformSourceUrl(platformCode, toText(sourceUrl, ""));
+  if (!platformCode || !normalizedSourceUrl) return;
+
+  const sourceUrls = new Set([normalizedSourceUrl]);
+  const withoutSlash = normalizedSourceUrl.replace(/\/+$/, "");
+  const withSlash = `${withoutSlash}/`;
+  if (withoutSlash) sourceUrls.add(withoutSlash);
+  if (withSlash) sourceUrls.add(withSlash);
+
+  try {
+    const decoded = decodeURIComponent(normalizedSourceUrl);
+    if (decoded) sourceUrls.add(decoded);
+    const decodedWithoutSlash = decoded.replace(/\/+$/, "");
+    const decodedWithSlash = `${decodedWithoutSlash}/`;
+    if (decodedWithoutSlash) sourceUrls.add(decodedWithoutSlash);
+    if (decodedWithSlash) sourceUrls.add(decodedWithSlash);
+  } catch {
+    // ignore
+  }
+
+  const candidates = Array.from(sourceUrls).filter(Boolean);
+  if (!candidates.length) return;
+
+  const lookup = await client.query(
+    `
+      SELECT listing_id
+      FROM normalized_listings
+      WHERE platform_code = $1
+        AND source_url = ANY($2::text[])
+    `,
+    [platformCode, candidates],
+  );
+
+  const listingIds = lookup.rows
+    .map((row) => toInt(row?.listing_id, null))
+    .filter((id) => id !== null);
+  await cleanupNormalizedRowsByListingIds(client, listingIds);
+}
+
+function normalizeFloorForDb(value) {
+  if (value === null || value === undefined) return null;
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return null;
+    if (/(반지하|반층|반지층|반)/.test(normalized)) return -1;
+    const basement = /지하\s*(\d+)?\s*층?/.exec(normalized);
+    if (basement) return -Math.max(1, Number(basement[1] || 1));
+
+    const pair = /^(\-?\d+(?:[.,]\d+)?)\s*\/\s*(\-?\d+(?:[.,]\d+)?)/.exec(normalized);
+    const normalizedFloor = pair ? pair[1] : normalized;
+    const n = Number.parseFloat(normalizedFloor.replace(/,/g, ""));
+    const floor = Number.isFinite(n) ? n : null;
+    if (floor === null) return null;
+    return normalizeDaangnFloorForDb(floor);
+  }
+
+  const floor = toNumber(value, null);
+  if (floor === null) return null;
+  return normalizeDaangnFloorForDb(floor);
+}
+
+function normalizeDaangnFloorForDb(floor) {
+  if (floor === 0.5 || floor === -0.5) return -1;
+  if (floor > 0 && !Number.isInteger(floor)) return Math.trunc(floor);
+  if (floor < 0 && !Number.isInteger(floor)) return -Math.trunc(Math.abs(floor));
+  return toInt(floor, null);
 }
 
 function inferQuality(item) {
@@ -336,9 +768,10 @@ function normalizeRawPayload(raw) {
 }
 
 async function upsertRawListing(client, rawLine, platformCode, runId) {
-  const sourceUrl = toSafeSourceUrl(rawLine);
-  const externalId = extractExternalId(rawLine, platformCode);
-  if (!platformCode || !externalId || !sourceUrl) return null;
+  const platform = normalizePlatform(platformCode);
+  const sourceUrl = normalizePlatformSourceUrl(platform, toSafeSourceUrl(rawLine));
+  const externalId = extractExternalId(rawLine, platform);
+  if (!platform || !externalId || !sourceUrl) return null;
 
   const rawPayload = JSON.stringify(normalizeRawPayload(rawLine || {}));
   const hashHex = crypto.createHash("sha1").update(rawPayload).digest("hex");
@@ -379,7 +812,7 @@ async function upsertRawListing(client, rawLine, platformCode, runId) {
       RETURNING raw_id
     `,
     [
-      normalizePlatform(platformCode),
+      platform,
       externalId,
       sourceUrl,
       rawPayload,
@@ -410,16 +843,53 @@ async function resolveRawIdByExternal(client, platformCode, externalId) {
 
 async function resolveRawIdBySourceUrl(client, platformCode, sourceUrl) {
   if (!sourceUrl) return null;
+  const platform = normalizePlatform(platformCode);
+  if (!platform) return null;
+  const normalizedSourceUrl = normalizePlatformSourceUrl(platform, sourceUrl);
+  const candidates = new Set([
+    toText(sourceUrl, ""),
+    normalizedSourceUrl,
+  ]);
+  for (const candidate of Array.from(candidates)) {
+    if (!candidate) continue;
+    const withoutSlash = String(candidate).replace(/\/+$/, "");
+    const withSlash = `${withoutSlash}/`;
+    candidates.add(withoutSlash);
+    candidates.add(withSlash);
+    try {
+      const decoded = decodeURIComponent(candidate);
+      if (decoded) {
+        candidates.add(decoded);
+        const decodedWithoutSlash = decoded.replace(/\/+$/, "");
+        const decodedWithSlash = `${decodedWithoutSlash}/`;
+        candidates.add(decodedWithoutSlash);
+        candidates.add(decodedWithSlash);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   const result = await client.query(
     `
       SELECT raw_id FROM raw_listings
-      WHERE platform_code = $1 AND source_url = $2
+      WHERE platform_code = $1 AND source_url = ANY($2::text[])
       ORDER BY raw_id DESC
       LIMIT 1
     `,
-    [normalizePlatform(platformCode), sourceUrl],
+    [platform, Array.from(candidates)],
   );
   return toInt(result.rows?.[0]?.raw_id, null);
+}
+
+async function resolveRawExternalIdByRawId(client, rawId) {
+  const numericRawId = toInt(rawId, null);
+  if (numericRawId === null) return null;
+  const result = await client.query(
+    `SELECT external_id FROM raw_listings WHERE raw_id = $1 LIMIT 1`,
+    [numericRawId],
+  );
+  return toText(result.rows?.[0]?.external_id, null);
 }
 
 async function upsertNormalizedListing(
@@ -433,12 +903,31 @@ async function upsertNormalizedListing(
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
-  const externalId = toText(item?.external_id || item?.externalId || item?.source_ref || item?.sourceRef, "");
+  let sourceRef = normalizePlatformSourceRef(
+    platform,
+    toText(item?.source_ref || item?.sourceRef, ""),
+  );
+  const sourceUrl = normalizePlatformSourceUrl(
+    platform,
+    toText(item?.source_url || item?.sourceUrl || item?.url || "", ""),
+  );
+  const fallbackSourceUrl = !sourceUrl && platform === "daangn" && sourceRef
+    ? `https://www.daangn.com/kr/realty/${sourceRef}`
+    : null;
+  const finalSourceUrl = sourceUrl || fallbackSourceUrl;
+  if (!finalSourceUrl) return null;
+  let externalId = normalizePlatformSourceRef(
+    platform,
+    toText(item?.external_id || item?.externalId || item?.source_ref || item?.sourceRef, ""),
+  );
+  if (!externalId) {
+    externalId = normalizePlatformSourceRef(platform, sourceRef);
+  }
+  if (!externalId) {
+    externalId = normalizePlatformSourceRef(platform, finalSourceUrl);
+  }
   if (!externalId) return null;
-
-  const sourceRef = toText(item?.source_ref || item?.sourceRef || externalId, "");
-  const sourceUrl = toText(item?.source_url || item?.sourceUrl || item?.url || "", "");
-  if (!sourceUrl) return null;
+  if (!sourceRef) sourceRef = externalId;
 
   const rawExternalId = toText(
     item?.raw_external_id
@@ -450,9 +939,9 @@ async function upsertNormalizedListing(
   );
 
   const rawCandidates = new Set([
-    externalId,
-    sourceRef,
-    rawExternalId,
+    normalizePlatformSourceRef(platform, externalId),
+    normalizePlatformSourceRef(platform, sourceRef),
+    normalizePlatformSourceRef(platform, rawExternalId),
     ...extractExternalIdCandidates({
       external_id: item?.external_id,
       externalId: item?.externalId,
@@ -460,14 +949,24 @@ async function upsertNormalizedListing(
       sourceRef: item?.sourceRef,
       raw_id: item?.raw_id,
       rawExternalId: item?.rawExternalId,
-      source_url: sourceUrl,
+      source_url: finalSourceUrl,
+      source_url_candidate: item?.source_url,
+      request_url: item?.request_url,
+      url: item?.url,
+      sourceUrl: item?.sourceUrl,
       raw_attrs: item?.raw_attrs,
       _raw: item?._raw,
     }),
   ]);
 
+  const normalizedCandidates = new Set(
+    Array.from(rawCandidates)
+      .map((candidate) => normalizePlatformSourceRef(platform, candidate))
+      .filter(Boolean),
+  );
+
   let rawId = null;
-  for (const candidate of rawCandidates) {
+  for (const candidate of normalizedCandidates) {
     if (!candidate) continue;
     const fromMap = rawIdByExternal.get(candidate);
     if (fromMap) {
@@ -483,16 +982,72 @@ async function upsertNormalizedListing(
   }
 
   if (!rawId) {
-    rawId = await resolveRawIdBySourceUrl(client, platform, sourceUrl);
+    const sourceUrlCandidates = new Set([finalSourceUrl]);
+    const normalizedSourceUrl = normalizePlatformSourceUrl(platform, sourceUrl);
+    if (normalizedSourceUrl) sourceUrlCandidates.add(normalizedSourceUrl);
+    try {
+      const decodedSourceUrl = decodeURIComponent(finalSourceUrl);
+      if (decodedSourceUrl && decodedSourceUrl !== finalSourceUrl) {
+        sourceUrlCandidates.add(decodedSourceUrl);
+      }
+    } catch {
+      // ignore
+    }
+
+    for (const candidate of [
+      item?.source_url,
+      item?.sourceUrl,
+      item?.url,
+      item?.request_url,
+      item?.identifier,
+      sourceRef,
+    ]) {
+      if (candidate) sourceUrlCandidates.add(candidate);
+    }
+
+    if (platform === "daangn" && sourceRef) {
+      const daangnDetailUrl = `https://www.daangn.com/kr/realty/${sourceRef}`;
+      sourceUrlCandidates.add(daangnDetailUrl);
+      sourceUrlCandidates.add(daangnDetailUrl.replace(/\/+$/, ""));
+    }
+
+    for (const candidate of Array.from(sourceUrlCandidates)) {
+      if (!candidate || typeof candidate !== "string") continue;
+      const noSlash = candidate.replace(/\/+$/, "");
+      const withSlash = `${noSlash}/`;
+      if (withSlash !== candidate) sourceUrlCandidates.add(withSlash);
+      try {
+        sourceUrlCandidates.add(decodeURIComponent(candidate));
+      } catch {
+        // ignore
+      }
+    }
+
+    for (const candidate of sourceUrlCandidates) {
+      const fromSourceUrl = await resolveRawIdBySourceUrl(client, platform, candidate);
+      if (fromSourceUrl) {
+        rawId = fromSourceUrl;
+        break;
+      }
+    }
   }
   if (!rawId) return null;
 
-  await client.query(
-    `DELETE FROM normalized_listings
-     WHERE raw_id = $1
-       AND platform_code = $2`,
-    [rawId, platform],
-  ).catch(() => {});
+  if (platform === "daangn") {
+    const rawExternalFromDb = await resolveRawExternalIdByRawId(client, rawId);
+    const normalizedRawExternal = normalizePlatformSourceRef(platform, rawExternalFromDb);
+    if (normalizedRawExternal) {
+      externalId = normalizedRawExternal;
+      sourceRef = normalizedRawExternal;
+    }
+  }
+
+  if (!sourceRef) sourceRef = externalId;
+  if (platform === "daangn" && sourceRef) {
+    await cleanupNormalizedRowsForSourceRef(client, platform, sourceRef);
+  }
+
+  await cleanupNormalizedRowsForRawId(client, platform, rawId);
 
   const rentAmount = toNumber(item?.rent_amount ?? item?.rentAmount ?? item?.rent, null);
   const depositAmount = toNumber(item?.deposit_amount ?? item?.depositAmount ?? item?.deposit, null);
@@ -514,18 +1069,34 @@ async function upsertNormalizedListing(
       "월세",
     ),
   );
+  const areaClaimRaw = item?.area_claimed || item?.areaClaimed || null;
   const areaClaimed = normalizeAreaClaimed(
-    item?.area_claimed || item?.areaClaimed || (areaExclusive ? "exclusive" : "estimated"),
+    platform === "daangn" ? areaClaimRaw || "estimated" : areaClaimRaw || (areaExclusive ? "exclusive" : "estimated"),
   );
   const qualityFlags = Array.isArray(item?.quality_flags || item?.qualityFlags)
     ? item?.quality_flags || item?.qualityFlags
     : [];
   const qualityPayload = Array.isArray(qualityFlags) ? qualityFlags : [];
 
+  if (platform === "daangn") {
+    const claimedExclusive = areaClaimed === "exclusive";
+    const normalizedArea = Number(areaExclusive);
+    if (!Number.isFinite(normalizedArea) || normalizedArea <= 0 || normalizedArea < DAANGN_MIN_AREA_M2) {
+      await cleanupNormalizedRowsForRawId(client, platform, rawId);
+      return null;
+    }
+    if (!claimedExclusive) {
+      await cleanupNormalizedRowsForRawId(client, platform, rawId);
+      return null;
+    }
+  }
+
+  await cleanupNormalizedRowsForSourceUrl(client, platform, finalSourceUrl);
+
   const canonicalKey = buildCanonicalKey(
     platform,
     sourceRef,
-    sourceUrl,
+    finalSourceUrl,
     addressCode,
     rentAmount,
     depositAmount,
@@ -595,7 +1166,7 @@ async function upsertNormalizedListing(
         building_name = EXCLUDED.building_name,
         agent_name = EXCLUDED.agent_name,
         agent_phone = EXCLUDED.agent_phone,
-          listed_at = EXCLUDED.listed_at,
+        listed_at = EXCLUDED.listed_at,
           available_date = EXCLUDED.available_date,
           source_ref = EXCLUDED.source_ref,
           quality_flags = EXCLUDED.quality_flags,
@@ -607,7 +1178,7 @@ async function upsertNormalizedListing(
       platform,
       externalId,
       canonicalKey,
-      sourceUrl,
+      finalSourceUrl,
       toText(item?.title || item?.subject || item?.name, null),
       leaseType,
       rentAmount,
@@ -623,8 +1194,8 @@ async function upsertNormalizedListing(
       addressCode,
       toInt(item?.room_count ?? item?.roomCount ?? item?.roomCnt, null),
       toInt(item?.bathroom_count ?? item?.bathroomCount ?? item?.bathroomCnt, null),
-      toInt(item?.floor ?? item?.floorNo ?? null, null),
-      toInt(item?.total_floor ?? item?.totalFloor ?? item?.totalFloorCount ?? null, null),
+      normalizeFloorForDb(item?.floor ?? item?.floorNo ?? null),
+      normalizeFloorForDb(item?.total_floor ?? item?.totalFloor ?? item?.totalFloorCount ?? null),
       toText(item?.direction || item?.Direction || null, null),
       toText(item?.building_use || item?.buildingUse || item?.buildingType || item?.houseType || null, null),
       toText(item?.building_name || item?.buildingName, null),
@@ -659,13 +1230,38 @@ async function upsertNormalizedListing(
 
   rawIdByExternal.set(externalId, rawId);
   rawIdByExternal.set(sourceRef, rawId);
+  if (rawExternalId) {
+    rawIdByExternal.set(rawExternalId, rawId);
+  }
   return listingId;
 }
 
 async function upsertImageQueue(client, imageQueue) {
+  if (!Array.isArray(imageQueue) || imageQueue.length === 0) return;
+
+  const normalizedItems = [];
+  const seen = new Set();
   for (const item of imageQueue) {
-    await client.query(
-      `
+    const listingId = toInt(item?.listingId, null);
+    const rawId = toInt(item?.rawId, null);
+    const sourceUrl = toText(item?.sourceUrl, "");
+    const isPrimary = toBool(item?.isPrimary, false);
+    if (!listingId || !rawId || !sourceUrl) continue;
+
+    const key = `${listingId}|${sourceUrl}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    normalizedItems.push({
+      listingId,
+      rawId,
+      sourceUrl,
+      isPrimary,
+    });
+  }
+
+  if (!normalizedItems.length) return;
+
+  const upsertByListingSource = `
       INSERT INTO listing_images (
         listing_id,
         raw_id,
@@ -673,16 +1269,45 @@ async function upsertImageQueue(client, imageQueue) {
         status,
         is_primary
       ) VALUES ($1, $2, $3, 'queued', $4)
-      ON CONFLICT (source_url) DO UPDATE
-      SET listing_id = EXCLUDED.listing_id,
+      ON CONFLICT (listing_id, source_url) DO UPDATE
+      SET raw_id = EXCLUDED.raw_id,
+          listing_id = EXCLUDED.listing_id,
           status = CASE
-            WHEN listing_images.status IS NULL THEN EXCLUDED.status
-            ELSE listing_images.status
+            WHEN listing_images.status IN ('downloaded') THEN 'downloaded'
+            ELSE EXCLUDED.status
           END,
           is_primary = listing_images.is_primary OR EXCLUDED.is_primary
-      `,
-      [item.listingId, item.rawId, item.sourceUrl, toBool(item.isPrimary, false)],
-    );
+      `;
+
+  for (const item of normalizedItems) {
+    const params = [item.listingId, item.rawId, item.sourceUrl, item.isPrimary];
+    try {
+      await client.query(upsertByListingSource, params);
+      continue;
+    } catch (error) {
+      if (error?.code === "42P10") {
+        const upsertBySourceUrl = `
+            INSERT INTO listing_images (
+              listing_id,
+              raw_id,
+              source_url,
+              status,
+              is_primary
+            ) VALUES ($1, $2, $3, 'queued', $4)
+            ON CONFLICT (source_url) DO UPDATE
+            SET raw_id = EXCLUDED.raw_id,
+                listing_id = EXCLUDED.listing_id,
+                status = CASE
+                  WHEN listing_images.status IN ('downloaded') THEN 'downloaded'
+                  ELSE EXCLUDED.status
+                END,
+                is_primary = listing_images.is_primary OR EXCLUDED.is_primary
+            `;
+        await client.query(upsertBySourceUrl, params);
+        continue;
+      }
+      throw error;
+    }
   }
 }
 

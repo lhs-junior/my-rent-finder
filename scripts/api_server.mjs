@@ -22,8 +22,9 @@ import {
 } from "./lib/api_helpers.mjs";
 import { handleHealth } from "./lib/api_routes/health.mjs";
 import { handleOps, handleCollectionRuns } from "./lib/api_routes/ops.mjs";
-import { handleListings, handleListingDetail } from "./lib/api_routes/listings.mjs";
+import { handleListings, handleListingDetail, handleListingsGeo } from "./lib/api_routes/listings.mjs";
 import { handleMatches, handleMatchGroup } from "./lib/api_routes/matches.mjs";
+import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "./lib/api_routes/favorites.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -96,6 +97,29 @@ function serveFrontend(req, res, pathname) {
 }
 
 // ---------------------------------------------------------------------------
+// JSON body parser (for POST/PUT)
+// ---------------------------------------------------------------------------
+
+function parseJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    if (req._parsedBody !== undefined) { resolve(); return; }
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        const raw = Buffer.concat(chunks).toString("utf8");
+        req._parsedBody = raw ? JSON.parse(raw) : {};
+        resolve();
+      } catch {
+        req._parsedBody = {};
+        resolve();
+      }
+    });
+    req.on("error", () => { req._parsedBody = {}; resolve(); });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Route dispatch
 // ---------------------------------------------------------------------------
 
@@ -104,7 +128,9 @@ async function route(req, res) {
     sendJson(res, 200, { ok: true });
     return;
   }
-  if (req.method !== "GET") {
+
+  const allowedMethods = new Set(["GET", "POST", "DELETE"]);
+  if (!allowedMethods.has(req.method)) {
     sendJson(res, 405, { error: "method_not_allowed" });
     return;
   }
@@ -127,6 +153,28 @@ async function route(req, res) {
     }
     if (pathname === "/api/listings") {
       await handleListings(req, res);
+      return;
+    }
+    if (pathname === "/api/listings/geo") {
+      await handleListingsGeo(req, res);
+      return;
+    }
+    if (pathname === "/api/favorites/ids" && req.method === "GET") {
+      await handleFavoriteIds(req, res);
+      return;
+    }
+    if (pathname === "/api/favorites" && req.method === "GET") {
+      await handleFavorites(req, res);
+      return;
+    }
+    if (pathname === "/api/favorites" && req.method === "POST") {
+      await parseJsonBody(req);
+      await handleAddFavorite(req, res);
+      return;
+    }
+    if (pathname.startsWith("/api/favorites/") && req.method === "DELETE") {
+      const favListingId = pathname.slice("/api/favorites/".length);
+      await handleRemoveFavorite(req, res, favListingId);
       return;
     }
     if (pathname === "/api/matches") {
@@ -253,7 +301,11 @@ if (isDirectRun) {
   /api/ops?run_id=
   /api/collection/runs?platform=&hours=&limit=&offset=
   /api/listings?run_id=&platform_code=&address=&min_rent=&max_rent=&min_area=&max_area=
+  /api/listings/geo?sw_lat=&sw_lng=&ne_lat=&ne_lng=&platform_code=&min_rent=&max_rent=&min_area=&max_area=&limit=
   /api/listings/:id
+  /api/favorites          (GET: list, POST: add)
+  /api/favorites/ids      (GET: id set)
+  /api/favorites/:id      (DELETE: remove)
   /api/matches?run_id=&status=&limit=&offset=
   /api/match-groups/:id`);
   });
