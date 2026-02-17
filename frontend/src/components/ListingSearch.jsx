@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toMoney, toArea, toText, toIdText, toPlatformLabel, formatFloorDirectionUse, PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS } from "../utils/format.js";
 import { fetchJson } from "../hooks/useApi.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
+import FavoriteButton from "./FavoriteButton.jsx";
 
 const QUALITY_FLAG_LABELS = {
   missing_address: "주소 누락",
@@ -348,7 +349,7 @@ function DetailModal({ detail, loading, onClose, onOpenExternal }) {
  * ListingSearch — main component
  * ------------------------------------------------------------------------- */
 
-export default function ListingSearch({ apiBase, runId }) {
+export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavorite }) {
   const [platformCode, setPlatformCode] = useState("");
   const [address, setAddress] = useState("");
   const [minRent, setMinRent] = useState("0");
@@ -582,6 +583,7 @@ export default function ListingSearch({ apiBase, runId }) {
           <table>
             <thead>
               <tr>
+                <th></th>
                 <th>매물ID</th>
                 <th>플랫폼</th>
                 <th>주소</th>
@@ -595,13 +597,22 @@ export default function ListingSearch({ apiBase, runId }) {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan="8">
+                  <td colSpan="9">
                     <span className="muted">{loading ? "조회 중..." : "검색 결과가 없습니다."}</span>
                   </td>
                 </tr>
               ) : (
                 items.map((item) => (
                   <tr key={item.listing_id}>
+                    <td>
+                      {isFavorite && toggleFavorite && (
+                        <FavoriteButton
+                          active={isFavorite(item.listing_id)}
+                          onClick={() => toggleFavorite(item.listing_id)}
+                          size="sm"
+                        />
+                      )}
+                    </td>
                     <td className="mono">{item.listing_id || "-"}</td>
                     <td>
                       <span className="chip">{toPlatformLabel(item.platform_code || item.platform || "")}</span>

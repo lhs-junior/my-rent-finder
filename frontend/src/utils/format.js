@@ -74,5 +74,5 @@ export function toStatusClass(status) {
 }
 
 export function normalizeView(value) {
-  return value === "matches" || value === "listings" ? value : "ops";
+  return value === "matches" || value === "listings" || value === "map" || value === "favorites" ? value : "ops";
 }
