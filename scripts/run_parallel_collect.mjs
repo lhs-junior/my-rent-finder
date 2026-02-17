@@ -66,6 +66,7 @@ const scriptPaths = {
   r114Collect: path.resolve(process.cwd(), "scripts/r114_auto_collector.mjs"),
   listingAdapters: path.resolve(process.cwd(), "scripts/run_listing_adapters.mjs"),
   peterpanzCollect: path.resolve(process.cwd(), "scripts/peterpanz_auto_collector.mjs"),
+  daangnCollect: path.resolve(process.cwd(), "scripts/daangn_auto_collector.mjs"),
 };
 
 const runId = getArg(
@@ -92,16 +93,27 @@ const probeConditions = resolveAbs(
 );
 
 const maxParallel = Math.max(1, getInt(args, "--parallel", 3));
-const sampleCap = normalizeCap(getArg(args, "--sample-cap", "100"), 100);
+const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
 const persistToDb = getBool(args, "--persist-to-db", false);
 const selectedPlatforms = getList(args, "--platforms", [
   "zigbang",
   "dabang",
   "naver",
-  "r114",
   "peterpanz",
+  "daangn",
 ]);
+const disabledPlatforms = new Set(["r114"]);
+const normalizedRequestedPlatforms = selectedPlatforms
+  .map((p) => normalizePlatform(p))
+  .filter(Boolean)
+  .filter((p) => !disabledPlatforms.has(p));
+
+if (normalizedRequestedPlatforms.length === 0) {
+  console.error("[WARN] 실행 대상 플랫폼이 없습니다. 기본/요청된 플랫폼이 비활성화되었을 수 있습니다.");
+}
+
+const selectedPlatformList = normalizedRequestedPlatforms;
 const verbose = getBool(args, "--verbose", false);
 const runNormalize = getBool(args, "--normalize", true);
 const forceNoNaver = getBool(args, "--no-naver", false);
@@ -134,6 +146,9 @@ const platformAlias = {
   nemo: "nemo",
   호갱노노: "hogangnono",
   hogangnono: "hogangnono",
+  당근: "daangn",
+  당근마켓: "daangn",
+  daangn: "daangn",
 };
 
 function normalizePlatform(raw) {
@@ -344,7 +359,7 @@ function extractSigunguCandidates(rawTargets) {
 function buildJobs(targetMap, targetsFileUsed, conditionData) {
   const jobs = [];
 
-  for (const code of selectedPlatforms.map(normalizePlatform)) {
+  for (const code of selectedPlatformList) {
     if (code === "naver" && forceNoNaver) {
       continue;
     }
@@ -655,6 +670,107 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
             return {
               platform: "peterpanz",
+              sigungu,
+              rawFile,
+              metaFile,
+              normalizedPath,
+              normalizeResult,
+              collectResult,
+              targetCap: perSigunguCap,
+              success: true,
+            };
+          },
+        });
+      }
+      continue;
+    }
+
+    if (normalizedCode === "daangn") {
+      const daangnSigunguFromTarget = extractSigunguCandidates(targets);
+      const daangnKnownDistricts = ["종로구", "중구", "성북구", "성동구", "동대문구", "광진구", "중랑구", "노원구"];
+      const fallbackSigungu = conditionData?.target?.sigungu;
+      const sigunguCandidates = unique(
+        [
+          ...daangnSigunguFromTarget,
+          ...selectedSigunguList,
+          ...(overrideSigungu ? [overrideSigungu] : []),
+          ...(daangnSigunguFromTarget.length === 0 && !selectedSigunguList.length ? daangnKnownDistricts : []),
+          ...(fallbackSigungu ? [fallbackSigungu] : []),
+        ].filter(Boolean),
+      ).slice(0, Math.max(1, naverMaxRegions));
+
+      if (sigunguCandidates.length === 0) {
+        jobs.push({
+          name: "daangn",
+          run: async () => ({
+            platform: "daangn",
+            success: true,
+            skipped: true,
+            reason: "sigungu target missing",
+          }),
+        });
+        continue;
+      }
+
+      const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
+      for (const sigungu of sigunguCandidates) {
+        jobs.push({
+          name: `daangn:${sigungu}`,
+          run: async () => {
+            const safe = sanitizeFileToken(sigungu);
+            const rawFile = path.join(workspace, `daangn_raw_${runId}_${safe}.jsonl`);
+            const metaFile = path.join(workspace, `daangn_meta_${runId}_${safe}.json`);
+            const daangnArgs = [
+              "--sigungu", sigungu,
+              "--sample-cap", asSampleCapArg(perSigunguCap),
+              "--output-raw", rawFile,
+              "--output-meta", metaFile,
+            ];
+
+            const daangnFilters = conditionData?.filters || {};
+            if (Number.isFinite(Number(overrideRentMax || daangnFilters.rentMax))) {
+              daangnArgs.push("--rent-max", String(overrideRentMax || daangnFilters.rentMax));
+            }
+            if (Number.isFinite(Number(overrideDepositMax || daangnFilters.depositMax))) {
+              daangnArgs.push("--deposit-max", String(overrideDepositMax || daangnFilters.depositMax));
+            }
+            if (Number.isFinite(Number(overrideMinArea || daangnFilters.minAreaM2))) {
+              daangnArgs.push("--min-area", String(Math.floor(Number(overrideMinArea || daangnFilters.minAreaM2))));
+            }
+
+            const collectResult = await runNode(
+              `daangn_auto:${sigungu}`,
+              scriptPaths.daangnCollect,
+              daangnArgs,
+              { stream: true },
+            );
+
+            let normalizedPath = null;
+            let normalizeResult = null;
+            if (runNormalize) {
+              normalizedPath = path.join(
+                workspace,
+                `daangn_normalized_${runId}_${safe}.json`,
+              );
+              normalizeResult = await runNode(
+                `daangn_adapter:${sigungu}`,
+                scriptPaths.listingAdapters,
+                [
+                  "--platform",
+                  "daangn",
+                  "--input",
+                  rawFile,
+                  "--out",
+                  normalizedPath,
+                  "--max-items",
+                  asAdapterMaxArg(perSigunguCap * 2),
+                ],
+                { stream: false },
+              );
+            }
+
+            return {
+              platform: "daangn",
               sigungu,
               rawFile,
               metaFile,
@@ -989,7 +1105,7 @@ function isAlias(value) {
 }
 
 const selectedCodesSet = new Set(
-  selectedPlatforms
+  selectedPlatformList
     .map((p) => normalizePlatform(p))
     .filter(Boolean),
 );

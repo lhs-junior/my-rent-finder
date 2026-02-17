@@ -4,6 +4,7 @@ import { NaverListingAdapter } from "./naver_listings_adapter.mjs";
 import { DabangListingAdapter } from "./dabang_listings_adapter.mjs";
 import { ZigbangListingAdapter } from "./zigbang_listings_adapter.mjs";
 import { R114ListingAdapter } from "./r114_listings_adapter.mjs";
+import { DaangnListingAdapter } from "./daangn_listings_adapter.mjs";
 import { PeterpanzListingAdapter } from "./peterpanz_listings_adapter.mjs";
 
 export const ADAPTER_REGISTRY = {
@@ -39,8 +40,17 @@ export const ADAPTER_REGISTRY = {
     collectionMode: "STEALTH_AUTOMATION",
     adapterFactory: () =>
       new R114ListingAdapter(),
+    readiness: "BLOCKED",
+    notes: "임시 제외(수집/정규화 데이터 품질 저하로 인한 비활성화). 원인 확인 후 재활성화 예정.",
+  },
+  daangn: {
+    platformCode: "daangn",
+    platformName: "당근부동산",
+    collectionMode: "STEALTH_AUTOMATION",
+    adapterFactory: () =>
+      new DaangnListingAdapter(),
     readiness: "READY",
-    notes: "STEALTH raw 정규화 파서 연결 완료(부동산114)",
+    notes: "당근 raw 정규화 파서 연결 완료",
   },
   peterpanz: {
     platformCode: "peterpanz",
