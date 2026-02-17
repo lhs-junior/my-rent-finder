@@ -100,6 +100,209 @@ function toNumber(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+function normalizeUrlPath(candidate) {
+  if (candidate === null || candidate === undefined) return "";
+  const pathOnly = String(candidate)
+    .trim()
+    .replace(/^https?:\/\/[^/]+/i, "")
+    .split("?")[0]
+    .split("#")[0];
+  return pathOnly.replace(/\/+$/, "");
+}
+
+function buildDetailKeys(identifier) {
+  const keys = new Set();
+  if (!identifier) return keys;
+
+  const raw = String(identifier).trim();
+  const candidates = new Set([
+    raw,
+    raw.split("?")[0].split("#")[0],
+    raw.replace(/^https?:\/\/www\.daangn\.com/i, ""),
+  ]);
+  try {
+    candidates.add(decodeURIComponent(raw));
+  } catch {
+    // noop
+  }
+
+  const addPath = (v) => {
+    if (!v) return;
+    const normalized = normalizeUrlPath(v);
+    if (!normalized) return;
+
+    const lower = normalized.toLowerCase();
+    keys.add(normalized);
+    keys.add(lower);
+
+    if (/^https?:\/\//i.test(v)) {
+      keys.add(normalized);
+    } else if (normalized.startsWith("/")) {
+      keys.add(`https://www.daangn.com${normalized}`);
+      keys.add(`https://www.daangn.com${lower}`);
+    } else {
+      keys.add(`/${lower}`);
+      keys.add(`https://www.daangn.com/${lower}`);
+    }
+
+    const parts = normalized.split("/");
+    const last = parts[parts.length - 1];
+    if (last) {
+      keys.add(last);
+      keys.add(last.toLowerCase());
+    }
+  };
+
+  for (const v of candidates) {
+    addPath(v);
+    if (typeof v === "string" && /^https?:\/\//i.test(v)) {
+      try {
+        const u = new URL(v);
+        addPath(u.pathname);
+        addPath(decodeURIComponent(u.pathname));
+      } catch {
+        // noop
+      }
+    }
+  }
+
+  return keys;
+}
+
+function collectDaangnDetails(html) {
+  const marker = "window.__remixContext = ";
+  const start = html.indexOf(marker);
+  if (start === -1) return new Map();
+
+  const end = html.indexOf(";</script>", start);
+  if (end === -1) return new Map();
+
+  try {
+    const jsonText = html.slice(start + marker.length, end);
+    const context = JSON.parse(jsonText);
+    const routeData = context?.state?.loaderData?.["routes/kr.realty._index"];
+    const rawPosts = Array.isArray(routeData?.realtyPosts?.realtyPosts)
+      ? routeData.realtyPosts.realtyPosts
+      : Array.isArray(routeData?.realtyPosts)
+        ? routeData.realtyPosts
+        : [];
+    const detailMap = new Map();
+
+    for (const post of rawPosts) {
+      if (!post || typeof post !== "object") continue;
+      for (const key of buildDetailKeys(post.id)) {
+        detailMap.set(key, post);
+      }
+    }
+    return detailMap;
+  } catch {
+    return new Map();
+  }
+}
+
+function getDaangnDetail(detailMap, identifier) {
+  for (const key of buildDetailKeys(identifier)) {
+    const found = detailMap.get(key);
+    if (found) return found;
+  }
+  return null;
+}
+
+function parseAreaFromDetail(detail) {
+  if (!detail || typeof detail !== "object") {
+    return {
+      value: null,
+      claimed: null,
+    };
+  }
+
+  const area = toNumber(detail.area);
+  if (area !== null) {
+    return {
+      value: area,
+      claimed: "exclusive",
+    };
+  }
+
+  const areaByPyeong = parseAreaTextValue(detail.areaPyeong, "평");
+  if (areaByPyeong !== null) {
+    return {
+      value: areaByPyeong,
+      claimed: "exclusive",
+    };
+  }
+
+  const gross = toNumber(detail.supplyArea);
+  if (gross !== null) {
+    return {
+      value: gross,
+      claimed: "gross",
+    };
+  }
+
+  const grossByPyeong = parseAreaTextValue(detail.supplyAreaPyeong, "평");
+  if (grossByPyeong !== null) {
+    return {
+      value: grossByPyeong,
+      claimed: "gross",
+    };
+  }
+
+  return {
+    value: null,
+    claimed: null,
+  };
+}
+
+function parsePriceFromDetail(detail) {
+  if (!detail || typeof detail !== "object") return null;
+  const trades = Array.isArray(detail.trades) ? detail.trades : [];
+  const monthlyTrade = trades.find((trade) =>
+    ["MONTH", "MONTHLY", "LEASE"].includes(String(trade?.type || "").toUpperCase()),
+  );
+  if (!monthlyTrade) return null;
+
+  const deposit = toNumber(monthlyTrade.deposit ?? monthlyTrade.monthlyDeposit ?? monthlyTrade.depositPrice ?? monthlyTrade.price);
+  const rent = toNumber(
+    monthlyTrade.monthlyPay ??
+      monthlyTrade.monthlyRent ??
+      monthlyTrade.rent ??
+      monthlyTrade.price ??
+      monthlyTrade.monthlyRentPrice ??
+      monthlyTrade.rentPrice,
+  );
+
+  if (deposit === null && rent === null) return null;
+
+  return {
+    deposit,
+    rent,
+    type: "monthly",
+  };
+}
+
+function parseFloorValue(value) {
+  if (value === null || value === undefined) return null;
+
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const trim = value.trim();
+    if (!trim) return null;
+    if (/반지하/.test(trim)) return -1;
+    const basement = /지하\s*(\d+)?\s*층?/.exec(trim);
+    if (basement) {
+      const level = Number(basement[1] || 1);
+      return -Math.max(1, level);
+    }
+    const b2 = /b(\d+)/i.exec(trim);
+    if (b2) return -Math.max(1, Number(b2[1] || 1));
+    const floorTextMatch = /(\d+(?:\.\d+)?)\s*층/.exec(trim);
+    if (floorTextMatch) return Number.parseFloat(floorTextMatch[1]);
+    return toNumber(trim);
+  }
+  return null;
+}
+
 function normalizeAreaValue(value, unitText = "") {
   const n = toNumber(value);
   if (n === null) return null;
@@ -153,15 +356,15 @@ function parseAreaFromText(description) {
   const patterns = [
     {
       claimed: "exclusive",
-      re: /(?:전용|실|실면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+      re: /(?:전용|실|실면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|m2|제곱미터|평|py|평|坪|평수)/i,
     },
     {
       claimed: "gross",
-      re: /(?:공급|연면적|건물면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+      re: /(?:공급|연면적|건물면적)\s*(?:면적)?\s*[\(:]?\s*([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|m2|제곱미터|평|py|坪|평수)/i,
     },
     {
       claimed: "estimated",
-      re: /([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|㎡|m2|제곱미터|평|py)/i,
+      re: /([0-9]+(?:[.,][0-9]+)?)\s*(㎡|m²|m2|제곱미터|평|py|坪|평수)/i,
     },
   ];
 
@@ -184,6 +387,11 @@ function parseAreaFromText(description) {
 }
 
 function parseArea(item) {
+  const detailArea = parseAreaFromDetail(item?._detail);
+  if (detailArea.value !== null) {
+    return detailArea;
+  }
+
   const fromSchema = parseAreaFromFloorSize(item.floorSize);
   if (fromSchema !== null) {
     return {
@@ -198,6 +406,18 @@ function parseArea(item) {
   }
 
   return parseAreaFromText(item.name || "");
+}
+
+function extractListingId(identifier) {
+  if (!identifier) return null;
+  const normalized = String(identifier).trim();
+  const path = normalized.split("?")[0].split("#")[0];
+  const segment = path.split("/").filter(Boolean).pop();
+  if (!segment) return null;
+
+  if (/^[0-9A-Za-z]+$/.test(segment)) return segment;
+  const lastDash = segment.split("-").filter(Boolean).pop();
+  return lastDash ? lastDash : segment;
 }
 
 function coerceImageUrls(rawImage) {
@@ -237,6 +457,9 @@ function coerceImageUrls(rawImage) {
 }
 
 function parseFloor(item) {
+  const detailFloor = parseFloorValue(item?._detail?.floor ?? item?._detail?.floorText);
+  if (detailFloor !== null) return detailFloor;
+
   if (item?.floorLevel !== undefined) {
     const bySchema = toNumber(item.floorLevel);
     if (bySchema !== null) {
@@ -283,6 +506,7 @@ async function collectDistrict(districtName, locationId) {
   }
 
   const html = await res.text();
+  const detailMap = collectDaangnDetails(html);
   const ldMatch = html.match(
     /<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
   );
@@ -299,20 +523,26 @@ async function collectDistrict(districtName, locationId) {
     );
 
   // 1. 해당 구 매물만 필터링
-  const districtItems = allItems.filter(
-    (item) =>
+  const districtItems = allItems.filter((item) => {
+    const detail = getDaangnDetail(detailMap, item.identifier);
+    if (detail?.region?.name2 === districtName) return true;
+    return (
       item.address?.addressRegion === "서울특별시" &&
-      item.address?.addressLocality === districtName,
-  );
+      item.address?.addressLocality === districtName
+    );
+  });
   if (verbose)
     console.log(
       `  [${districtName}] 해당 구 매물: ${districtItems.length}건`,
     );
 
   // 2. 주거용 타입만 필터링
-  const residentialItems = districtItems.filter((item) =>
-    RESIDENTIAL_TYPES.has(item["@type"]),
-  );
+  const residentialItems = districtItems
+    .map((item) => ({
+      ...item,
+      _detail: getDaangnDetail(detailMap, item.identifier),
+    }))
+    .filter((item) => RESIDENTIAL_TYPES.has(item["@type"]));
   if (verbose)
     console.log(
       `  [${districtName}] 주거용 매물: ${residentialItems.length}건`,
@@ -321,7 +551,7 @@ async function collectDistrict(districtName, locationId) {
   // 3. 가격 파싱 및 조건 필터
   const filtered = [];
   for (const item of residentialItems) {
-    const price = parsePrice(item.name || "");
+    const price = parsePriceFromDetail(item._detail) || parsePrice(item.name || "");
     if (!price) continue;
     if (price.type !== "monthly") continue; // 월세만
 
@@ -332,7 +562,7 @@ async function collectDistrict(districtName, locationId) {
     // 면적 체크 (있으면)
     const area = parseArea(item);
     if (minAreaM2 > 0) {
-      if (area === null || area < minAreaM2) continue;
+      if (area.value === null || area.value < minAreaM2) continue;
     }
 
     const floor = parseFloor(item);
@@ -349,6 +579,7 @@ async function collectDistrict(districtName, locationId) {
         area,
         floor,
         district: districtName,
+        hasDetail: Boolean(item._detail),
       },
     });
   }
@@ -394,10 +625,13 @@ async function main() {
     };
 
     for (const item of cappedItems) {
-      const parsed = item._parsed;
-      // 고유 ID 추출 (URL의 마지막 path segment)
-      const idMatch = item.identifier?.match(/-([a-z0-9]+)$/);
-      const externalId = idMatch ? idMatch[1] : item.identifier;
+    const parsed = item._parsed;
+    // 고유 ID 추출 (URL의 마지막 path segment)
+      const sourceImageUrls = coerceImageUrls(
+        item.image || item.images || item._detail?.images || [],
+      );
+      const externalId = extractListingId(item.identifier);
+      const detail = item._detail || {};
 
       const record = {
         platform_code: "daangn",
@@ -414,20 +648,26 @@ async function main() {
           propertyType: parsed.propertyType,
           deposit: parsed.deposit,
           rent: parsed.rent,
-          area: parsed.area,
+          area: parsed.area.value,
+          areaClaimed: parsed.area.claimed,
           floor: parsed.floor,
-          floorLevel: item.floorLevel,
-          images: item.image || [],
+          floorLevel: detail.floor,
+          floorText: detail.floorText,
+          supplyArea: detail.supplyArea,
+          areaPyeong: detail.areaPyeong,
+          supplyAreaPyeong: detail.supplyAreaPyeong,
+          images: sourceImageUrls,
           address: item.address,
+          detailSource: detail.__typename || "unknown",
         },
         list_data: {
           priceTitle: `${parsed.deposit}/${parsed.rent}`,
           roomTitle: item.name?.replace(/ \| 당근부동산$/, "") || "",
           dongName: item.address?.streetAddress || "",
           propertyType: parsed.propertyType,
-          imgUrlList: (item.image || []).map((img) =>
-            img.replace(/&amp;/g, "&"),
-          ),
+          floor: parsed.floor,
+          floorText: detail.floorText || "",
+          imgUrlList: sourceImageUrls.map((img) => img.replace(/&amp;/g, "&")),
         },
       };
       allRecords.push(record);

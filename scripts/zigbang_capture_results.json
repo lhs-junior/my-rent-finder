@@ -1,8 +1,8 @@
 {
-  "runId": "zigbang_1771264203073",
+  "runId": "zigbang_1771296880340",
   "success": true,
   "sigungu": "노원구",
-  "sampleCap": null,
+  "sampleCap": 100,
   "filters": {
     "rentMax": 80,
     "depositMax": 6000,
@@ -16,14 +16,14 @@
       "listings": 6,
       "error": null,
       "details": {
-        "v2Items": 280,
-        "detailItems": 280,
+        "v2Items": 276,
+        "detailItems": 276,
         "afterFilter": 6,
         "returned": 6,
         "geohash": "wydq5",
         "source": "v2+detail"
       },
-      "durationMs": 3005
+      "durationMs": 2799
     },
     {
       "name": "networkIntercept",
@@ -55,6 +55,13 @@
   "dataQuality": {
     "grade": "PARTIAL"
   },
-  "timestamp": "2026-02-16T17:50:03.073Z",
-  "durationMs": 3007
+  "detailImageEnrichment": {
+    "enabled": true,
+    "attempted": 6,
+    "success": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "timestamp": "2026-02-17T02:54:40.340Z",
+  "durationMs": 7380
 }

@@ -43,6 +43,7 @@ frontend_ui_smoke_check.mjs
 # OMC / OMX state
 .omc/
 .omx/
+.claude/settings.local.json
 
 # QA/debug temp files
 tmp_*

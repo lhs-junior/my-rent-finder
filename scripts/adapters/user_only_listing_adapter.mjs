@@ -536,7 +536,8 @@ function collectImageUrls(node, options = {}) {
 
   const add = (value) => {
     if (typeof value !== "string") return;
-    const s = normalizeText(value);
+    const raw = value.replace(/&amp;/g, "&");
+    const s = normalizeText(raw);
     if (!s) return;
     let candidate = s;
     if (/^\/\//.test(candidate)) candidate = `https:${candidate}`;

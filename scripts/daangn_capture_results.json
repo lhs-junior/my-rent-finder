@@ -1,5 +1,5 @@
 {
-  "runId": "daangn_1771264239591",
+  "runId": "daangn_1771296894918",
   "success": true,
   "districts": "노원구",
   "sampleCap": null,
@@ -12,15 +12,16 @@
     "노원구": {
       "total": 153,
       "residential": 59,
-      "filtered": 21
+      "filtered": 6,
+      "capped": 6
     }
   },
-  "totalListings": 21,
+  "totalListings": 6,
   "dataQuality": {
     "grade": "GOOD",
     "addressRate": 1,
     "imageRate": 1,
-    "areaRate": 0
+    "areaRate": 1
   },
-  "timestamp": "2026-02-16T17:50:39.592Z"
+  "timestamp": "2026-02-17T02:54:54.918Z"
 }
