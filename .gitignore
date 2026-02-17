@@ -40,8 +40,15 @@ qa_*.log
 qa_*.png
 frontend_ui_smoke_check.mjs
 
-# OMC state
+# OMC / OMX state
 .omc/
+.omx/
+
+# QA/debug temp files
+tmp_*
+scripts/*_check_ultrawork*
+scripts/*_fixcheck*
+scripts/*_adapter_output*
 
 # Editor
 .vscode/
