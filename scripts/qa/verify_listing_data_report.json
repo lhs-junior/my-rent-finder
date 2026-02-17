@@ -1,0 +1,186 @@
+{
+  "generatedAt": "2026-02-17T13:01:38.462Z",
+  "platforms": {
+    "daangn": {
+      "totalNormalized": 0,
+      "totalRaw": 0,
+      "matched": 0,
+      "unmatched": 0,
+      "fields": {
+        "rent_amount": {
+          "label": "월세",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "deposit_amount": {
+          "label": "보증금",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "area_exclusive_m2": {
+          "label": "전용면적",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "area_gross_m2": {
+          "label": "공급면적",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "floor": {
+          "label": "층수",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "total_floor": {
+          "label": "총층수",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "direction": {
+          "label": "향",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "lat": {
+          "label": "위도",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        },
+        "lng": {
+          "label": "경도",
+          "total": 0,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": null,
+          "details": []
+        }
+      }
+    }
+  },
+  "fieldSummary": {
+    "rent_amount": {
+      "label": "월세",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "deposit_amount": {
+      "label": "보증금",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "area_exclusive_m2": {
+      "label": "전용면적",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "area_gross_m2": {
+      "label": "공급면적",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "floor": {
+      "label": "층수",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "total_floor": {
+      "label": "총층수",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "direction": {
+      "label": "향",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "lat": {
+      "label": "위도",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    },
+    "lng": {
+      "label": "경도",
+      "total": 0,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": null
+    }
+  }
+}

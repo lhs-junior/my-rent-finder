@@ -1,0 +1,111 @@
+{
+  "startedAt": "2026-02-17T12:36:34.476Z",
+  "summaryPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/parallel_collect_summary_manual_fixcheck_20260217b.json",
+  "strict": false,
+  "options": {
+    "includePlatforms": [
+      "dabang"
+    ],
+    "maxItems": null,
+    "maxFailPrint": 10,
+    "reportPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/qa/dabang_fidelity_report_v2.json"
+  },
+  "pairs": [
+    {
+      "platform": "dabang",
+      "name": "dabang:노원구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_노원구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_노원구.json",
+      "rawParseFail": 0,
+      "candidateCount": 74,
+      "normalizedCount": 37
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:중랑구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_중랑구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_중랑구.json",
+      "rawParseFail": 0,
+      "candidateCount": 184,
+      "normalizedCount": 92
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:동대문구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_동대문구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_동대문구.json",
+      "rawParseFail": 0,
+      "candidateCount": 78,
+      "normalizedCount": 39
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:광진구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_광진구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_광진구.json",
+      "rawParseFail": 0,
+      "candidateCount": 48,
+      "normalizedCount": 24
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:성북구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_성북구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_성북구.json",
+      "rawParseFail": 0,
+      "candidateCount": 60,
+      "normalizedCount": 30
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:성동구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_성동구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_성동구.json",
+      "rawParseFail": 0,
+      "candidateCount": 60,
+      "normalizedCount": 30
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:중구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_중구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_중구.json",
+      "rawParseFail": 0,
+      "candidateCount": 14,
+      "normalizedCount": 7
+    },
+    {
+      "platform": "dabang",
+      "name": "dabang:종로구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_raw_manual_fixcheck_20260217b_종로구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/manual_fixcheck_20260217b/dabang_normalized_manual_fixcheck_20260217b_종로구.json",
+      "rawParseFail": 0,
+      "candidateCount": 22,
+      "normalizedCount": 11
+    }
+  ],
+  "stats": {
+    "totalSummaryResults": 40,
+    "usedResults": 8,
+    "processedItems": 270,
+    "checkedMatches": 270,
+    "failedItems": 0,
+    "skippedItems": 0,
+    "swappedPriceHint": 0
+  },
+  "failures": [],
+  "warnings": [],
+  "crossPlatform": {
+    "sourceRefCollisions": [],
+    "sourceUrlCollisions": []
+  },
+  "summary": {
+    "totalPairs": 8,
+    "totalChecks": 270,
+    "totalFailures": 0,
+    "swappedPriceHints": 0,
+    "crossRefCollisionCount": 0,
+    "crossUrlCollisionCount": 0,
+    "pass": true
+  }
+}

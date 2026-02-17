@@ -17,7 +17,7 @@ const args = process.argv.slice(2);
 
 function asSampleCapArg(value) {
   if (Number.isFinite(value) && value > 0) return String(Math.floor(value));
-  return "0";
+  return "Infinity";
 }
 
 function asAdapterMaxArg(value) {
@@ -26,8 +26,10 @@ function asAdapterMaxArg(value) {
 }
 
 function splitCap(value, buckets) {
-  if (!Number.isFinite(value) || value <= 0 || !Number.isFinite(buckets) || buckets <= 0) return 0;
-  return Math.ceil(value / buckets);
+  if (!Number.isFinite(value)) return Number.POSITIVE_INFINITY;
+  if (value <= 0 || !Number.isFinite(buckets) || buckets <= 0) return 0;
+  const normalizedBuckets = Math.floor(Math.max(1, buckets));
+  return Math.ceil(value / normalizedBuckets);
 }
 
 function resolveAbs(v, fallback = null) {
@@ -71,6 +73,7 @@ const scriptPaths = {
   dabangCollect: path.resolve(process.cwd(), "scripts/dabang_auto_collector.mjs"),
   r114Collect: path.resolve(process.cwd(), "scripts/r114_auto_collector.mjs"),
   listingAdapters: path.resolve(process.cwd(), "scripts/run_listing_adapters.mjs"),
+  platformFidelityQa: path.resolve(process.cwd(), "scripts/qa/qa_platform_data_fidelity.mjs"),
   peterpanzCollect: path.resolve(process.cwd(), "scripts/peterpanz_auto_collector.mjs"),
   daangnCollect: path.resolve(process.cwd(), "scripts/daangn_auto_collector.mjs"),
 };
@@ -83,6 +86,10 @@ const runId = getArg(
 
 const workspace = resolveAbs(
   getArg(args, "--out-dir", path.join("scripts", "parallel_collect_runs", runId)),
+);
+const qaReportPath = resolveAbs(
+  getArg(args, "--qa-report", null),
+  path.join(workspace, "qa_platform_data_fidelity_report.json"),
 );
 const probeOut = resolveAbs(
   getArg(args, "--probe-out", path.join(workspace, "platform_query_probe_results.json")),
@@ -102,6 +109,9 @@ const maxParallel = Math.max(1, getInt(args, "--parallel", 3));
 const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
 const persistToDb = getBool(args, "--persist-to-db", false);
+const runFidelityQA = !getBool(args, "--skip-platform-fidelity-qa", false);
+const qaStrict = getBool(args, "--qa-strict", true);
+const qaMaxItems = getInt(args, "--qa-max-items", 0);
 const platformAlias = {
   zigbang: "zigbang",
   "직방": "zigbang",
@@ -567,7 +577,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   "--out",
                   normalizedPath,
                   "--max-items",
-                  asAdapterMaxArg(perSigunguCap * 2),
+                  asAdapterMaxArg(perSigunguCap),
                 ],
                 { stream: false },
               );
@@ -666,7 +676,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   "--out",
                   normalizedPath,
                   "--max-items",
-                  asAdapterMaxArg(perSigunguCap * 2),
+                  asAdapterMaxArg(perSigunguCap),
                 ],
                 { stream: false },
               );
@@ -767,7 +777,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   "--out",
                   normalizedPath,
                   "--max-items",
-                  asAdapterMaxArg(perSigunguCap * 2),
+                  asAdapterMaxArg(perSigunguCap),
                 ],
                 { stream: false },
               );
@@ -870,7 +880,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   "--out",
                   normalizedPath,
                   "--max-items",
-                  asAdapterMaxArg(perSigunguCap * 2),
+                  asAdapterMaxArg(perSigunguCap),
                 ],
                 { stream: false },
               );
@@ -973,7 +983,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   "--out",
                   normalizedPath,
                   "--max-items",
-                  asAdapterMaxArg(perSigunguCap * 2),
+                  asAdapterMaxArg(perSigunguCap),
                 ],
                 { stream: false },
               );
@@ -1231,6 +1241,28 @@ if (persistToDb) {
   }
 }
 
+let qaResult = null;
+if (runFidelityQA) {
+  const qaArgs = [
+    "--summary",
+    summaryPath,
+    "--report",
+    qaReportPath,
+    "--strict",
+    String(qaStrict),
+  ];
+  if (qaMaxItems > 0) {
+    qaArgs.push("--max-items", String(qaMaxItems));
+  }
+  if (selectedPlatformList.length) {
+    qaArgs.push("--platform", selectedPlatformList.join(","));
+  }
+
+  qaResult = await runNode("platform-fidelity-qa", scriptPaths.platformFidelityQa, qaArgs, {
+    stream: false,
+  });
+}
+
 console.log(JSON.stringify({
   runId,
   workspace,
@@ -1241,5 +1273,7 @@ console.log(JSON.stringify({
   skipped: summary.totals.skipped,
   failed: summary.totals.failed,
   summaryPath,
+  qaReportPath,
+  qaResult: qaResult ? qaResult.exitCode : null,
   dbPersist,
 }, null, 2));

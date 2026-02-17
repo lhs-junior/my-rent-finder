@@ -1,0 +1,1465 @@
+{
+  "startedAt": "2026-02-17T12:00:02.413Z",
+  "summaryPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/parallel_collect_summary_qa_daangn_fixcheck.json",
+  "strict": false,
+  "options": {
+    "includePlatforms": [
+      "daangn"
+    ],
+    "maxItems": null,
+    "maxFailPrint": 200,
+    "reportPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/qa/daangn_fixcheck_fidelity_report.json"
+  },
+  "pairs": [
+    {
+      "platform": "daangn",
+      "name": "daangn:노원구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_노원구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_노원구.json",
+      "rawParseFail": 0,
+      "candidateCount": 6,
+      "normalizedCount": 6
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:종로구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_종로구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_종로구.json",
+      "rawParseFail": 0,
+      "candidateCount": 0,
+      "normalizedCount": 0
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:중구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_중구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_중구.json",
+      "rawParseFail": 0,
+      "candidateCount": 2,
+      "normalizedCount": 2
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:성북구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_성북구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_성북구.json",
+      "rawParseFail": 0,
+      "candidateCount": 1,
+      "normalizedCount": 1
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:성동구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_성동구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_성동구.json",
+      "rawParseFail": 0,
+      "candidateCount": 0,
+      "normalizedCount": 0
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:동대문구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_동대문구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_동대문구.json",
+      "rawParseFail": 0,
+      "candidateCount": 11,
+      "normalizedCount": 11
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:광진구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_광진구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_광진구.json",
+      "rawParseFail": 0,
+      "candidateCount": 7,
+      "normalizedCount": 7
+    },
+    {
+      "platform": "daangn",
+      "name": "daangn:중랑구",
+      "rawPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_raw_qa_daangn_fixcheck_중랑구.jsonl",
+      "normalizedPath": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/qa_daangn_fixcheck/daangn_normalized_qa_daangn_fixcheck_중랑구.json",
+      "rawParseFail": 0,
+      "candidateCount": 14,
+      "normalizedCount": 14
+    }
+  ],
+  "stats": {
+    "totalSummaryResults": 8,
+    "usedResults": 8,
+    "processedItems": 41,
+    "checkedMatches": 41,
+    "failedItems": 82,
+    "skippedItems": 0,
+    "swappedPriceHint": 0
+  },
+  "failures": [
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "j1ea717sum93",
+      "normalizedItemSourceRef": "j1ea717sum93",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 덕릉로126가길 53 (상계동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "j1ea717sum93",
+      "normalizedItemSourceRef": "j1ea717sum93",
+      "field": "price",
+      "expected": {
+        "rent": 500,
+        "deposit": 500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 35,
+        "deposit": 500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "ewvatz4bu4gu",
+      "normalizedItemSourceRef": "ewvatz4bu4gu",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 상계로37다길 5-1 (상계동, 정원주택)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "ewvatz4bu4gu",
+      "normalizedItemSourceRef": "ewvatz4bu4gu",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 40,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "u6ajkaofsncs",
+      "normalizedItemSourceRef": "u6ajkaofsncs",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 상계동 71-27",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "u6ajkaofsncs",
+      "normalizedItemSourceRef": "u6ajkaofsncs",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "jpj6yjp8kxy6",
+      "normalizedItemSourceRef": "jpj6yjp8kxy6",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 덕릉로126나길 36 (상계동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "jpj6yjp8kxy6",
+      "normalizedItemSourceRef": "jpj6yjp8kxy6",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 60,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "npi4njidd6jm",
+      "normalizedItemSourceRef": "npi4njidd6jm",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 상계동 산105-13",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "npi4njidd6jm",
+      "normalizedItemSourceRef": "npi4njidd6jm",
+      "field": "price",
+      "expected": {
+        "rent": 300,
+        "deposit": 300,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 60,
+        "deposit": 300
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "212rw9ho8jp7",
+      "normalizedItemSourceRef": "212rw9ho8jp7",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 노원구 공릉로58바길 22 (하계동, 성우그랜드빌)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "212rw9ho8jp7",
+      "normalizedItemSourceRef": "212rw9ho8jp7",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "x98s245izgb1",
+      "normalizedItemSourceRef": "x98s245izgb1",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중구 퇴계로83길 30-8 (황학동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "x98s245izgb1",
+      "normalizedItemSourceRef": "x98s245izgb1",
+      "field": "price",
+      "expected": {
+        "rent": 500,
+        "deposit": 500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 65,
+        "deposit": 500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "1qv9yiux3gz5",
+      "normalizedItemSourceRef": "1qv9yiux3gz5",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중구 오장동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "1qv9yiux3gz5",
+      "normalizedItemSourceRef": "1qv9yiux3gz5",
+      "field": "price",
+      "expected": {
+        "rent": 500,
+        "deposit": 500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 45,
+        "deposit": 500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "rmc8gh2y4kar",
+      "normalizedItemSourceRef": "rmc8gh2y4kar",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 성북구 정릉로10다길 42-14 (정릉동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "rmc8gh2y4kar",
+      "normalizedItemSourceRef": "rmc8gh2y4kar",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "mhw2wp9yqnyr",
+      "normalizedItemSourceRef": "mhw2wp9yqnyr",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 답십리동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "mhw2wp9yqnyr",
+      "normalizedItemSourceRef": "mhw2wp9yqnyr",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "78cu9wxhgfde",
+      "normalizedItemSourceRef": "78cu9wxhgfde",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장안동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "78cu9wxhgfde",
+      "normalizedItemSourceRef": "78cu9wxhgfde",
+      "field": "price",
+      "expected": {
+        "rent": 500,
+        "deposit": 500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 55,
+        "deposit": 500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "4rdn9avrqvu9",
+      "normalizedItemSourceRef": "4rdn9avrqvu9",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장한로13길 18 (장안동) 1동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "4rdn9avrqvu9",
+      "normalizedItemSourceRef": "4rdn9avrqvu9",
+      "field": "price",
+      "expected": {
+        "rent": 1200,
+        "deposit": 1200,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 1200
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "o1k6q9xbxqyd",
+      "normalizedItemSourceRef": "o1k6q9xbxqyd",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장안동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "o1k6q9xbxqyd",
+      "normalizedItemSourceRef": "o1k6q9xbxqyd",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 75,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "swa6gb44uspi",
+      "normalizedItemSourceRef": "swa6gb44uspi",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장안동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "swa6gb44uspi",
+      "normalizedItemSourceRef": "swa6gb44uspi",
+      "field": "price",
+      "expected": {
+        "rent": 3000,
+        "deposit": 3000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 3000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "zjxfffis6cw3",
+      "normalizedItemSourceRef": "zjxfffis6cw3",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 답십리로 214-13 (답십리동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "zjxfffis6cw3",
+      "normalizedItemSourceRef": "zjxfffis6cw3",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 75,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "xszawduqjc8j",
+      "normalizedItemSourceRef": "xszawduqjc8j",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장안동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "xszawduqjc8j",
+      "normalizedItemSourceRef": "xszawduqjc8j",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "emftvsrqqt8p",
+      "normalizedItemSourceRef": "emftvsrqqt8p",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 천호대로77나길 8 (장안동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 8,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "emftvsrqqt8p",
+      "normalizedItemSourceRef": "emftvsrqqt8p",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 65,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 8,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "s8kkax3bfnaq",
+      "normalizedItemSourceRef": "s8kkax3bfnaq",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장한로16길 19 (장안동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 9,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "s8kkax3bfnaq",
+      "normalizedItemSourceRef": "s8kkax3bfnaq",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 75,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 9,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "oibbbabvvypq",
+      "normalizedItemSourceRef": "oibbbabvvypq",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 장안동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 10,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "oibbbabvvypq",
+      "normalizedItemSourceRef": "oibbbabvvypq",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 65,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 10,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "kyy52et6ut61",
+      "normalizedItemSourceRef": "kyy52et6ut61",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 동대문구 답십리로51길 14-13 (답십리동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 11,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "kyy52et6ut61",
+      "normalizedItemSourceRef": "kyy52et6ut61",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 11,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "6zhq985eqjrt",
+      "normalizedItemSourceRef": "6zhq985eqjrt",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 자양로50길 52-4 (구의동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "6zhq985eqjrt",
+      "normalizedItemSourceRef": "6zhq985eqjrt",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "b3jx53jb8anw",
+      "normalizedItemSourceRef": "b3jx53jb8anw",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 구의로6길 27 (구의동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "b3jx53jb8anw",
+      "normalizedItemSourceRef": "b3jx53jb8anw",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 75,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "bhjapeb1pwjn",
+      "normalizedItemSourceRef": "bhjapeb1pwjn",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 구의동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "bhjapeb1pwjn",
+      "normalizedItemSourceRef": "bhjapeb1pwjn",
+      "field": "price",
+      "expected": {
+        "rent": 1500,
+        "deposit": 1500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 35,
+        "deposit": 1500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "1ufscg2pnwub",
+      "normalizedItemSourceRef": "1ufscg2pnwub",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 동일로10길 51 (자양동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "1ufscg2pnwub",
+      "normalizedItemSourceRef": "1ufscg2pnwub",
+      "field": "price",
+      "expected": {
+        "rent": 2300,
+        "deposit": 2300,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 55,
+        "deposit": 2300
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tj58mtrpxrsm",
+      "normalizedItemSourceRef": "tj58mtrpxrsm",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 구의로 9 (구의동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tj58mtrpxrsm",
+      "normalizedItemSourceRef": "tj58mtrpxrsm",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "dxdecs5v2bed",
+      "normalizedItemSourceRef": "dxdecs5v2bed",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 동일로18나길 14 (자양동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "dxdecs5v2bed",
+      "normalizedItemSourceRef": "dxdecs5v2bed",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 75,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "asp5q63hudgh",
+      "normalizedItemSourceRef": "asp5q63hudgh",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 광진구 자양번영로3길 27 (자양동, 현대맨션) 가동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "asp5q63hudgh",
+      "normalizedItemSourceRef": "asp5q63hudgh",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "u1mvijphymhe",
+      "normalizedItemSourceRef": "u1mvijphymhe",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목동 137-4",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "u1mvijphymhe",
+      "normalizedItemSourceRef": "u1mvijphymhe",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 45,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 1,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "b84vvayud9nt",
+      "normalizedItemSourceRef": "b84vvayud9nt",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 상봉중앙로8가길 51-7 (상봉동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "b84vvayud9nt",
+      "normalizedItemSourceRef": "b84vvayud9nt",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 2,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "p5dejnteuxgt",
+      "normalizedItemSourceRef": "p5dejnteuxgt",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 용마산로60가길 17 (면목동) 101동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "p5dejnteuxgt",
+      "normalizedItemSourceRef": "p5dejnteuxgt",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 3,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "dgc1hktrc5k3",
+      "normalizedItemSourceRef": "dgc1hktrc5k3",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 봉화산로30길 93 (상봉동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "dgc1hktrc5k3",
+      "normalizedItemSourceRef": "dgc1hktrc5k3",
+      "field": "price",
+      "expected": {
+        "rent": 6000,
+        "deposit": 6000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 6000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 4,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "46obwshwwpoc",
+      "normalizedItemSourceRef": "46obwshwwpoc",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목로47길 49 (면목동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "46obwshwwpoc",
+      "normalizedItemSourceRef": "46obwshwwpoc",
+      "field": "price",
+      "expected": {
+        "rent": 2000,
+        "deposit": 2000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 2000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 5,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "ajqf72u718ou",
+      "normalizedItemSourceRef": "ajqf72u718ou",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목동 601-18",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "ajqf72u718ou",
+      "normalizedItemSourceRef": "ajqf72u718ou",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 6,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "miqwyvdc557t",
+      "normalizedItemSourceRef": "miqwyvdc557t",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "miqwyvdc557t",
+      "normalizedItemSourceRef": "miqwyvdc557t",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 7,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "qwoocavd788d",
+      "normalizedItemSourceRef": "qwoocavd788d",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 8,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "qwoocavd788d",
+      "normalizedItemSourceRef": "qwoocavd788d",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 8,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "khzijkgn8fak",
+      "normalizedItemSourceRef": "khzijkgn8fak",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목로95길 44 (상봉동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 9,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "khzijkgn8fak",
+      "normalizedItemSourceRef": "khzijkgn8fak",
+      "field": "price",
+      "expected": {
+        "rent": 3000,
+        "deposit": 3000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 70,
+        "deposit": 3000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 9,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "apyzkgs8kf1w",
+      "normalizedItemSourceRef": "apyzkgs8kf1w",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 상봉동",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 10,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "apyzkgs8kf1w",
+      "normalizedItemSourceRef": "apyzkgs8kf1w",
+      "field": "price",
+      "expected": {
+        "rent": 6000,
+        "deposit": 6000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 80,
+        "deposit": 6000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 10,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tdujjdw5877t",
+      "normalizedItemSourceRef": "tdujjdw5877t",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목로21길 47 (면목동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 11,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tdujjdw5877t",
+      "normalizedItemSourceRef": "tdujjdw5877t",
+      "field": "price",
+      "expected": {
+        "rent": 1000,
+        "deposit": 1000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 55,
+        "deposit": 1000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 11,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "vssodkxjfygg",
+      "normalizedItemSourceRef": "vssodkxjfygg",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목로45길 15 (면목동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 12,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "vssodkxjfygg",
+      "normalizedItemSourceRef": "vssodkxjfygg",
+      "field": "price",
+      "expected": {
+        "rent": 5000,
+        "deposit": 5000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 5000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 12,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tx8968tz849b",
+      "normalizedItemSourceRef": "tx8968tz849b",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 용마산로58길 25-7 (면목동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 13,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "tx8968tz849b",
+      "normalizedItemSourceRef": "tx8968tz849b",
+      "field": "price",
+      "expected": {
+        "rent": 4000,
+        "deposit": 4000,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 40,
+        "deposit": 4000
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 13,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "i8w2m9iqveyv",
+      "normalizedItemSourceRef": "i8w2m9iqveyv",
+      "field": "address",
+      "expected": "[object Object]",
+      "actual": "서울특별시 중랑구 면목로42길 29 (면목동)",
+      "message": "address mismatch or too different from raw",
+      "priceMode": "mismatch",
+      "rawLine": 14,
+      "rawSourceRef": null
+    },
+    {
+      "platform": "daangn",
+      "type": "mismatch",
+      "normalizedSourceRef": "i8w2m9iqveyv",
+      "normalizedItemSourceRef": "i8w2m9iqveyv",
+      "field": "price",
+      "expected": {
+        "rent": 500,
+        "deposit": 500,
+        "note": "single order"
+      },
+      "actual": {
+        "rent": 50,
+        "deposit": 500
+      },
+      "message": "price mismatch from raw",
+      "priceMode": "mismatch",
+      "rawLine": 14,
+      "rawSourceRef": null
+    }
+  ],
+  "warnings": [],
+  "crossPlatform": {
+    "sourceRefCollisions": [],
+    "sourceUrlCollisions": []
+  },
+  "summary": {
+    "totalPairs": 8,
+    "totalChecks": 41,
+    "totalFailures": 82,
+    "swappedPriceHints": 0,
+    "crossRefCollisionCount": 0,
+    "crossUrlCollisionCount": 0,
+    "pass": false
+  }
+}

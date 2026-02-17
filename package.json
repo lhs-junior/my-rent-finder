@@ -14,6 +14,8 @@
     "collect:parallel": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100",
     "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
     "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
+    "qa:platform-fidelity": "node scripts/qa/qa_platform_data_fidelity.mjs",
+    "qa:platform-fidelity:gate": "node scripts/qa/qa_platform_fidelity_gate.mjs",
     "db:migrate": "node scripts/db_migrate.mjs",
     "db:init": "node scripts/db_bootstrap.mjs",
     "db:up": "docker compose up -d postgres",

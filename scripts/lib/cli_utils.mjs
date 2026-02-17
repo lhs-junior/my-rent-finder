@@ -25,10 +25,24 @@ export function getArg(args, name, fallback = null) {
  * @returns {boolean} Parsed boolean value
  */
 export function getBool(args, name, fallback = false) {
-  const raw = getArg(args, name, null);
-  if (raw === null) return fallback;
-  if (raw === name) return true;
-  const norm = String(raw).trim().toLowerCase();
+  const idx = args.findIndex((v) => v === name || v.startsWith(`${name}=`));
+  if (idx === -1) return fallback;
+
+  const raw = args[idx];
+  if (raw === name) {
+    const next = args[idx + 1];
+    if (next === undefined || String(next).startsWith("--")) {
+      return true;
+    }
+    const norm = String(next).trim().toLowerCase();
+    if (["1", "true", "yes", "on", "y"].includes(norm)) return true;
+    if (["0", "false", "no", "off", "n"].includes(norm)) return false;
+    return true;
+  }
+
+  const value = getArg(args, name, null);
+  if (value === null) return fallback;
+  const norm = String(value).trim().toLowerCase();
   if (["1", "true", "yes", "on", "y"].includes(norm)) return true;
   if (["0", "false", "no", "off", "n"].includes(norm)) return false;
   return true;
