@@ -15,6 +15,79 @@
 - **수집 현황 대시보드** — 플랫폼별 수집 상태, 성공/실패 건수, 이력 모니터링
 - **좌표 지오코딩** — 카카오 주소 검색 API로 매물 주소 → 위경도 자동 변환
 
+## 수집 조건 설정
+
+수집할 매물의 조건(지역, 월세, 보증금, 면적, 매물 종류)은 **`scripts/platform_sampling_targets.json`** 파일에 정의되어 있습니다. 이 파일이 모든 플랫폼의 수집 기본값이 됩니다.
+
+### 현재 기본 조건
+
+```json
+{
+  "sido": "서울시",
+  "sigunguList": ["노원구", "중랑구", "동대문구", "광진구", "성북구", "성동구", "중구", "종로구"],
+  "leaseType": "월세",
+  "rentMin": 0,
+  "rentMax": 80,
+  "depositMax": 6000,
+  "minAreaM2": 40,
+  "propertyTypes": ["빌라/연립", "단독/다가구"]
+}
+```
+
+- **지역**: `sigunguList` 배열에 수집할 구 목록 (서울시 내)
+- **월세**: `rentMax` 만원 이하 (현재 80만원)
+- **보증금**: `depositMax` 만원 이하 (현재 6000만원)
+- **면적**: `minAreaM2` m² 이상 (현재 40m², 약 12평)
+- **매물 종류**: `propertyTypes` (빌라/연립, 단독/다가구)
+- **거래 유형**: `leaseType` (월세)
+
+### 조건 변경 방법
+
+**방법 1: targets 파일 직접 수정** (영구 변경)
+
+`scripts/platform_sampling_targets.json`의 `targets` 배열 안 `query_hint` 객체를 수정합니다.
+
+**방법 2: CLI 인자로 오버라이드** (일회성)
+
+```bash
+# 특정 구만 수집
+node scripts/run_parallel_collect.mjs --sigungu=강남구
+
+# 여러 구 지정
+node scripts/run_parallel_collect.mjs --sigungu-list=강남구,서초구,마포구
+
+# 월세/보증금/면적 조건 변경
+node scripts/run_parallel_collect.mjs --rent-max=100 --deposit-max=10000 --min-area=30
+
+# 특정 플랫폼만 수집
+node scripts/run_parallel_collect.mjs --platforms=naver,zigbang
+
+# 복합 예시: 마포구+강남구, 월세 100만원 이하, 면적 30m² 이상
+node scripts/run_parallel_collect.mjs \
+  --sigungu-list=마포구,강남구 \
+  --rent-max=100 \
+  --deposit-max=10000 \
+  --min-area=30 \
+  --normalize \
+  --persist-to-db
+```
+
+### 매칭 규칙
+
+크로스 플랫폼 중복 매칭 기준은 `scripts/matcher_v1.mjs`의 `DEFAULT_RULES`에 정의되어 있습니다.
+
+| 항목 | 가중치 | 설명 |
+|------|-------|------|
+| 주소 | 30% | 텍스트 토큰 매칭 |
+| 거리 | 20% | 좌표 기반 거리 (20m 이내 → 고득점) |
+| 면적 | 25% | 전용/공급 면적 비교 (6% 오차 허용) |
+| 가격 | 15% | 월세 8%, 보증금 12% 오차 허용 |
+| 속성 | 10% | 층수, 방향, 방 수 등 |
+
+- **93점 이상**: 자동 매칭 (동일 매물로 판정)
+- **80~93점**: 리뷰 필요 (수동 확인 대상)
+- **80점 미만**: 별개 매물
+
 ## 수집 플랫폼
 
 ### 활성 (파이프라인 통합)
