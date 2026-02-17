@@ -65,8 +65,8 @@ export class PeterpanzListingAdapter extends BaseUserOnlyAdapter {
       room_count: raw.info?.room_count ?? null,
       room_type: raw.info?.room_type || null,
       building_type: raw.type?.building_type_text || null,
-      latitude: raw.location?.coordinate?.latitude ? parseFloat(raw.location.coordinate.latitude) : null,
-      longitude: raw.location?.coordinate?.longitude ? parseFloat(raw.location.coordinate.longitude) : null,
+      lat: (() => { const n = parseFloat(raw.location?.coordinate?.latitude); return Number.isFinite(n) ? n : null; })(),
+      lng: (() => { const n = parseFloat(raw.location?.coordinate?.longitude); return Number.isFinite(n) ? n : null; })(),
       image_urls: imageUrls,
     };
 

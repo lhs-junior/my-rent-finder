@@ -296,9 +296,84 @@ function parseMoney(value) {
   return fallback ? toNum(fallback[1]) : null;
 }
 
-function parseMoneyPair(rawText) {
+function normalizeMoneyPairOrder(pair, rawText, options = {}) {
+  if (!pair) return { rent: null, deposit: null };
+
+  const { preferDepositFirst = false } = options;
+  const s = normalizeText(rawText).toLowerCase();
+
+  if (pair.rent == null && pair.deposit == null) return pair;
+
+  const hasRentHint = (part) => /(월세|월세료|월\s*세)/.test(part);
+  const hasDepositHint = (part) => /(보증금|전세|전세금)/.test(part);
+
+  const resolveDirection = (left, right) => {
+    const leftHasRent = hasRentHint(left);
+    const rightHasRent = hasRentHint(right);
+    const leftHasDeposit = hasDepositHint(left);
+    const rightHasDeposit = hasDepositHint(right);
+
+    if (leftHasDeposit && rightHasRent && !leftHasRent && !rightHasDeposit) return true;
+    if (leftHasRent && rightHasDeposit && !leftHasDeposit && !rightHasRent) return false;
+    if (leftHasDeposit && !rightHasDeposit && !rightHasRent) return true;
+    if (leftHasRent && !rightHasRent && !rightHasDeposit) return false;
+    if (rightHasDeposit && !leftHasDeposit && !leftHasRent && !rightHasRent) return false;
+    if (rightHasRent && !leftHasRent && !leftHasDeposit && !rightHasDeposit) return false;
+    return null;
+  };
+
+  const flipPair = () => ({
+    rent: pair.deposit,
+    deposit: pair.rent,
+  });
+
+  const slashSep = s.indexOf("/");
+  if (slashSep >= 0) {
+    const left = s.slice(0, slashSep);
+    const right = s.slice(slashSep + 1);
+    const direction = resolveDirection(left, right);
+    if (direction === true) return flipPair();
+    if (direction === false) return pair;
+  }
+
+  const barSep = s.indexOf("|");
+  if (barSep >= 0) {
+    const left = s.slice(0, barSep);
+    const right = s.slice(barSep + 1);
+    const direction = resolveDirection(left, right);
+    if (direction === true) return flipPair();
+    if (direction === false) return pair;
+  }
+
+  const hasAnyHint = hasRentHint(s) || hasDepositHint(s);
+
+  if (preferDepositFirst && !hasAnyHint) {
+    return flipPair();
+  }
+
+  return pair;
+}
+
+function hasMoneyDirectionHint(text) {
+  return /(월세|보증금|전세|rent|deposit|lease|임대료|월세료|전세금|보증금금액|rent_fee|deposit_fee)/i.test(
+    text,
+  );
+}
+
+function hasRentDirectionHint(text) {
+  return /(월세|월세료|월\s*세|rent|rent_fee|monthly)/i.test(text);
+}
+
+function hasDepositDirectionHint(text) {
+  return /(보증금|전세|전세금|deposit|deposit_fee|보증금금액)/i.test(text);
+}
+
+export function parseMoneyPair(rawText, options = {}) {
   const s = normalizeText(rawText).toLowerCase();
   if (!s) return { rent: null, deposit: null };
+  const hasDirectionHint = hasMoneyDirectionHint(s);
+  const hasDepositHint = hasDepositDirectionHint(s);
+  const hasRentHint = hasRentDirectionHint(s);
 
   const splitPair = (input, sep = "/") => {
     const idx = input.indexOf(sep);
@@ -309,25 +384,104 @@ function parseMoneyPair(rawText) {
   };
 
   const pipe = splitPair(s, "/");
-  if (pipe && (pipe.rent !== null || pipe.deposit !== null)) return pipe;
+  if (pipe && (pipe.rent !== null || pipe.deposit !== null)) {
+    return normalizeMoneyPairOrder(pipe, s, options);
+  }
 
   const bar = splitPair(s, "|");
-  if (bar && (bar.rent !== null || bar.deposit !== null)) return bar;
+  if (bar && (bar.rent !== null || bar.deposit !== null)) {
+    return normalizeMoneyPairOrder(bar, s, options);
+  }
 
-  const rentMatch =
-    /(월세)\s*[:\s]\s*([0-9.,억천만만원원\s]+)|([0-9.,억천만만원]+\s*월세)/i.exec(s);
-  const depositMatch =
-    /(보증금)\s*[:\s]\s*([0-9.,억천만만원원\s]+)|([0-9.,억천만만원]+\s*보증금)/i.exec(s);
+  const rentMatch = /(월세|월\s*세)\s*[:\s]*\s*([0-9.,억천만만원원\s]+)/i.exec(s);
+  const rentSuffixMatch = /([0-9.,억천만만원원\s]+)\s*(?:월세|월\s*세)(?![가-힣])/i.exec(s);
+  const depositMatch = /(보증금|전세|전세금)\s*[:\s]*\s*([0-9.,억천만만원원\s]+)/i.exec(s);
+  const depositSuffixMatch = /([0-9.,억천만만원원\s]+)\s*(?:보증금|전세|전세금)(?![가-힣])/i.exec(s);
 
-  const rent = rentMatch ? parseMoney(rentMatch[2] || rentMatch[3]) : null;
-  const deposit = depositMatch ? parseMoney(depositMatch[2] || depositMatch[3]) : null;
-  if (rent !== null || deposit !== null) return { rent, deposit };
+  let rent = rentMatch ? parseMoney(rentMatch[2]) : null;
+  let deposit = depositMatch ? parseMoney(depositMatch[2]) : null;
+  if (rent === null && rentSuffixMatch && rentSuffixMatch[1]) {
+    rent = parseMoney(rentSuffixMatch[1]);
+  }
+  if (deposit === null && depositSuffixMatch && depositSuffixMatch[1]) {
+    deposit = parseMoney(depositSuffixMatch[1]);
+  }
+  if (rent !== null || deposit !== null) {
+    return normalizeMoneyPairOrder({ rent, deposit }, s, options);
+  }
+
+  if (hasDirectionHint && !rentMatch && !depositMatch) {
+    return normalizeMoneyPairOrder({ rent: null, deposit: null }, s, options);
+  }
 
   const nums = s.match(/([0-9]+(?:\.[0-9]+)?(?:\s*억)?(?:\s*천만)?(?:\s*만)?|[0-9]+(?:\.[0-9]+)?\s*만원)/g);
-  if (!nums || nums.length < 2) {
-    return { rent: nums?.[0] ? parseMoney(nums[0]) : null, deposit: null };
+  if (!nums || nums.length === 0) {
+    return normalizeMoneyPairOrder({ rent: null, deposit: null }, s, options);
   }
-  return { rent: parseMoney(nums[0]), deposit: parseMoney(nums[1]) };
+
+  if (nums.length < 2) {
+    if (!hasDirectionHint) {
+      return normalizeMoneyPairOrder({ rent: null, deposit: null }, s, options);
+    }
+    if (hasDepositHint && !hasRentHint) {
+      return normalizeMoneyPairOrder(
+        { rent: null, deposit: parseMoney(nums[0]) },
+        s,
+        options,
+      );
+    }
+    return normalizeMoneyPairOrder(
+      { rent: parseMoney(nums[0]), deposit: null },
+      s,
+      options,
+    );
+  }
+
+  if (!hasDirectionHint) return normalizeMoneyPairOrder({ rent: null, deposit: null }, s, options);
+
+  return normalizeMoneyPairOrder(
+    { rent: parseMoney(nums[0]), deposit: parseMoney(nums[1]) },
+    s,
+    options,
+  );
+}
+
+function looksLikeMoneyText(rawText) {
+  const s = normalizeText(rawText).toLowerCase();
+  if (!s) return false;
+  return /\/|\||월세|보증금|전세|만원|천만|억/.test(s);
+}
+
+function normalizeMoneyPairDirection(rawText, rentAmount, depositAmount, options = {}) {
+  const { preferDepositFirst = false } = options;
+  if (rentAmount == null || depositAmount == null) {
+    return {
+      rent: rentAmount,
+      deposit: depositAmount,
+    };
+  }
+
+  const normalized = parseMoneyPair(`${normalizeText(rawText || `${rentAmount}/${depositAmount}`)}`, {
+    preferDepositFirst,
+  });
+
+  // Text-parsed values match structured fields in same order — no swap needed
+  if (normalized.rent === rentAmount && normalized.deposit === depositAmount) {
+    return normalized;
+  }
+
+  // Text-parsed values match structured fields but swapped — apply the swap
+  if (normalized.rent === depositAmount && normalized.deposit === rentAmount) {
+    return normalized;
+  }
+
+  // Text-parsed values differ from structured fields — trust structured data
+  return { rent: rentAmount, deposit: depositAmount };
+}
+
+function platformIsMoneyOrdered(platformCode) {
+  const platform = String(platformCode || "").toLowerCase();
+  return platform === "dabang" || platform === "daangn";
 }
 
 function parseArea(value) {
@@ -401,6 +555,15 @@ function parseArea(value) {
 
   const fallback = /(\d+(?:\.\d+)?)/.exec(s);
   const f = fallback ? toM2(fallback[1], "sqm") : null;
+  if (f !== null && (f < 1 || f > 1000)) {
+    return {
+      value: null,
+      min: null,
+      max: null,
+      unit: "sqm",
+      areaType: "estimated",
+    };
+  }
   return {
     value: f,
     min: f,
@@ -640,6 +803,59 @@ function isListingLike(value, hints) {
   return keys.some((k) => Object.prototype.hasOwnProperty.call(value, k));
 }
 
+function pickStringFromRecord(record) {
+  const value = String(record || "").trim();
+  return value;
+}
+
+function resolveRecordSourceRef(rawRecord) {
+  if (!rawRecord || typeof rawRecord !== "object") return null;
+
+  const candidates = [
+    rawRecord?.source_ref,
+    rawRecord?.sourceRef,
+    rawRecord?.source_url,
+    rawRecord?.request_url,
+    rawRecord?.url,
+    rawRecord?.link,
+    rawRecord?.identifier,
+    rawRecord?.id,
+    rawRecord?.external_id,
+    rawRecord?.externalId,
+    rawRecord?.payload_json?.source_ref,
+    rawRecord?.payload_json?.sourceRef,
+    rawRecord?.payload_json?.id,
+    rawRecord?.payload_json?.external_id,
+    rawRecord?.payload_json?.externalId,
+    rawRecord?.payload_json?._id,
+    rawRecord?.list_data?.source_ref,
+    rawRecord?.list_data?.sourceRef,
+    rawRecord?.list_data?.id,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+    if (typeof candidate === "object") continue;
+    const text = pickStringFromRecord(candidate);
+    if (text) return text;
+  }
+
+  return null;
+}
+
+function computeNormalizedListingScore(item) {
+  const hasValue = (v) => v !== null && v !== undefined && String(v).trim() !== "";
+  let score = 0;
+  if (hasValue(item?.address_text)) score += 2;
+  if (item?.rent_amount !== null && item?.rent_amount !== undefined) score += 3;
+  if (item?.deposit_amount !== null && item?.deposit_amount !== undefined) score += 3;
+  if (item?.area_exclusive_m2 !== null && item?.area_exclusive_m2 !== undefined) score += 2;
+  if (item?.area_gross_m2 !== null && item?.area_gross_m2 !== undefined) score += 1;
+  if (Array.isArray(item?.image_urls) && item.image_urls.length > 0) score += 5;
+  if (item?.floor !== null && item?.floor !== undefined) score += 1;
+  return score;
+}
+
 function collectCandidates(payload, hints, visited = new WeakSet(), options = {}) {
   const maxDepth = options.maxDepth || 8;
   const maxNodes = options.maxNodes || 9000;
@@ -685,6 +901,80 @@ function collectCandidates(payload, hints, visited = new WeakSet(), options = {}
   return out;
 }
 
+function normalizeForDedupe(item) {
+  if (!item || typeof item !== "object") return null;
+  const sourceRef = item.source_ref != null ? String(item.source_ref).trim() : "";
+  if (sourceRef) return `src:${sourceRef}`;
+
+  return `fb:${String(item.address_text || "")}|${String(item.address_code || "")}|${String(
+    item.rent_amount ?? "",
+  )}|${String(item.deposit_amount ?? "")}|${String(
+    item.area_exclusive_m2 ?? item.area_gross_m2 ?? "",
+  )}`;
+}
+
+function dedupeNormalizedItems(items) {
+  const dedupeMap = new Map();
+
+  for (const item of items) {
+    const key = normalizeForDedupe(item);
+    if (!key) continue;
+
+    const score = computeNormalizedListingScore(item);
+    const current = dedupeMap.get(key);
+    if (!current || score > current.score) {
+      dedupeMap.set(key, { item, score });
+    }
+  }
+
+  return [...dedupeMap.values()].map((entry) => entry.item);
+}
+
+function recalcSimpleRate(items, predicate) {
+  if (!Array.isArray(items) || items.length === 0) return 0;
+  return items.filter(predicate).length / items.length;
+}
+
+function isNonEmptyText(v) {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+function toNumberOrNull(v) {
+  if (v === null || v === undefined) return null;
+  const num = Number(String(v).replace(/,/g, ""));
+  return Number.isFinite(num) ? num : null;
+}
+
+function buildNormalizedStats(items) {
+  return {
+    requiredFieldsRate: recalcSimpleRate(
+      items,
+      (item) => isNonEmptyText(item.address_text)
+        && (toNumberOrNull(item.rent_amount) !== null || toNumberOrNull(item.deposit_amount) !== null)
+        && (toNumberOrNull(item.area_exclusive_m2) !== null || toNumberOrNull(item.area_gross_m2) !== null),
+    ),
+    addressRate: recalcSimpleRate(items, (item) => isNonEmptyText(item.address_text)),
+    imageRate: recalcSimpleRate(
+      items,
+      (item) => Array.isArray(item.image_urls)
+        && item.image_urls.length > 0,
+    ),
+    imagePresenceRate: recalcSimpleRate(
+      items,
+      (item) => Array.isArray(item.image_urls)
+        && item.image_urls.length > 0,
+    ),
+    priceRate: recalcSimpleRate(
+      items,
+      (item) => toNumberOrNull(item.rent_amount) !== null || toNumberOrNull(item.deposit_amount) !== null,
+    ),
+    areaRate: recalcSimpleRate(
+      items,
+      (item) => toNumberOrNull(item.area_exclusive_m2) !== null || toNumberOrNull(item.area_gross_m2) !== null,
+    ),
+  };
+}
+
 export class BaseUserOnlyAdapter extends BaseListingAdapter {
   constructor({
     platformCode,
@@ -702,7 +992,35 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
     };
   }
 
+  async normalizeFromRawFile(inputPath, { maxItems = Infinity, includeRaw = true } = {}) {
+    const rawResult = await super.normalizeFromRawFile(inputPath, {
+      maxItems: Infinity,
+      includeRaw,
+    });
+
+    const deduped = dedupeNormalizedItems(rawResult.items);
+    const normalized = deduped.slice(0, Number.isFinite(maxItems) ? Math.max(0, Math.floor(maxItems)) : Infinity);
+    const recomputedStats = buildNormalizedStats(normalized);
+
+    rawResult.items = normalized;
+    rawResult.stats = {
+      ...rawResult.stats,
+      normalizedItems: normalized.length,
+      requiredFieldsRate: recomputedStats.requiredFieldsRate,
+      addressRate: recomputedStats.addressRate,
+      imageRate: recomputedStats.imageRate,
+      imagePresenceRate: recomputedStats.imagePresenceRate,
+      priceRate: recomputedStats.priceRate,
+      areaRate: recomputedStats.areaRate,
+    };
+    rawResult.metadata.normalized_records = normalized.length;
+
+    return rawResult;
+  }
+
   normalizeFromRawRecord(rawRecord) {
+    const rawRecordSourceRef = resolveRecordSourceRef(rawRecord);
+
     const payload =
       rawRecord?.payload_json ??
       rawRecord?.payload ??
@@ -723,8 +1041,7 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
       maxDepth: 12,
       maxNodes: 12000,
     });
-    const seen = new Set();
-    const out = [];
+    const seen = new Map();
 
     for (const row of rows) {
       if (!isObject(row)) continue;
@@ -732,13 +1049,24 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
       const normalized = this.normalizeListingRow(row, rawRecord);
       if (!normalized) continue;
 
+      if (!normalized.source_ref && rawRecordSourceRef) {
+        normalized.source_ref = rawRecordSourceRef;
+        normalized.external_id = rawRecordSourceRef;
+      }
+
       const dedupeKey = normalized.source_ref || hash11(
         `${normalized.address_text || ""}|${normalized.address_code || ""}|${normalized.rent_amount || ""}|${normalized.deposit_amount || ""}|${normalized.area_exclusive_m2 || normalized.area_gross_m2 || ""}`,
       );
-      if (!dedupeKey || seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      out.push(normalized);
+      if (!dedupeKey) continue;
+
+      const nextScore = computeNormalizedListingScore(normalized);
+      const current = seen.get(dedupeKey);
+      if (!current || nextScore > current.score) {
+        seen.set(dedupeKey, { score: nextScore, item: normalized });
+      }
     }
+
+    const out = Array.from(seen.values()).map((entry) => entry.item);
 
     return out;
   }
@@ -777,10 +1105,23 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
     let depositAmount = parseMoney(pick(row, this.hints.depositKeys, null));
     const textForPrice = pick(row, this.hints.rawTextKeys, null);
 
-    if (rentAmount === null || depositAmount === null) {
-      const pair = parseMoneyPair(`${textForPrice || ""}`);
+    if ((rentAmount === null || depositAmount === null) && looksLikeMoneyText(textForPrice)) {
+      const pair = parseMoneyPair(`${textForPrice || ""}`, {
+        preferDepositFirst: ["dabang", "daangn"].includes(String(this.platformCode || "").toLowerCase()),
+      });
       if (rentAmount === null) rentAmount = pair.rent;
       if (depositAmount === null) depositAmount = pair.deposit;
+    }
+
+    if (platformIsMoneyOrdered(this.platformCode) && rentAmount !== null && depositAmount !== null) {
+      const ordered = normalizeMoneyPairDirection(
+        `${textForPrice || `${rentAmount}/${depositAmount}`}`,
+        rentAmount,
+        depositAmount,
+        { preferDepositFirst: true },
+      );
+      rentAmount = ordered.rent;
+      depositAmount = ordered.deposit;
     }
 
     const floorData = parseFloor(pick(row, this.hints.floorKeys, pick(row, this.hints.totalFloorKeys, null)));
@@ -790,8 +1131,10 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
     const roomCount = Number(roomCountRaw) || parseRoom(pick(row, this.hints.titleKeys, null) || pick(row, this.hints.rawTextKeys, null));
     const bathroomCount = Number(pick(row, this.hints.bathroomCountKeys, null)) || null;
 
-    const lat = toCoord(pick(row, ["lat", "latitude", "y", "위도"], null));
-    const lng = toCoord(pick(row, ["lng", "longitude", "x", "경도"], null));
+    const latKeys = this.hints.latKeys || ["lat", "latitude", "y", "위도"];
+    const lngKeys = this.hints.lngKeys || ["lng", "longitude", "x", "경도"];
+    const lat = toCoord(pick(row, latKeys, null));
+    const lng = toCoord(pick(row, lngKeys, null));
 
     const imageUrls = collectImageUrls(row, {
       imageLimit: this.options.imageLimit || 2,

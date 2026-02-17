@@ -244,23 +244,71 @@ function normalizeLeaseTypeFilter(rawFilter) {
 }
 
 const CP_IMAGE_HOSTS = new Set(["image.bizmk.kr", "land.mk.co.kr", "homesdid.co.kr", "image.neonet.co.kr"]);
-const CP_IMAGE_HOST_SUFFIXES = [".mk.co.kr", ".homesdid.co.kr", ".bizmk.kr"];
-const CP_IMAGE_PATH_HINTS = ["/memulPhoto/", "/files/", "/files_new_", "/photo/"];
+const CP_IMAGE_HOST_SUFFIXES = [
+  ".mk.co.kr",
+  ".homesdid.co.kr",
+  ".bizmk.kr",
+  ".neonet.co.kr",
+  ".serve.co.kr",
+];
+const CP_IMAGE_PATH_HINTS = [
+  "/memulPhoto/",
+  "/files/",
+  "/files_new_",
+  "/photo/",
+  "/service/neonet/images/maemul/",
+  "/member_profile/",
+  "/member/",
+];
 const CP_NEONET_IMAGE_PATH_HINT = "/service/neonet/images/maemul/";
-const CP_IMAGE_EXTENSION_RE = /\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\\s"'<>]*)?$/i;
+const CP_IMAGE_EXTENSION_RE = /\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^\\s"'<>]*)?$/i;
 const CP_IMAGE_TIMEOUT_MS = 9000;
 const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
+const CP_IMAGE_SOURCE_LIMIT = 24;
+const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
+const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_)/i;
+const CP_IMAGE_SOURCE_HOST_HINTS = ["newimg.serve.co.kr", "img.serve.co.kr", "cdn.serve.co.kr", "serve.co.kr", "www.serve.co.kr"];
+const CP_HOST_IMAGE_RULES = [
+  {
+    suffixes: ["land.mk.co.kr", ".mk.co.kr", "bizmk.kr", "image.bizmk.kr"],
+    pathHints: ["/memulPhoto/", "/files/", "/files_new_", "/photo/", "/watermark/"],
+  },
+  {
+    suffixes: ["homesdid.co.kr"],
+    pathHints: ["/sb_images/"],
+  },
+  {
+    suffixes: ["neonet.co.kr", "image.neonet.co.kr", "www.neonet.co.kr"],
+    pathHints: ["/service/neonet/images/maemul/"],
+  },
+  {
+    suffixes: ["newimg.serve.co.kr", "www.serve.co.kr", "serve.co.kr"],
+    pathHints: ["/member_profile/", "/member/"],
+  },
+];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isAllowedCpImageHost(hostname) {
-  if (!hostname) return false;
-  const host = hostname.toLowerCase();
+function isAllowedCpImageHost(hostname, pathname = "") {
+  const host = String(hostname || "").toLowerCase();
+  if (!host) return false;
+  const normalizedPathname = String(pathname || "").toLowerCase();
+
   if (CP_IMAGE_HOSTS.has(host)) return true;
-  return CP_IMAGE_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(suffix));
+  if (CP_IMAGE_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(suffix))) return true;
+  if (CP_IMAGE_SOURCE_HOST_HINTS.some((hint) => host === hint || host.endsWith(hint))) return true;
+
+  const hasMatchedRule = CP_HOST_IMAGE_RULES.some((rule) => {
+    const ruleMatchesHost = rule.suffixes.some((suffix) => host === suffix || host.endsWith(suffix));
+    if (!ruleMatchesHost) return false;
+    return rule.pathHints.length === 0 ? true : rule.pathHints.some((hint) => normalizedPathname.includes(hint));
+  });
+  if (hasMatchedRule) return true;
+
+  return isAllowedCpImagePath(normalizedPathname);
 }
 
 function isAllowedCpImagePath(pathname) {
@@ -388,7 +436,8 @@ function extractRedirectFromHtml(html, baseUrl) {
     /location\s*=\s*['"]([^'"]+)['"]/i,
     /location\.assign\(\s*['"]([^'"]+)['"]/i,
     /location\.replace\(\s*([^)]+)\)/i,
-    /window\.location\s*=\s*([^\s;]+)\s*;/i,
+    /window\.location(?:\.href)?\s*=\s*([^;]+);/i,
+    /location\s*=\s*([^;]+);/i,
     /<meta[^>]+http-equiv=['"]refresh['"][^>]*url=([^'">\\s]+)/i,
   ];
 
@@ -435,7 +484,10 @@ async function fetchTextWithRetry(url, {
     try {
       const response = await fetch(currentUrl, {
         method: "GET",
-        headers,
+        headers: {
+          ...headers,
+          Referer: currentUrl,
+        },
         redirect: "manual",
         signal: controller.signal,
       });
@@ -486,14 +538,34 @@ async function fetchTextWithRetry(url, {
 
 function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
   if (!html) return [];
-  const imageRegex = /(?:src|href|data-src)\s*=\s*["']([^"']+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^"']*)?)["']/gi;
-  const absoluteImageRegex = /(?:https?:)?\/\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^'"\\s<>]*)?/gi;
-  const relativeImageRegex = /\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^'"\\s<>]*)?/gi;
+  const imageAttributeRegex = /(?:src|href|data-src|data-original|srcset|poster)\s*=\s*["']([^"']+)["']/gi;
+  const absoluteImageRegex = /(?:https?:)?\/\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\\s<>]*)?/gi;
+  const relativeImageRegex = /\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\\s<>]*)?/gi;
   const out = [];
   const seen = new Set();
 
-  for (const match of html.matchAll(imageRegex)) {
+  const addSrcsetUrls = (value) => {
+    const candidates = String(value || "")
+      .split(",")
+      .map((entry) => normalizeText(entry || "").split(" ")[0])
+      .filter(Boolean);
+
+    for (const candidate of candidates) {
+      const normalized = normalizeCpImageUrl(candidate, baseUrl);
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      out.push(normalized);
+      if (out.length >= imageLimit) break;
+    }
+  };
+
+  for (const match of html.matchAll(imageAttributeRegex)) {
+    const raw = match[0].toLowerCase();
     const normalized = normalizeCpImageUrl(match[1], baseUrl);
+    if (raw.includes("srcset")) {
+      addSrcsetUrls(match[1]);
+      continue;
+    }
     if (!normalized) continue;
     if (seen.has(normalized)) continue;
     seen.add(normalized);
@@ -530,7 +602,7 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
   if (!normalizedArticleUrl) return [];
 
   const fetchResult = await fetchTextWithRetry(normalizedArticleUrl);
-  if (!fetchResult.ok) return [];
+  if (!fetchResult.text) return [];
 
   const articleUrlForBase = fetchResult.finalUrl || normalizedArticleUrl;
   const cpImageUrls = extractCpImageUrlsFromHtml(fetchResult.text, imageLimit, articleUrlForBase);
@@ -540,7 +612,7 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
   if (!mkGalleryUrl) return [];
 
   const mkGalleryResult = await fetchTextWithRetry(mkGalleryUrl);
-  if (!mkGalleryResult.ok) return [];
+  if (!mkGalleryResult.text) return [];
 
   return extractCpImageUrlsFromHtml(
     mkGalleryResult.text,
@@ -689,6 +761,18 @@ function parseFloorRaw(raw) {
 
   const s = normalizeText(raw);
   if (!s) return { floor: null, total_floor: null };
+
+  // Naver "B1/2" format: B=basement, 1=level, /2=total floors
+  const basementPair = /^B(\d+)\s*\/\s*(\d+)/i.exec(s);
+  if (basementPair) {
+    return { floor: -Math.max(1, Number(basementPair[1])), total_floor: Number(basementPair[2]) };
+  }
+
+  // Naver "고/3", "중/4", "저/3" format: relative floor / total
+  const relativePair = /^(고|중|저)\s*\/\s*(\d+)/i.exec(s);
+  if (relativePair) {
+    return { floor: null, total_floor: Number(relativePair[2]) };
+  }
 
   const pair = /(\d+)\s*\/\s*(\d+)/.exec(s);
   if (pair) {
@@ -1317,10 +1401,27 @@ export class NaverListingAdapter extends BaseListingAdapter {
     const imageUrls = collectImageUrls(item, { imageLimit: this.imageLimit });
     const fallbackImageUrls = imageUrls.length === 0 && this.imageFallbackEnabled
       ? await enrichImageUrlsFromCpArticleUrl(
-          pick(item, ["cpPcArticleUrl", "cpPcArticleLink", "cpPcArticleBridgeUrl"], null),
+          pick(
+            item,
+            [
+              "cpPcArticleUrl",
+              "cpPcArticleLink",
+              "cpPcArticleBridgeUrl",
+              "cpMobileArticleUrl",
+              "cpMobileArticleLink",
+              "cpMobileArticleBridgeUrl",
+            ],
+            null,
+          ),
           Math.max(1, this.imageFallbackLimit),
         )
       : [];
+
+    // Extract coordinates — Naver articles have latitude/longitude as strings
+    const rawLat = pick(item, ["latitude", "lat", "centerLat"], null);
+    const rawLng = pick(item, ["longitude", "lng", "lon", "centerLon"], null);
+    const lat = rawLat !== null ? parseFloat(String(rawLat)) : null;
+    const lng = rawLng !== null ? parseFloat(String(rawLng)) : null;
 
     const normalized = {
       platform_code: "naver",
@@ -1374,6 +1475,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
       agent_phone: pick(item, ["agentPhone", "realtorPhone", "tel", "phone", "contact"], null),
       listed_at: pick(item, ["atclCrtYmd", "createdAt", "등록일", "등록일시"], null),
       available_date: pick(item, ["useDate", "availableDate", "입주가능일"], null),
+      lat: Number.isFinite(lat) ? lat : null,
+      lng: Number.isFinite(lng) ? lng : null,
       image_urls: imageUrls.length > 0 ? imageUrls : fallbackImageUrls,
       raw_attrs: {
         atclNo: pick(item, ["atclNo"], null),
@@ -1382,6 +1485,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
         itemNo: pick(item, ["itemNo"], null),
         cpPcArticleUrl: pick(item, ["cpPcArticleUrl"], null),
         cpMobileArticleUrl: pick(item, ["cpMobileArticleUrl"], null),
+        siteImageCount: pick(item, ["siteImageCount"], null),
+        imageCount: pick(item, ["imageCount", "imgCount"], null),
         direction: pick(item, ["facing", "direction", "directionText", "houseDirection"], null),
         building_use: pick(item, ["houseType", "houseTypeNm", "buildingType", "buildingTypeNm", "atclType"], null),
       },

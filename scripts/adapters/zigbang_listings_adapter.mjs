@@ -143,6 +143,126 @@ function normalizeZigbangDirection(value) {
   return map[normalized] || null;
 }
 
+function isLikelyZigbangListingRow(value) {
+  if (!value || typeof value !== "object") return false;
+
+  return (
+    value.item_id !== undefined
+    || value.itemId !== undefined
+    || value.item_no !== undefined
+    || value.itemNo !== undefined
+    || value.rent !== undefined
+    || value.deposit !== undefined
+    || value.price?.rent !== undefined
+    || value.price?.deposit !== undefined
+    || value.size_m2 !== undefined
+    || value.area !== undefined
+    || value.전용면적 !== undefined
+    || value["전용면적M2"] !== undefined
+    || value.address !== undefined
+    || value.addressOrigin !== undefined
+    || value.room_type !== undefined
+    || value.roomType !== undefined
+    || value.service_type !== undefined
+    || value.serviceType !== undefined
+    || value.images !== undefined
+  );
+}
+
+function collectZigbangListingRows(payload) {
+  const rows = [];
+  const visited = new Set();
+
+  const tryPush = (candidate) => {
+    if (!candidate || typeof candidate !== "object") return;
+    if (visited.has(candidate)) return;
+    visited.add(candidate);
+
+    if (isLikelyZigbangListingRow(candidate)) {
+      rows.push(candidate);
+    }
+  };
+
+  if (!payload || typeof payload !== "object") return rows;
+
+  if (Array.isArray(payload)) {
+    for (const entry of payload) {
+      if (isLikelyZigbangListingRow(entry)) rows.push(entry);
+    }
+    return rows;
+  }
+
+  const nestedCandidates = [
+    payload.item,
+    payload.data,
+    payload.result,
+    payload.result?.items,
+    payload.items,
+    payload.itemList,
+    payload.list,
+    payload.item_list,
+    payload.payload,
+  ];
+
+  for (const candidate of nestedCandidates) {
+    if (!candidate) continue;
+    if (Array.isArray(candidate)) {
+      for (const item of candidate) tryPush(item);
+    } else {
+      tryPush(candidate);
+    }
+  }
+
+  // V2 API에서 payload가 바로 매물 객체인 케이스를 커버.
+  if (isLikelyZigbangListingRow(payload)) {
+    rows.push(payload);
+  }
+
+  // Fallback: 최소한 후보가 하나도 없으면 원본 자체를 유일 단위로 전달.
+  if (rows.length === 0) rows.push(payload);
+  return rows;
+}
+
+function dedupeZigbangNormalized(items) {
+  const computeScore = (item) => {
+    const hasValue = (v) => v !== null && v !== undefined && String(v).trim() !== "";
+    let score = 0;
+    if (hasValue(item?.address_text)) score += 2;
+    if (item?.rent_amount !== null && item?.rent_amount !== undefined) score += 3;
+    if (item?.deposit_amount !== null && item?.deposit_amount !== undefined) score += 3;
+    if (item?.area_exclusive_m2 !== null && item?.area_exclusive_m2 !== undefined) score += 2;
+    if (item?.area_gross_m2 !== null && item?.area_gross_m2 !== undefined) score += 1;
+    if (Array.isArray(item?.image_urls) && item.image_urls.length > 0) score += 5;
+    if (item?.floor !== null && item?.floor !== undefined) score += 1;
+    return score;
+  };
+
+  const fallback = (item) =>
+    `${item?.address_text || ""}|${item?.rent_amount ?? ""}|${item?.deposit_amount ?? ""}|${item?.area_exclusive_m2 ?? item?.area_gross_m2 ?? ""}`;
+
+  const normalizeForDedupe = (item) => {
+    if (!item || typeof item !== "object") return null;
+    const sourceRef = item.source_ref != null ? String(item.source_ref).trim() : "";
+    if (sourceRef) return `src:${sourceRef}`;
+    return `fb:${fallback(item)}`;
+  };
+
+  const seen = new Map();
+
+  for (const item of items) {
+    const key = normalizeForDedupe(item);
+    if (!key) continue;
+
+    const score = computeScore(item);
+    const current = seen.get(key);
+    if (!current || score > current.score) {
+      seen.set(key, { item, score });
+    }
+  }
+
+  return [...seen.values()].map((entry) => entry.item);
+}
+
 export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
   constructor(options = {}) {
     const normalizedOptions = { imageLimit: 12, ...options };
@@ -220,6 +340,18 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
           "image_thumbnail",
           "photoUrl",
         ],
+        latKeys: [
+          "lat",
+          "latitude",
+          "location.lat",
+          "random_location.lat",
+        ],
+        lngKeys: [
+          "lng",
+          "longitude",
+          "location.lng",
+          "random_location.lng",
+        ],
         directionKeys: [
           "direction",
           "direction_text",
@@ -248,6 +380,29 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
     this.notes = [
       "직방 STEALTH raw 구조에 대한 정규화 파서 적용",
     ];
+  }
+
+  normalizeFromRawRecord(rawRecord) {
+    const payload = rawRecord?.payload_json || rawRecord?.payload || rawRecord;
+    const rawRows = collectZigbangListingRows(payload);
+
+    const normalizedRows = [];
+    for (const row of rawRows) {
+      if (!row || typeof row !== "object") continue;
+
+      const rowRecord = {
+        ...rawRecord,
+        payload_json: row,
+      };
+      const normalized = this.normalizeListingRow(row, rowRecord);
+      if (!normalized) continue;
+      const processed = this.postProcess(normalized, rowRecord);
+      if (processed) {
+        normalizedRows.push(processed);
+      }
+    }
+
+    return dedupeZigbangNormalized(normalizedRows);
   }
 
   postProcess(item, rawRecord) {
@@ -319,6 +474,18 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       if (roomTypeNum != null) {
         item.room_count = roomTypeNum;
       }
+    }
+
+    // Extract nested coordinates: location.lat/lng or random_location.lat/lng
+    if (item.lat == null || item.lng == null) {
+      const lat = toNumber(raw?.location?.lat)
+        ?? toNumber(raw?.random_location?.lat)
+        ?? toNumber(raw?.lat);
+      const lng = toNumber(raw?.location?.lng)
+        ?? toNumber(raw?.random_location?.lng)
+        ?? toNumber(raw?.lng);
+      if (lat != null) item.lat = lat;
+      if (lng != null) item.lng = lng;
     }
 
     return item;
