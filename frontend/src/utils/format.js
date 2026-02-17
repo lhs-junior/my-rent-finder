@@ -1,10 +1,16 @@
+export const FLOOR_FILTER_OPTIONS = [
+  { value: "", label: "층 전체" },
+  { value: "1", label: "반지하 제외" },
+  { value: "2", label: "2층 이상" },
+  { value: "3", label: "3층 이상" },
+];
+
 export const PLATFORM_OPTIONS = [
   { value: "", label: "전체" },
   { value: "naver", label: "네이버" },
   { value: "zigbang", label: "직방" },
   { value: "dabang", label: "다방" },
   { value: "kbland", label: "KB부동산" },
-  { value: "r114", label: "부동산114" },
   { value: "peterpanz", label: "피터팬" },
   { value: "daangn", label: "당근부동산" },
 ];
@@ -44,7 +50,6 @@ export function toPlatformLabel(code) {
     zigbang: "직방",
     dabang: "다방",
     kbland: "KB부동산",
-    r114: "부동산114",
     peterpanz: "피터팬",
     daangn: "당근부동산",
   };
