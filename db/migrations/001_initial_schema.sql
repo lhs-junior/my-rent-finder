@@ -118,9 +118,10 @@ CREATE TABLE IF NOT EXISTS listing_images (
   is_primary BOOLEAN DEFAULT FALSE,
   downloaded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT uq_listing_image_src UNIQUE (source_url)
+  CONSTRAINT uq_listing_image_source_url UNIQUE (listing_id, source_url)
 );
 
+CREATE INDEX IF NOT EXISTS idx_listing_images_source_url ON listing_images(source_url);
 CREATE INDEX IF NOT EXISTS idx_listing_images_listing ON listing_images(listing_id, status);
 
 CREATE TABLE IF NOT EXISTS contract_violations (
