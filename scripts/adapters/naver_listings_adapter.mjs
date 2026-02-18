@@ -75,6 +75,7 @@ function collectNaverImageCandidates(raw) {
   };
 
   const candidates = [
+    raw._fetchedImages,
     raw.articlePhotos,
     raw.photos,
     raw.images,
