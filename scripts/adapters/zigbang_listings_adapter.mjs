@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
+import { normalizeDirection } from "./base_listing_adapter.mjs";
 
 const URL_IMAGE_RE = /\.(jpg|jpeg|png|webp|gif|avif|bmp|svg)(\?|$)/i;
 
@@ -448,7 +449,7 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
     }
 
     if (!item.direction && (raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection)) {
-      item.direction = normalizeZigbangDirection(
+      item.direction = normalizeDirection(
         raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection,
       );
     }
