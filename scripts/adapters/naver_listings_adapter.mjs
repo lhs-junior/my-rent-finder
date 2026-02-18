@@ -322,12 +322,11 @@ function normalizeLeaseTypeFilter(rawFilter) {
   return filter.size > 0 ? filter : null;
 }
 
-const CP_IMAGE_HOSTS = new Set(["image.bizmk.kr", "land.mk.co.kr", "homesdid.co.kr", "image.neonet.co.kr"]);
+const CP_IMAGE_HOSTS = new Set(["image.bizmk.kr", "land.mk.co.kr", "homesdid.co.kr"]);
 const CP_IMAGE_HOST_SUFFIXES = [
   ".mk.co.kr",
   ".homesdid.co.kr",
   ".bizmk.kr",
-  ".neonet.co.kr",
   ".serve.co.kr",
   ".ten.co.kr",
   "ten.co.kr",
@@ -348,7 +347,7 @@ const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
 const CP_IMAGE_SOURCE_LIMIT = 24;
 const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
-const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$))/i;
+const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.)/i;
 const CP_IMAGE_SOURCE_HOST_HINTS = ["newimg.serve.co.kr", "img.serve.co.kr", "cdn.serve.co.kr", "serve.co.kr", "www.serve.co.kr"];
 const CP_HOST_IMAGE_RULES = [
   {
