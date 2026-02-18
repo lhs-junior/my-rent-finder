@@ -1,22 +1,5 @@
 import FavoriteButton from "../FavoriteButton.jsx";
-
-const PLATFORM_LABELS = {
-  naver: "네이버",
-  zigbang: "직방",
-  dabang: "다방",
-  kbland: "KB",
-  peterpanz: "피터팬",
-  daangn: "당근",
-};
-
-const PLATFORM_COLORS = {
-  naver: "#03C75A",
-  zigbang: "#3B82F6",
-  dabang: "#8B5CF6",
-  kbland: "#EF4444",
-  peterpanz: "#F97316",
-  daangn: "#FBBF24",
-};
+import { toPlatformLabel, PLATFORM_COLORS } from "../../utils/format.js";
 
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
 const MONEY_SWAP_RENT_MIN = 500;
@@ -86,7 +69,7 @@ export default function MapListingCard({ marker, isSelected, onClick, isFavorite
           className="map-card-platform"
           style={{ background: PLATFORM_COLORS[m.platform_code] || "#6B7280" }}
         >
-          {PLATFORM_LABELS[m.platform_code] || m.platform_code}
+          {toPlatformLabel(m.platform_code)}
         </span>
         <span className="map-card-address">{m.address_text || "-"}</span>
         {onToggleFavorite && (

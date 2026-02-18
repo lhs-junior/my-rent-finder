@@ -1,33 +1,15 @@
-import { useState, useEffect } from "react";
-import FavoriteButton from "./FavoriteButton.jsx";
-
-const PLATFORM_LABELS = {
-  naver: "네이버",
-  zigbang: "직방",
-  dabang: "다방",
-  kbland: "KB",
-  peterpanz: "피터팬",
-  daangn: "당근",
-};
-
-const PLATFORM_COLORS = {
-  naver: "#03C75A",
-  zigbang: "#3B82F6",
-  dabang: "#8B5CF6",
-  kbland: "#EF4444",
-  peterpanz: "#F97316",
-  daangn: "#FBBF24",
-};
-
-function toMoney(v) {
-  if (v == null) return "-";
-  return v >= 10000 ? `${(v / 10000).toFixed(1)}억` : `${v}만`;
-}
+import { useState, useEffect, useCallback } from "react";
+import { fetchJson } from "../hooks/useApi.js";
+import { resolveExternalListingUrl } from "../utils/listing-url.js";
+import ListingCard from "./ListingCard.jsx";
+import DetailModal from "./DetailModal.jsx";
 
 export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -44,13 +26,32 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
       .finally(() => setLoading(false));
   }, [normalizedApiBase, favoriteIds.size]);
 
-  const handleRemove = async (listingId) => {
-    await toggleFavorite(listingId);
-  };
+  const loadDetail = useCallback(async (listingId) => {
+    if (!listingId) return;
+    try {
+      setDetailLoading(true);
+      setDetail(null);
+      const payload = await fetchJson(`${normalizedApiBase}/api/listings/${encodeURIComponent(listingId)}`);
+      setDetail(payload?.listing || null);
+    } catch {
+      setDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, [normalizedApiBase]);
+
+  const openExternalUrl = useCallback((listing) => {
+    const url = resolveExternalListingUrl(listing);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
+
+  const isFavorite = useCallback((id) => favoriteIds.has(id), [favoriteIds]);
 
   if (loading && items.length === 0) {
     return <div className="fav-view"><div className="fav-loading">불러오는 중...</div></div>;
   }
+
+  const modalOpen = detail !== null || detailLoading;
 
   return (
     <div className="fav-view">
@@ -76,61 +77,28 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
         </div>
       )}
 
-      <div className="fav-grid">
-        {items.map((item) => {
-          const details = [
-            item.area_exclusive_m2 ? `${item.area_exclusive_m2}m²` : null,
-            item.room_count ? `${item.room_count}룸` : null,
-            item.floor ? `${item.floor}층` : null,
-            item.building_use,
-          ].filter(Boolean).join(" · ");
-
-          return (
-            <div key={item.listing_id} className="fav-card">
-              <div className="fav-card-top">
-                <span
-                  className="fav-card-platform"
-                  style={{ background: PLATFORM_COLORS[item.platform_code] || "#6B7280" }}
-                >
-                  {PLATFORM_LABELS[item.platform_code] || item.platform_code}
-                </span>
-                <FavoriteButton
-                  active={true}
-                  onClick={() => handleRemove(item.listing_id)}
-                  size="sm"
-                />
-              </div>
-
-              <div className="fav-card-address">{item.address_text || "-"}</div>
-
-              <div className="fav-card-price">
-                보증금 {toMoney(item.deposit_amount)} / 월세 {item.rent_amount ? `${item.rent_amount}만` : "-"}
-              </div>
-
-              {details && <div className="fav-card-detail">{details}</div>}
-
-              {item.favorited_at && (
-                <div className="fav-card-date">
-                  {new Date(item.favorited_at).toLocaleDateString("ko-KR")} 저장
-                </div>
-              )}
-
-              <div className="fav-card-actions">
-                {item.source_url && (
-                  <a
-                    href={item.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="fav-card-link"
-                  >
-                    원본 보기
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="listing-grid">
+        {items.map((item) => (
+          <ListingCard
+            key={item.listing_id}
+            item={item}
+            onClick={() => loadDetail(item.listing_id)}
+            isFavorite={isFavorite(item.listing_id)}
+            onToggleFavorite={() => toggleFavorite(item.listing_id)}
+          />
+        ))}
       </div>
+
+      {modalOpen && (
+        <DetailModal
+          detail={detail}
+          loading={detailLoading}
+          onClose={() => { setDetail(null); setDetailLoading(false); }}
+          onOpenExternal={openExternalUrl}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+        />
+      )}
     </div>
   );
 }

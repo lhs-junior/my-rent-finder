@@ -621,6 +621,28 @@ async function fetchDaangnDetail(identifier) {
   const url = toDaangnUrl(identifier);
   if (!url) return null;
 
+  // Strategy 1: Remix _data JSON API (faster, richer data including coordinates)
+  try {
+    const baseUrl = url.split("?")[0];
+    const dataUrl = `${baseUrl}?_data=routes%2Fkr.realty.%24realty_post_id`;
+    const jsonRes = await fetch(dataUrl, {
+      headers: {
+        ...DAANGN_FETCH_HEADERS,
+        Accept: "application/json",
+      },
+    });
+    if (jsonRes.ok) {
+      const json = await jsonRes.json();
+      const realtyPost = json?.realtyPost;
+      if (realtyPost && typeof realtyPost === "object") {
+        return realtyPost;
+      }
+    }
+  } catch {
+    // JSON API failed, fall back to HTML
+  }
+
+  // Strategy 2: HTML fetch + __remixContext parsing (fallback)
   const res = await fetch(url, { headers: DAANGN_FETCH_HEADERS });
   if (!res.ok) return null;
 
@@ -895,30 +917,42 @@ function parseAreaFromDetail(detail) {
 function parsePriceFromDetail(detail) {
   if (!detail || typeof detail !== "object") return null;
   const trades = Array.isArray(detail.trades) ? detail.trades : [];
+
+  // 월세 (monthly rent)
   const monthlyTrade = trades.find((trade) =>
-    ["MONTH", "MONTHLY", "LEASE", "MONTHLY_RENT", "MONTHLY_RENTAL", "JEONSE"].includes(
+    ["MONTH", "MONTHLY", "LEASE", "MONTHLY_RENT", "MONTHLY_RENTAL"].includes(
       String(trade?.type || "").toUpperCase(),
     ),
   );
-  if (!monthlyTrade) return null;
+  if (monthlyTrade) {
+    const deposit = toNumber(monthlyTrade.deposit ?? monthlyTrade.monthlyDeposit ?? monthlyTrade.depositPrice ?? monthlyTrade.price);
+    const rent = toNumber(
+      monthlyTrade.monthlyPay ??
+        monthlyTrade.monthlyRent ??
+        monthlyTrade.rent ??
+        monthlyTrade.price ??
+        monthlyTrade.monthlyRentPrice ??
+        monthlyTrade.rentPrice,
+    );
+    if (deposit !== null || rent !== null) {
+      return { deposit, rent, type: "monthly" };
+    }
+  }
 
-  const deposit = toNumber(monthlyTrade.deposit ?? monthlyTrade.monthlyDeposit ?? monthlyTrade.depositPrice ?? monthlyTrade.price);
-  const rent = toNumber(
-    monthlyTrade.monthlyPay ??
-      monthlyTrade.monthlyRent ??
-      monthlyTrade.rent ??
-      monthlyTrade.price ??
-      monthlyTrade.monthlyRentPrice ??
-      monthlyTrade.rentPrice,
+  // 전세 (jeonse / borrow)
+  const jeonseTrade = trades.find((trade) =>
+    ["BORROW", "JEONSE", "CHARTER"].includes(
+      String(trade?.type || "").toUpperCase(),
+    ),
   );
+  if (jeonseTrade) {
+    const deposit = toNumber(jeonseTrade.deposit ?? jeonseTrade.price ?? jeonseTrade.depositPrice);
+    if (deposit !== null) {
+      return { deposit, rent: 0, type: "jeonse" };
+    }
+  }
 
-  if (deposit === null && rent === null) return null;
-
-  return {
-    deposit,
-    rent,
-    type: "monthly",
-  };
+  return null;
 }
 
 function parseFloorValue(value) {
@@ -1541,6 +1575,11 @@ async function main() {
           supplyAreaPyeong: detail.supplyAreaPyeong,
           images: sourceImageUrls,
           address: item.address,
+          lat: detail.coordinate?.lat ?? null,
+          lng: detail.coordinate?.lon ?? detail.coordinate?.lng ?? null,
+          roomCnt: detail.roomCnt ?? null,
+          bathroomCnt: detail.bathroomCnt ?? null,
+          manageCost: detail.manageCost ?? null,
           detailSource: detail.__typename || "unknown",
         },
         list_data: {

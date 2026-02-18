@@ -163,6 +163,25 @@ async function fetchImageUrls(page, listingId) {
   }
 }
 
+// ── 매물 상세 정보 조회 (방향/욕실/정확면적) ──
+const KB_DETAIL_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+  Accept: "application/json",
+  Referer: "https://kbland.kr/",
+};
+
+async function fetchKbDetailInfo(listingId) {
+  try {
+    const url = `https://api.kbland.kr/land-property/property/dtailInfo?${encodeURIComponent("매물일련번호")}=${listingId}`;
+    const res = await fetch(url, { headers: KB_DETAIL_HEADERS });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.dataBody?.data?.dtailInfo || null;
+  } catch {
+    return null;
+  }
+}
+
 // ── 층수 파싱 (KB 원본: "B1층"→-1, "3층"→3, "B2층"→-2) ──
 function parseFloor(raw) {
   if (raw == null) return null;
@@ -203,6 +222,11 @@ function toRecord(item, district) {
     특징광고: item.특징광고내용 ? item.특징광고내용.substring(0, 100) : null,
     이미지수: item.매물이미지개수 ? parseInt(item.매물이미지개수, 10) : 0,
     sigungu: district,
+    // 상세 API 보강 필드 (fetchKbDetailInfo 후 병합)
+    방향명: null,
+    방향기준명: null,
+    욕실수: null,
+    사용승인일: null,
   };
 }
 
@@ -252,6 +276,10 @@ function toJsonlRecord(record, district) {
       registeredDate: record.등록년월일,
       agencyName: record.중개업소명,
       description: record.특징광고,
+      direction: record.방향명 || null,
+      directionCriterion: record.방향기준명 || null,
+      bathroomCount: record.욕실수 || null,
+      approveDate: record.사용승인일 || null,
       imageCount: record.이미지수,
       imageUrls: record._imageUrls || [],
     },
@@ -293,6 +321,8 @@ function toNormalizedRecord(record, district) {
     total_floor: parseFloor(record.총층수),
     building_use: buildingUse,
     building_name: record.건물명 || null,
+    direction: record.방향명 || null,
+    bathroom_count: record.욕실수 || null,
     agent_name: record.중개업소명 || null,
     listed_at: record.등록년월일 || null,
     image_urls: record._imageUrls || [],
@@ -429,9 +459,32 @@ async function main() {
       }
     }
 
+    // 5단계: 상세 API로 방향/욕실/면적 보강
+    console.log(`  5) 상세 API 보강 (${capped.length}건)...`);
+    let detailOk = 0;
+    for (const r of capped) {
+      const detail = await fetchKbDetailInfo(r.매물일련번호);
+      if (!detail) continue;
+      detailOk++;
+      if (detail.방향명) r.방향명 = detail.방향명;
+      if (detail.방향기준명) r.방향기준명 = detail.방향기준명;
+      if (detail.욕실수 != null) r.욕실수 = parseInt(detail.욕실수, 10);
+      if (detail.사용승인일) r.사용승인일 = detail.사용승인일;
+      // 면적 보정: 상세 API 전용면적이 더 정확
+      const detailArea = detail.전용면적 ? parseFloat(detail.전용면적) : null;
+      const detailSupply = detail.공급면적 ? parseFloat(detail.공급면적) : null;
+      if (detailArea && Number.isFinite(detailArea) && detailArea > 0 && detailArea < 1000) {
+        r.전용면적 = detailArea;
+      }
+      if (detailSupply && Number.isFinite(detailSupply) && detailSupply > 0) {
+        r.공급면적 = detailSupply;
+      }
+    }
+    console.log(`     상세 보강 완료: ${detailOk}/${capped.length}건`);
+
     // 샘플 출력
     for (const r of capped.slice(0, 3)) {
-      console.log(`     • ${r.매물일련번호}: [${r.매물종별구분명}] ${r.읍면동명} ${r.건물명} | ${r.월세보증금}/${r.월세가}만 | ${r.전용면적}㎡ ${r.방수}방`);
+      console.log(`     • ${r.매물일련번호}: [${r.매물종별구분명}] ${r.읍면동명} ${r.건물명} | ${r.월세보증금}/${r.월세가}만 | ${r.전용면적}㎡ ${r.방수}방 ${r.방향명 || ""}`);
     }
 
     // JSONL 레코드 생성

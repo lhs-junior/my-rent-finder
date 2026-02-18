@@ -203,7 +203,16 @@ export function normalizeDate(value) {
 
 export function getDbConfig() {
   if (toSafeString(process.env.DATABASE_URL)) {
-    const cfg = { connectionString: process.env.DATABASE_URL };
+    // When using DATABASE_URL, clear PG* env vars that conflict with connectionString.
+    // pg library reads PGHOST/PGPORT from process.env even when connectionString is provided.
+    for (const key of ["PGHOST", "PGPORT", "PGDATABASE", "PGUSER", "PGPASSWORD"]) {
+      delete process.env[key];
+    }
+    const cfg = {
+      connectionString: process.env.DATABASE_URL,
+      connectionTimeoutMillis: 15000,
+      query_timeout: 30000,
+    };
     if (process.env.DATABASE_URL.includes("neon.tech") || process.env.DATABASE_URL.includes("sslmode=require")) {
       cfg.ssl = { rejectUnauthorized: false };
     }

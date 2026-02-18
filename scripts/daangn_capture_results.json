@@ -1,8 +1,8 @@
 {
-  "runId": "daangn_1771323123638",
+  "runId": "daangn_1771336870522",
   "success": true,
   "districts": "노원구",
-  "sampleCap": null,
+  "sampleCap": 3,
   "filters": {
     "rentMax": 80,
     "depositMax": 6000,
@@ -11,17 +11,17 @@
   "stats": {
     "노원구": {
       "total": 153,
-      "residential": 59,
+      "residential": 58,
       "filtered": 6,
-      "capped": 6
+      "capped": 3
     }
   },
-  "totalListings": 6,
+  "totalListings": 3,
   "dataQuality": {
-    "grade": "GOOD",
+    "grade": "PARTIAL",
     "addressRate": 1,
     "imageRate": 1,
     "areaRate": 1
   },
-  "timestamp": "2026-02-17T10:12:03.638Z"
+  "timestamp": "2026-02-17T14:01:10.522Z"
 }

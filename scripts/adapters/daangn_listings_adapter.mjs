@@ -640,9 +640,15 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
           "area_type",
         ],
         roomCountKeys: [
+          "roomCnt",
           "roomCount",
           "room_cnt",
           "room_cnts",
+        ],
+        bathroomCountKeys: [
+          "bathroomCnt",
+          "bathroomCount",
+          "bathroom_cnt",
         ],
         imageKeys: [
           "image",
