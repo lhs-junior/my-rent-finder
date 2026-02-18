@@ -11,6 +11,7 @@
     "lint": "eslint scripts/*.mjs scripts/lib/*.mjs scripts/lib/api_routes/*.mjs frontend/src/ --max-warnings=50",
     "format": "prettier --write \"scripts/**/*.mjs\" \"frontend/src/**/*.{js,jsx,css}\"",
     "format:check": "prettier --check \"scripts/**/*.mjs\" \"frontend/src/**/*.{js,jsx,css}\"",
+    "collect:naver": "bash scripts/collect_naver.sh",
     "collect:parallel": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100",
     "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
     "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
