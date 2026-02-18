@@ -41,7 +41,7 @@ jobs:
           node scripts/run_parallel_collect.mjs \
             --sample-cap 20 \
             --persist-to-db \
-            --platforms daangn,dabang,zigbang,naver \
+            --platforms daangn,dabang,zigbang \
             --max-adapter-items 50 \
             --qa-strict false
 
