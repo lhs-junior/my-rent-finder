@@ -1136,9 +1136,11 @@ async function upsertNormalizedListing(
         listed_at,
         available_date,
         source_ref,
-        quality_flags
+        quality_flags,
+        lat,
+        lng
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33
       )
       ON CONFLICT (platform_code, external_id) DO UPDATE
       SET raw_id = EXCLUDED.raw_id,
@@ -1170,6 +1172,8 @@ async function upsertNormalizedListing(
           available_date = EXCLUDED.available_date,
           source_ref = EXCLUDED.source_ref,
           quality_flags = EXCLUDED.quality_flags,
+          lat = COALESCE(EXCLUDED.lat, normalized_listings.lat),
+          lng = COALESCE(EXCLUDED.lng, normalized_listings.lng),
           updated_at = NOW()
       RETURNING listing_id
     `,
@@ -1205,6 +1209,8 @@ async function upsertNormalizedListing(
       toText(item?.available_date || item?.availableDate, null),
       sourceRef,
       JSON.stringify(qualityPayload),
+      item?.lat != null && Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
+      item?.lng != null && Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
     ],
   );
 

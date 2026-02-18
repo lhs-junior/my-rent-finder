@@ -1,0 +1,549 @@
+{
+  "generatedAt": "2026-02-17T15:22:44.914Z",
+  "platforms": {
+    "dabang": {
+      "totalNormalized": 91,
+      "totalRaw": 91,
+      "matched": 91,
+      "unmatched": 0,
+      "fields": {
+        "rent_amount": {
+          "label": "월세",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "deposit_amount": {
+          "label": "보증금",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_exclusive_m2": {
+          "label": "전용면적",
+          "total": 91,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 91,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "698c27f00ea12008f5f81614",
+              "type": "MISSING",
+              "rawVal": 45,
+              "normVal": null
+            },
+            {
+              "ref": "697c59343d51991d017a0906",
+              "type": "MISSING",
+              "rawVal": 49.58,
+              "normVal": null
+            },
+            {
+              "ref": "6969fb1fc2e8aa3d6cb02117",
+              "type": "MISSING",
+              "rawVal": 46.2,
+              "normVal": null
+            },
+            {
+              "ref": "698ee6213b37624a151a939f",
+              "type": "MISSING",
+              "rawVal": 40,
+              "normVal": null
+            },
+            {
+              "ref": "698e8e5c543d38039656b3c3",
+              "type": "MISSING",
+              "rawVal": 47.11,
+              "normVal": null
+            },
+            {
+              "ref": "6983f7caf75c8e40ec94380c",
+              "type": "MISSING",
+              "rawVal": 44,
+              "normVal": null
+            },
+            {
+              "ref": "697da26bae38616287f49d1b",
+              "type": "MISSING",
+              "rawVal": 49.58,
+              "normVal": null
+            },
+            {
+              "ref": "698ab47d0b8f3f4a10ae826d",
+              "type": "MISSING",
+              "rawVal": 45,
+              "normVal": null
+            },
+            {
+              "ref": "698ab4b0cf7aef4d88eb549f",
+              "type": "MISSING",
+              "rawVal": 45,
+              "normVal": null
+            },
+            {
+              "ref": "6976a0d4eb1d1422a2709f31",
+              "type": "MISSING",
+              "rawVal": 42.97,
+              "normVal": null
+            },
+            {
+              "ref": "6982b3f67579326e7f4e4a80",
+              "type": "MISSING",
+              "rawVal": 40,
+              "normVal": null
+            },
+            {
+              "ref": "695cb2cceaf1ca7060027e0e",
+              "type": "MISSING",
+              "rawVal": 42.97,
+              "normVal": null
+            },
+            {
+              "ref": "698c4b9729a1f10488a691ca",
+              "type": "MISSING",
+              "rawVal": 42.9,
+              "normVal": null
+            },
+            {
+              "ref": "699199697503b26eee68a328",
+              "type": "MISSING",
+              "rawVal": 45,
+              "normVal": null
+            },
+            {
+              "ref": "698af3b479610a2d1e7bf648",
+              "type": "MISSING",
+              "rawVal": 46.28,
+              "normVal": null
+            },
+            {
+              "ref": "69898a7e986e8d683dfb2683",
+              "type": "MISSING",
+              "rawVal": 40,
+              "normVal": null
+            },
+            {
+              "ref": "6985dbcc7e168f7708add177",
+              "type": "MISSING",
+              "rawVal": 41.1,
+              "normVal": null
+            },
+            {
+              "ref": "698eedc94813d97ebab56e51",
+              "type": "MISSING",
+              "rawVal": 58,
+              "normVal": null
+            },
+            {
+              "ref": "6989693587d8d2433d0772ee",
+              "type": "MISSING",
+              "rawVal": 42.97,
+              "normVal": null
+            },
+            {
+              "ref": "698bfa78322ef3221e3a18ce",
+              "type": "MISSING",
+              "rawVal": 46.28,
+              "normVal": null
+            }
+          ]
+        },
+        "area_gross_m2": {
+          "label": "공급면적",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "floor": {
+          "label": "층수",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "total_floor": {
+          "label": "총층수",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "direction": {
+          "label": "향",
+          "total": 91,
+          "ok": 91,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "lat": {
+          "label": "위도",
+          "total": 91,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 91,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "698c27f00ea12008f5f81614",
+              "type": "MISSING",
+              "rawVal": 37.5981224025291,
+              "normVal": null
+            },
+            {
+              "ref": "697c59343d51991d017a0906",
+              "type": "MISSING",
+              "rawVal": 37.5905255323235,
+              "normVal": null
+            },
+            {
+              "ref": "6969fb1fc2e8aa3d6cb02117",
+              "type": "MISSING",
+              "rawVal": 37.6031123682746,
+              "normVal": null
+            },
+            {
+              "ref": "698ee6213b37624a151a939f",
+              "type": "MISSING",
+              "rawVal": 37.5931397659283,
+              "normVal": null
+            },
+            {
+              "ref": "698e8e5c543d38039656b3c3",
+              "type": "MISSING",
+              "rawVal": 37.606506164782544,
+              "normVal": null
+            },
+            {
+              "ref": "6983f7caf75c8e40ec94380c",
+              "type": "MISSING",
+              "rawVal": 37.59052553232352,
+              "normVal": null
+            },
+            {
+              "ref": "697da26bae38616287f49d1b",
+              "type": "MISSING",
+              "rawVal": 37.58195866473004,
+              "normVal": null
+            },
+            {
+              "ref": "698ab47d0b8f3f4a10ae826d",
+              "type": "MISSING",
+              "rawVal": 37.58235430889729,
+              "normVal": null
+            },
+            {
+              "ref": "698ab4b0cf7aef4d88eb549f",
+              "type": "MISSING",
+              "rawVal": 37.58235430889729,
+              "normVal": null
+            },
+            {
+              "ref": "6976a0d4eb1d1422a2709f31",
+              "type": "MISSING",
+              "rawVal": 37.58926129100994,
+              "normVal": null
+            },
+            {
+              "ref": "6982b3f67579326e7f4e4a80",
+              "type": "MISSING",
+              "rawVal": 37.5853930633388,
+              "normVal": null
+            },
+            {
+              "ref": "695cb2cceaf1ca7060027e0e",
+              "type": "MISSING",
+              "rawVal": 37.5892612910099,
+              "normVal": null
+            },
+            {
+              "ref": "698c4b9729a1f10488a691ca",
+              "type": "MISSING",
+              "rawVal": 37.6116845167667,
+              "normVal": null
+            },
+            {
+              "ref": "699199697503b26eee68a328",
+              "type": "MISSING",
+              "rawVal": 37.5875414055482,
+              "normVal": null
+            },
+            {
+              "ref": "698af3b479610a2d1e7bf648",
+              "type": "MISSING",
+              "rawVal": 37.5909437439535,
+              "normVal": null
+            },
+            {
+              "ref": "69898a7e986e8d683dfb2683",
+              "type": "MISSING",
+              "rawVal": 37.59404308893183,
+              "normVal": null
+            },
+            {
+              "ref": "6985dbcc7e168f7708add177",
+              "type": "MISSING",
+              "rawVal": 37.57346,
+              "normVal": null
+            },
+            {
+              "ref": "698eedc94813d97ebab56e51",
+              "type": "MISSING",
+              "rawVal": 37.6071499628837,
+              "normVal": null
+            },
+            {
+              "ref": "6989693587d8d2433d0772ee",
+              "type": "MISSING",
+              "rawVal": 37.5888754795411,
+              "normVal": null
+            },
+            {
+              "ref": "698bfa78322ef3221e3a18ce",
+              "type": "MISSING",
+              "rawVal": 37.5817842821183,
+              "normVal": null
+            }
+          ]
+        },
+        "lng": {
+          "label": "경도",
+          "total": 91,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 91,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "698c27f00ea12008f5f81614",
+              "type": "MISSING",
+              "rawVal": 127.085230103702,
+              "normVal": null
+            },
+            {
+              "ref": "697c59343d51991d017a0906",
+              "type": "MISSING",
+              "rawVal": 127.100768295625,
+              "normVal": null
+            },
+            {
+              "ref": "6969fb1fc2e8aa3d6cb02117",
+              "type": "MISSING",
+              "rawVal": 127.086299245094,
+              "normVal": null
+            },
+            {
+              "ref": "698ee6213b37624a151a939f",
+              "type": "MISSING",
+              "rawVal": 127.081681765477,
+              "normVal": null
+            },
+            {
+              "ref": "698e8e5c543d38039656b3c3",
+              "type": "MISSING",
+              "rawVal": 127.07719426790722,
+              "normVal": null
+            },
+            {
+              "ref": "6983f7caf75c8e40ec94380c",
+              "type": "MISSING",
+              "rawVal": 127.10076829562458,
+              "normVal": null
+            },
+            {
+              "ref": "697da26bae38616287f49d1b",
+              "type": "MISSING",
+              "rawVal": 127.08696103494393,
+              "normVal": null
+            },
+            {
+              "ref": "698ab47d0b8f3f4a10ae826d",
+              "type": "MISSING",
+              "rawVal": 127.0850136067696,
+              "normVal": null
+            },
+            {
+              "ref": "698ab4b0cf7aef4d88eb549f",
+              "type": "MISSING",
+              "rawVal": 127.0850136067696,
+              "normVal": null
+            },
+            {
+              "ref": "6976a0d4eb1d1422a2709f31",
+              "type": "MISSING",
+              "rawVal": 127.10046355766296,
+              "normVal": null
+            },
+            {
+              "ref": "6982b3f67579326e7f4e4a80",
+              "type": "MISSING",
+              "rawVal": 127.060475229661,
+              "normVal": null
+            },
+            {
+              "ref": "695cb2cceaf1ca7060027e0e",
+              "type": "MISSING",
+              "rawVal": 127.100463557663,
+              "normVal": null
+            },
+            {
+              "ref": "698c4b9729a1f10488a691ca",
+              "type": "MISSING",
+              "rawVal": 127.078604959934,
+              "normVal": null
+            },
+            {
+              "ref": "699199697503b26eee68a328",
+              "type": "MISSING",
+              "rawVal": 127.061695914422,
+              "normVal": null
+            },
+            {
+              "ref": "698af3b479610a2d1e7bf648",
+              "type": "MISSING",
+              "rawVal": 127.097005050829,
+              "normVal": null
+            },
+            {
+              "ref": "69898a7e986e8d683dfb2683",
+              "type": "MISSING",
+              "rawVal": 127.07952356367288,
+              "normVal": null
+            },
+            {
+              "ref": "6985dbcc7e168f7708add177",
+              "type": "MISSING",
+              "rawVal": 127.071547,
+              "normVal": null
+            },
+            {
+              "ref": "698eedc94813d97ebab56e51",
+              "type": "MISSING",
+              "rawVal": 127.074434503751,
+              "normVal": null
+            },
+            {
+              "ref": "6989693587d8d2433d0772ee",
+              "type": "MISSING",
+              "rawVal": 127.061712205829,
+              "normVal": null
+            },
+            {
+              "ref": "698bfa78322ef3221e3a18ce",
+              "type": "MISSING",
+              "rawVal": 127.087821133704,
+              "normVal": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  "fieldSummary": {
+    "rent_amount": {
+      "label": "월세",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "deposit_amount": {
+      "label": "보증금",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "area_exclusive_m2": {
+      "label": "전용면적",
+      "total": 266,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 266,
+      "anomaly": 0,
+      "okRate": 0
+    },
+    "area_gross_m2": {
+      "label": "공급면적",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "floor": {
+      "label": "층수",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "total_floor": {
+      "label": "총층수",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "direction": {
+      "label": "향",
+      "total": 266,
+      "ok": 266,
+      "mismatch": 0,
+      "missing": 0,
+      "anomaly": 0,
+      "okRate": 1
+    },
+    "lat": {
+      "label": "위도",
+      "total": 266,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 266,
+      "anomaly": 0,
+      "okRate": 0
+    },
+    "lng": {
+      "label": "경도",
+      "total": 266,
+      "ok": 0,
+      "mismatch": 0,
+      "missing": 266,
+      "anomaly": 0,
+      "okRate": 0
+    }
+  }
+}

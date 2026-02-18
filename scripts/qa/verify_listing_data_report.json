@@ -1,11 +1,645 @@
 {
-  "generatedAt": "2026-02-17T13:01:38.462Z",
+  "generatedAt": "2026-02-17T15:23:06.632Z",
   "platforms": {
-    "daangn": {
-      "totalNormalized": 0,
-      "totalRaw": 0,
-      "matched": 0,
+    "dabang": {
+      "totalNormalized": 13,
+      "totalRaw": 13,
+      "matched": 13,
       "unmatched": 0,
+      "fields": {
+        "rent_amount": {
+          "label": "월세",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "deposit_amount": {
+          "label": "보증금",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_exclusive_m2": {
+          "label": "전용면적",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_gross_m2": {
+          "label": "공급면적",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "floor": {
+          "label": "층수",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "total_floor": {
+          "label": "총층수",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "direction": {
+          "label": "향",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "lat": {
+          "label": "위도",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "lng": {
+          "label": "경도",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        }
+      }
+    },
+    "naver": {
+      "totalNormalized": 12,
+      "totalRaw": 4,
+      "matched": 12,
+      "unmatched": 0,
+      "fields": {
+        "rent_amount": {
+          "label": "월세",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "deposit_amount": {
+          "label": "보증금",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_exclusive_m2": {
+          "label": "전용면적",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_gross_m2": {
+          "label": "공급면적",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "floor": {
+          "label": "층수",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "total_floor": {
+          "label": "총층수",
+          "total": 12,
+          "ok": 12,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "direction": {
+          "label": "향",
+          "total": 12,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 12,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": "남서향"
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": "동향"
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": "남서향"
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": "동향"
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": "남서향"
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": "동향"
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": "남동향"
+            }
+          ]
+        },
+        "lat": {
+          "label": "위도",
+          "total": 12,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 12,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 37.606352
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 37.606352
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 37.606352
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 37.617546
+            }
+          ]
+        },
+        "lng": {
+          "label": "경도",
+          "total": 12,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 12,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 127.100212
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 127.100212
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2607871705",
+              "type": "MISSING",
+              "rawVal": 127.100212
+            },
+            {
+              "ref": "2606332733",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2604487227",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            },
+            {
+              "ref": "2605159004",
+              "type": "MISSING",
+              "rawVal": 127.101723
+            }
+          ]
+        }
+      }
+    },
+    "peterpanz": {
+      "totalNormalized": 13,
+      "totalRaw": 13,
+      "matched": 13,
+      "unmatched": 0,
+      "fields": {
+        "rent_amount": {
+          "label": "월세",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "deposit_amount": {
+          "label": "보증금",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_exclusive_m2": {
+          "label": "전용면적",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "area_gross_m2": {
+          "label": "공급면적",
+          "total": 13,
+          "ok": 9,
+          "mismatch": 0,
+          "missing": 4,
+          "anomaly": 0,
+          "okRate": 0.6923,
+          "details": [
+            {
+              "ref": "18873881",
+              "type": "MISSING",
+              "rawVal": 0,
+              "normVal": null
+            },
+            {
+              "ref": "18873013",
+              "type": "MISSING",
+              "rawVal": 0,
+              "normVal": null
+            },
+            {
+              "ref": "18818494",
+              "type": "MISSING",
+              "rawVal": 0,
+              "normVal": null
+            },
+            {
+              "ref": "18875658",
+              "type": "MISSING",
+              "rawVal": 0,
+              "normVal": null
+            }
+          ]
+        },
+        "floor": {
+          "label": "층수",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "total_floor": {
+          "label": "총층수",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "direction": {
+          "label": "향",
+          "total": 13,
+          "ok": 13,
+          "mismatch": 0,
+          "missing": 0,
+          "anomaly": 0,
+          "okRate": 1,
+          "details": []
+        },
+        "lat": {
+          "label": "위도",
+          "total": 13,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 13,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "18751434",
+              "type": "MISSING",
+              "rawVal": "37.6153154"
+            },
+            {
+              "ref": "18873881",
+              "type": "MISSING",
+              "rawVal": "37.5817099"
+            },
+            {
+              "ref": "18767197",
+              "type": "MISSING",
+              "rawVal": "37.5847334"
+            },
+            {
+              "ref": "18876335",
+              "type": "MISSING",
+              "rawVal": "37.5895532"
+            },
+            {
+              "ref": "18870407",
+              "type": "MISSING",
+              "rawVal": "37.5927501"
+            },
+            {
+              "ref": "18876090",
+              "type": "MISSING",
+              "rawVal": "37.5980354"
+            },
+            {
+              "ref": "18873013",
+              "type": "MISSING",
+              "rawVal": "37.5817099"
+            },
+            {
+              "ref": "18886570",
+              "type": "MISSING",
+              "rawVal": "37.5823868"
+            },
+            {
+              "ref": "18793481",
+              "type": "MISSING",
+              "rawVal": "37.6031108"
+            },
+            {
+              "ref": "18870283",
+              "type": "MISSING",
+              "rawVal": "37.5823868"
+            },
+            {
+              "ref": "18818494",
+              "type": "MISSING",
+              "rawVal": "37.580754"
+            },
+            {
+              "ref": "18762009",
+              "type": "MISSING",
+              "rawVal": "37.5741225"
+            },
+            {
+              "ref": "18875658",
+              "type": "MISSING",
+              "rawVal": "37.5727607"
+            }
+          ]
+        },
+        "lng": {
+          "label": "경도",
+          "total": 13,
+          "ok": 0,
+          "mismatch": 0,
+          "missing": 13,
+          "anomaly": 0,
+          "okRate": 0,
+          "details": [
+            {
+              "ref": "18751434",
+              "type": "MISSING",
+              "rawVal": "127.0800895"
+            },
+            {
+              "ref": "18873881",
+              "type": "MISSING",
+              "rawVal": "127.087761"
+            },
+            {
+              "ref": "18767197",
+              "type": "MISSING",
+              "rawVal": "127.0853851"
+            },
+            {
+              "ref": "18876335",
+              "type": "MISSING",
+              "rawVal": "127.0981772"
+            },
+            {
+              "ref": "18870407",
+              "type": "MISSING",
+              "rawVal": "127.0896139"
+            },
+            {
+              "ref": "18876090",
+              "type": "MISSING",
+              "rawVal": "127.0853821"
+            },
+            {
+              "ref": "18873013",
+              "type": "MISSING",
+              "rawVal": "127.087761"
+            },
+            {
+              "ref": "18886570",
+              "type": "MISSING",
+              "rawVal": "127.0851874"
+            },
+            {
+              "ref": "18793481",
+              "type": "MISSING",
+              "rawVal": "127.1031041"
+            },
+            {
+              "ref": "18870283",
+              "type": "MISSING",
+              "rawVal": "127.0851874"
+            },
+            {
+              "ref": "18818494",
+              "type": "MISSING",
+              "rawVal": "127.0845897"
+            },
+            {
+              "ref": "18762009",
+              "type": "MISSING",
+              "rawVal": "127.0813272"
+            },
+            {
+              "ref": "18875658",
+              "type": "MISSING",
+              "rawVal": "127.0813927"
+            }
+          ]
+        }
+      }
+    },
+    "zigbang": {
+      "totalNormalized": 4,
+      "totalRaw": 4,
+      "matched": 0,
+      "unmatched": 4,
       "fields": {
         "rent_amount": {
           "label": "월세",
@@ -103,84 +737,84 @@
   "fieldSummary": {
     "rent_amount": {
       "label": "월세",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 270,
       "mismatch": 0,
       "missing": 0,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 1
     },
     "deposit_amount": {
       "label": "보증금",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 270,
       "mismatch": 0,
       "missing": 0,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 1
     },
     "area_exclusive_m2": {
       "label": "전용면적",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 270,
       "mismatch": 0,
       "missing": 0,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 1
     },
     "area_gross_m2": {
       "label": "공급면적",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 249,
       "mismatch": 0,
-      "missing": 0,
+      "missing": 21,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 0.9222
     },
     "floor": {
       "label": "층수",
-      "total": 0,
-      "ok": 0,
-      "mismatch": 0,
+      "total": 270,
+      "ok": 198,
+      "mismatch": 71,
       "missing": 0,
-      "anomaly": 0,
-      "okRate": null
+      "anomaly": 1,
+      "okRate": 0.7333
     },
     "total_floor": {
       "label": "총층수",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 259,
       "mismatch": 0,
-      "missing": 0,
+      "missing": 11,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 0.9593
     },
     "direction": {
       "label": "향",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 130,
       "mismatch": 0,
-      "missing": 0,
+      "missing": 140,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 0.4815
     },
     "lat": {
       "label": "위도",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 83,
       "mismatch": 0,
-      "missing": 0,
+      "missing": 187,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 0.3074
     },
     "lng": {
       "label": "경도",
-      "total": 0,
-      "ok": 0,
+      "total": 270,
+      "ok": 83,
       "mismatch": 0,
-      "missing": 0,
+      "missing": 187,
       "anomaly": 0,
-      "okRate": null
+      "okRate": 0.3074
     }
   }
 }
