@@ -348,7 +348,7 @@ const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
 const CP_IMAGE_SOURCE_LIMIT = 24;
 const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
-const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_)/i;
+const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$))/i;
 const CP_IMAGE_SOURCE_HOST_HINTS = ["newimg.serve.co.kr", "img.serve.co.kr", "cdn.serve.co.kr", "serve.co.kr", "www.serve.co.kr"];
 const CP_HOST_IMAGE_RULES = [
   {
@@ -377,6 +377,9 @@ function isAllowedCpImageHost(hostname, pathname = "", cpArticleHostname = null)
   const host = String(hostname || "").toLowerCase();
   if (!host) return false;
   const normalizedPathname = String(pathname || "").toLowerCase();
+
+  // Global bad pattern check — applied regardless of host match
+  if (CP_IMAGE_PATH_BAD_PATTERNS.test(normalizedPathname)) return false;
 
   if (CP_IMAGE_HOSTS.has(host)) return true;
   if (CP_IMAGE_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(suffix))) return true;
@@ -451,6 +454,11 @@ function normalizeCpImageUrl(raw, baseUrl = null, cpArticleHostname = null) {
   }
   if (!CP_IMAGE_EXTENSION_RE.test(normalizedUrl)) {
     return null;
+  }
+
+  // Upgrade http → https to avoid mixed content on HTTPS deployments
+  if (parsed.protocol === "http:") {
+    parsed.protocol = "https:";
   }
 
   return parsed.toString();
