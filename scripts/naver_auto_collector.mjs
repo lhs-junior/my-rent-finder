@@ -266,42 +266,6 @@ function buildArticleApiUrl(state, overrides = {}) {
   return buildArticleApiQuery(state, overrides).url;
 }
 
-function extractNaverDetailImages(detail) {
-  const urls = [];
-  if (!detail) return urls;
-  const ad = detail.articleDetail || detail;
-  if (ad.representativeImgUrl) urls.push(ad.representativeImgUrl);
-  const photos = ad.articleMedia?.photoList || ad.photoList || ad.imageList || [];
-  for (const p of photos) {
-    const url = p.photoUrl || p.url || p.imgUrl || p.fileUrl || (typeof p === "string" ? p : null);
-    if (url && !urls.includes(url)) urls.push(url);
-  }
-  return urls.filter((u) => u && typeof u === "string" && u.startsWith("http"));
-}
-
-async function fetchArticleDetail(page, articleNo) {
-  try {
-    return await page.evaluate(async (no) => {
-      try {
-        const res = await fetch(`https://new.land.naver.com/api/articles/${no}`, {
-          headers: {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "ko-KR,ko;q=0.9",
-          },
-          credentials: "include",
-        });
-        if (!res.ok) return { ok: false, status: res.status };
-        const data = await res.json();
-        return { ok: true, data };
-      } catch (e) {
-        return { ok: false, error: String(e.message) };
-      }
-    }, String(articleNo));
-  } catch (e) {
-    return { ok: false, error: String(e?.message) };
-  }
-}
-
 async function captureDirectArticleAPI(page, capturedResponses, rawStream, overrides = {}) {
   const state = extractMapStateFromUrl(page.url());
   const result = {
@@ -419,41 +383,6 @@ async function captureDirectArticleAPI(page, capturedResponses, rawStream, overr
         responsePayloadError: !!parseError || !!body?.error,
       };
       result.requestLog.push(requestLog);
-
-      // ── Image enrichment ──────────────────────────────────────────────────
-      const imageCap = Number.isFinite(sampleCap) ? sampleCap : 20;
-      const articlesWithImages = articleList.filter(
-        (a) => Number(a.siteImageCount ?? a.imageCount ?? 0) > 0,
-      );
-      const toEnrich = articlesWithImages.slice(0, imageCap);
-      let enrichedCount = 0;
-      let totalImagesFound = 0;
-
-      for (const article of toEnrich) {
-        const articleNo = article.atclNo ?? article.articleNo;
-        if (!articleNo) continue;
-        try {
-          const detailResult = await fetchArticleDetail(page, articleNo);
-          if (detailResult.ok && detailResult.data) {
-            const imgs = extractNaverDetailImages(detailResult.data);
-            if (imgs.length > 0) {
-              article._fetchedImages = imgs;
-              enrichedCount += 1;
-              totalImagesFound += imgs.length;
-            }
-          } else if (verbose) {
-            console.warn(`  ⚠️  Detail fetch failed for ${articleNo}: ${detailResult.status ?? detailResult.error}`);
-          }
-        } catch (enrichErr) {
-          console.warn(`  ⚠️  Image enrichment error for ${articleNo}: ${enrichErr?.message || enrichErr}`);
-        }
-        await randomDelay(300, 700);
-      }
-
-      if (toEnrich.length > 0) {
-        console.log(`🖼️  Image enrichment: ${enrichedCount}/${toEnrich.length} articles enriched (${totalImagesFound} images)`);
-      }
-      // ─────────────────────────────────────────────────────────────────────
 
       const record = {
         platform_code: "naver",

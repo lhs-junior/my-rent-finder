@@ -75,7 +75,6 @@ function collectNaverImageCandidates(raw) {
   };
 
   const candidates = [
-    raw._fetchedImages,
     raw.articlePhotos,
     raw.photos,
     raw.images,
@@ -330,6 +329,8 @@ const CP_IMAGE_HOST_SUFFIXES = [
   ".bizmk.kr",
   ".neonet.co.kr",
   ".serve.co.kr",
+  ".ten.co.kr",
+  "ten.co.kr",
 ];
 const CP_IMAGE_PATH_HINTS = [
   "/memulPhoto/",
@@ -372,7 +373,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isAllowedCpImageHost(hostname, pathname = "") {
+function isAllowedCpImageHost(hostname, pathname = "", cpArticleHostname = null) {
   const host = String(hostname || "").toLowerCase();
   if (!host) return false;
   const normalizedPathname = String(pathname || "").toLowerCase();
@@ -387,6 +388,14 @@ function isAllowedCpImageHost(hostname, pathname = "") {
     return rule.pathHints.length === 0 ? true : rule.pathHints.some((hint) => normalizedPathname.includes(hint));
   });
   if (hasMatchedRule) return true;
+
+  // Dynamic: allow images from same root domain as the CP article page itself
+  if (cpArticleHostname) {
+    const rootDomain = String(cpArticleHostname).toLowerCase().replace(/^(?:www|img|image|photo|cdn|static|media)\./i, "");
+    if (rootDomain && (host === rootDomain || host.endsWith(`.${rootDomain}`))) {
+      return CP_IMAGE_EXTENSION_RE.test(normalizedPathname) && !CP_IMAGE_PATH_BAD_PATTERNS.test(normalizedPathname);
+    }
+  }
 
   return isAllowedCpImagePath(normalizedPathname);
 }
@@ -406,7 +415,7 @@ function isAllowedCpImagePath(pathname) {
   return false;
 }
 
-function normalizeCpImageUrl(raw, baseUrl = null) {
+function normalizeCpImageUrl(raw, baseUrl = null, cpArticleHostname = null) {
   const text = normalizeText(raw);
   if (!text) return null;
 
@@ -434,7 +443,7 @@ function normalizeCpImageUrl(raw, baseUrl = null) {
 
   const path = parsed.pathname || "";
   const host = parsed.hostname.toLowerCase();
-  if (!isAllowedCpImageHost(host) && !isAllowedCpImagePath(path)) {
+  if (!isAllowedCpImageHost(host, path, cpArticleHostname) && !isAllowedCpImagePath(path)) {
     return null;
   }
   if (String(path).includes("/main/")) {
@@ -616,7 +625,7 @@ async function fetchTextWithRetry(url, {
   return { ok: false, status: null, text: aggregatedText, finalUrl };
 }
 
-function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
+function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null, cpArticleHostname = null) {
   if (!html) return [];
   const imageAttributeRegex = /(?:src|href|data-src|data-original|srcset|poster)\s*=\s*["']([^"']+)["']/gi;
   const absoluteImageRegex = /(?:https?:)?\/\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\\s<>]*)?/gi;
@@ -631,7 +640,7 @@ function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
       .filter(Boolean);
 
     for (const candidate of candidates) {
-      const normalized = normalizeCpImageUrl(candidate, baseUrl);
+      const normalized = normalizeCpImageUrl(candidate, baseUrl, cpArticleHostname);
       if (!normalized || seen.has(normalized)) continue;
       seen.add(normalized);
       out.push(normalized);
@@ -641,7 +650,7 @@ function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
 
   for (const match of html.matchAll(imageAttributeRegex)) {
     const raw = match[0].toLowerCase();
-    const normalized = normalizeCpImageUrl(match[1], baseUrl);
+    const normalized = normalizeCpImageUrl(match[1], baseUrl, cpArticleHostname);
     if (raw.includes("srcset")) {
       addSrcsetUrls(match[1]);
       continue;
@@ -655,7 +664,7 @@ function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
 
   if (out.length < imageLimit) {
     for (const match of html.matchAll(absoluteImageRegex)) {
-      const normalized = normalizeCpImageUrl(match[0], baseUrl);
+      const normalized = normalizeCpImageUrl(match[0], baseUrl, cpArticleHostname);
       if (!normalized || seen.has(normalized)) continue;
       seen.add(normalized);
       out.push(normalized);
@@ -665,7 +674,7 @@ function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null) {
 
   if (out.length < imageLimit) {
     for (const match of html.matchAll(relativeImageRegex)) {
-      const normalized = normalizeCpImageUrl(match[0], baseUrl);
+      const normalized = normalizeCpImageUrl(match[0], baseUrl, cpArticleHostname);
       if (!normalized || seen.has(normalized)) continue;
       seen.add(normalized);
       out.push(normalized);
@@ -685,7 +694,11 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
   if (!fetchResult.text) return [];
 
   const articleUrlForBase = fetchResult.finalUrl || normalizedArticleUrl;
-  const cpImageUrls = extractCpImageUrlsFromHtml(fetchResult.text, imageLimit, articleUrlForBase);
+  const cpArticleHostname = (() => {
+    try { return new URL(articleUrlForBase).hostname.toLowerCase(); } catch { return null; }
+  })();
+
+  const cpImageUrls = extractCpImageUrlsFromHtml(fetchResult.text, imageLimit, articleUrlForBase, cpArticleHostname);
   if (cpImageUrls.length > 0) return cpImageUrls;
 
   const mkGalleryUrl = buildMkGalleryUrl(articleUrlForBase, fetchResult.text);
@@ -698,6 +711,7 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
     mkGalleryResult.text,
     imageLimit,
     mkGalleryResult.finalUrl || mkGalleryUrl,
+    cpArticleHostname,
   );
 }
 
@@ -1479,23 +1493,28 @@ export class NaverListingAdapter extends BaseListingAdapter {
     ], null);
 
     const imageUrls = collectNaverImageCandidates(item);
-    const fallbackImageUrls = imageUrls.length === 0 && this.imageFallbackEnabled
-      ? await enrichImageUrlsFromCpArticleUrl(
-          pick(
-            item,
-            [
-              "cpPcArticleUrl",
-              "cpPcArticleLink",
-              "cpPcArticleBridgeUrl",
-              "cpMobileArticleUrl",
-              "cpMobileArticleLink",
-              "cpMobileArticleBridgeUrl",
-            ],
-            null,
-          ),
-          Math.max(1, this.imageFallbackLimit),
-        )
-      : [];
+    let fallbackImageUrls = [];
+    if (imageUrls.length === 0 && this.imageFallbackEnabled) {
+      const cpUrlCandidates = [
+        item.cpPcArticleUrl,
+        item.cpMobileArticleUrl,
+        item.cpPcArticleBridgeUrl,
+        item.cpMobileArticleBridgeUrl,
+        item.cpPcArticleLink,
+        item.cpMobileArticleLink,
+      ]
+        .map((u) => (typeof u === "string" ? u.trim() : ""))
+        .filter(Boolean)
+        .filter((u, i, arr) => arr.indexOf(u) === i);
+
+      for (const cpUrl of cpUrlCandidates) {
+        const imgs = await enrichImageUrlsFromCpArticleUrl(cpUrl, Math.max(1, this.imageFallbackLimit));
+        if (imgs.length > 0) {
+          fallbackImageUrls = imgs;
+          break;
+        }
+      }
+    }
 
     // Extract coordinates — Naver articles have latitude/longitude as strings
     const rawLat = pick(item, ["latitude", "lat", "centerLat"], null);
