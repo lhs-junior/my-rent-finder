@@ -1312,6 +1312,10 @@ async function upsertImageQueue(client, imageQueue) {
         await client.query(upsertBySourceUrl, params);
         continue;
       }
+      if (error?.code === "23503") {
+        console.warn(`⚠️  listing_images FK violation skipped: listing_id=${item.listingId} not in normalized_listings (source_url=${item.sourceUrl})`);
+        continue;
+      }
       throw error;
     }
   }
