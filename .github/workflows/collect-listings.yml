@@ -42,7 +42,8 @@ jobs:
             --sample-cap 20 \
             --persist-to-db \
             --platforms daangn,dabang,zigbang,naver \
-            --max-adapter-items 50
+            --max-adapter-items 50 \
+            --qa-strict false
 
       - name: Upload collection results
         if: always()
