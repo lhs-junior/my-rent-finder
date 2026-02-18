@@ -1,4 +1,4 @@
-import { toPlatformLabel, PLATFORM_COLORS } from "../utils/format.js";
+import { toPlatformLabel, PLATFORM_COLORS, normalizeImageUrl } from "../utils/format.js";
 import FavoriteButton from "./FavoriteButton.jsx";
 
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
@@ -39,10 +39,12 @@ export default function ListingCard({ item, onClick, isFavorite, onToggleFavorit
     item.building_use || null,
   ].filter(Boolean);
 
-  const firstImage = item.first_image_url
+  const firstImage = normalizeImageUrl(
+    item.first_image_url
     || (Array.isArray(item.images) && item.images.length > 0
       ? item.images[0]?.source_url || item.images[0]?.thumbnail_url
-      : null);
+      : null),
+  );
 
   const priceText = `보증금 ${displayMoney(price.deposit)} / 월세 ${price.rent != null ? `${price.rent}만` : "-"}`;
 

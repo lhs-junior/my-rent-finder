@@ -82,6 +82,15 @@ export const PLATFORM_COLORS = {
   daangn: "#FF6F0F",
 };
 
+/** 직방 이미지 CDN은 w/h 파라미터 필수 */
+export function normalizeImageUrl(url) {
+  if (!url) return null;
+  if (url.includes("ic.zigbang.com") && !url.includes("w=")) {
+    return `${url}${url.includes("?") ? "&" : "?"}w=400&h=300`;
+  }
+  return url;
+}
+
 export function normalizeView(value) {
   return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "ops" ? value : "map";
 }

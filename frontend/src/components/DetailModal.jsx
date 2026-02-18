@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { toMoney, toArea, toText, toPlatformLabel } from "../utils/format.js";
+import { toMoney, toArea, toText, toPlatformLabel, normalizeImageUrl } from "../utils/format.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import FavoriteButton from "./FavoriteButton.jsx";
 
@@ -142,7 +142,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                       rel="noopener noreferrer"
                       className="mdl-gallery-item"
                     >
-                      <img src={img.source_url} alt={`매물 이미지 ${idx + 1}`} loading="lazy" />
+                      <img src={normalizeImageUrl(img.source_url)} alt={`매물 이미지 ${idx + 1}`} loading="lazy" />
                     </a>
                   ))}
                 </div>

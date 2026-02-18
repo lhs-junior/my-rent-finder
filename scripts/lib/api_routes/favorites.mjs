@@ -29,6 +29,22 @@ export async function handleFavorites(req, res) {
       : { rows: [] };
     const imageMap = parseImageMap(imageRows.rows || []);
 
+    // Fetch first image URL per listing for card thumbnails
+    const firstImageRows = listingIds.length
+      ? await client.query(
+          `SELECT DISTINCT ON (listing_id) listing_id, source_url
+           FROM listing_images
+           WHERE listing_id = ANY($1) AND source_url IS NOT NULL AND source_url != ''
+           ORDER BY listing_id, is_primary DESC, image_id ASC`,
+          [listingIds],
+        )
+      : { rows: [] };
+    const firstImageMap = new Map();
+    for (const row of firstImageRows.rows || []) {
+      const lid = toInt(row.listing_id, null);
+      if (lid !== null) firstImageMap.set(lid, row.source_url);
+    }
+
     return rows.rows.map((row) => {
       const listingId = toInt(row.listing_id, null);
       return {
@@ -56,6 +72,7 @@ export async function handleFavorites(req, res) {
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
         image_count: Number(imageMap.get(listingId) || 0),
+        first_image_url: firstImageMap.get(listingId) || null,
         created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
       };
     });
