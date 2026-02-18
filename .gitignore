@@ -40,6 +40,10 @@ qa_*.log
 qa_*.png
 frontend_ui_smoke_check.mjs
 
+# QA scripts required for Actions
+!scripts/qa/qa_platform_data_fidelity.mjs
+!scripts/qa/qa_platform_fidelity_gate.mjs
+
 # OMC / OMX state
 .omc/
 .omx/
