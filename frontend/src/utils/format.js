@@ -73,6 +73,15 @@ export function toStatusClass(status) {
   return "status-danger";
 }
 
+export const PLATFORM_COLORS = {
+  naver: "#03C75A",
+  zigbang: "#3B82F6",
+  dabang: "#8B5CF6",
+  kbland: "#EF4444",
+  peterpanz: "#F97316",
+  daangn: "#FF6F0F",
+};
+
 export function normalizeView(value) {
-  return value === "matches" || value === "listings" || value === "map" || value === "favorites" ? value : "ops";
+  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "ops" ? value : "map";
 }
