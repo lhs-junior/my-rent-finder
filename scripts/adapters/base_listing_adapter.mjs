@@ -31,6 +31,89 @@ function normalizeText(v) {
     .trim();
 }
 
+/**
+ * Normalize direction values to standardized Korean format
+ * Handles English abbreviations (S, N, E, W, SE, etc.) and Korean variants
+ * @param {string|null|undefined} value - Raw direction value
+ * @returns {string|null} - Normalized direction in Korean (남향, 북향, etc.) or null
+ */
+export function normalizeDirection(value) {
+  if (!value) return null;
+  const v = String(value).trim();
+  if (!v) return null;
+
+  // Already in Korean format with 향
+  if (v.includes("향")) return v;
+
+  // Normalize to uppercase for English matching
+  const normalized = v.replace(/\s+/g, "").toUpperCase();
+
+  // English to Korean direction mapping
+  const directionMap = {
+    // Single directions
+    S: "남향",
+    N: "북향",
+    E: "동향",
+    W: "서향",
+    // Compound directions
+    SE: "남동향",
+    SW: "남서향",
+    NE: "북동향",
+    NW: "북서향",
+    // Variations
+    SSE: "남향",
+    SSW: "남향",
+    ESE: "동향",
+    ENE: "동향",
+    WSW: "서향",
+    WNW: "서향",
+    NNE: "북향",
+    NNW: "북향",
+    // Full words
+    SOUTH: "남향",
+    NORTH: "북향",
+    EAST: "동향",
+    WEST: "서향",
+    SOUTHEAST: "남동향",
+    SOUTHWEST: "남서향",
+    NORTHEAST: "북동향",
+    NORTHWEST: "북서향",
+  };
+
+  // Check English mapping
+  if (directionMap[normalized]) {
+    return directionMap[normalized];
+  }
+
+  // Korean text matching (남, 북, 동, 서, 남쪽, etc.)
+  const koreanMap = {
+    남: "남향",
+    북: "북향",
+    동: "동향",
+    서: "서향",
+    남쪽: "남향",
+    북쪽: "북향",
+    동쪽: "동향",
+    서쪽: "서향",
+    남동: "남동향",
+    남서: "남서향",
+    북동: "북동향",
+    북서: "북서향",
+    동남: "남동향",
+    서남: "남서향",
+    동북: "북동향",
+    서북: "북서향",
+  };
+
+  for (const [key, val] of Object.entries(koreanMap)) {
+    if (normalized.includes(key)) {
+      return val;
+    }
+  }
+
+  return null;
+}
+
 function isNonEmptyString(v) {
   return typeof v === "string" && v.trim().length > 0;
 }

@@ -4,9 +4,11 @@ import {
   ADAPTER_VALIDATION_CODES,
   ADAPTER_WARNING_LEVEL,
   BaseListingAdapter,
+  normalizeDirection,
 } from "./base_listing_adapter.mjs";
 
 const BUILDING_TYPE_NAMES = new Set(["단독", "빌라", "연립", "다가구", "오피스텔", "아파트", "상가주택", "다세대", "주택", "원룸", "투룸"]);
+const URL_IMAGE_RE = /\.(jpg|jpeg|png|webp|gif|avif|bmp|svg)(\?|$)/i;
 
 const CORTAR_TO_ADDRESS = {
   "1135000000": "서울특별시 노원구",
@@ -18,6 +20,83 @@ const CORTAR_TO_ADDRESS = {
   "1114000000": "서울특별시 중구",
   "1111000000": "서울특별시 종로구",
 };
+
+function collectNaverImageCandidates(raw) {
+  const urls = [];
+  const seen = new Set();
+
+  const add = (url) => {
+    if (typeof url !== "string") return;
+    const trimmed = url.trim();
+    if (!trimmed) return;
+
+    try {
+      const parsed = new URL(trimmed.startsWith("//") ? `https:${trimmed}` : trimmed);
+      const path = parsed.pathname.toLowerCase();
+      if (!URL_IMAGE_RE.test(path)) return;
+      if (seen.has(trimmed)) return;
+      seen.add(trimmed);
+      urls.push(trimmed);
+    } catch {
+      // Invalid URL
+    }
+  };
+
+  const collectCandidateValue = (value) => {
+    if (Array.isArray(value)) {
+      for (const item of value) collectCandidateValue(item);
+      return;
+    }
+    if (value === null || value === undefined) return;
+    if (typeof value === "string") {
+      add(value);
+      return;
+    }
+    if (typeof value === "object") {
+      const candidates = [
+        value.url,
+        value.image,
+        value.imageUrl,
+        value.image_url,
+        value.img,
+        value.imgUrl,
+        value.img_url,
+        value.src,
+        value.thumbnail,
+        value.thumb,
+        value.source,
+        value.photo,
+        value.photoUrl,
+      ];
+      for (const c of candidates) {
+        collectCandidateValue(c);
+      }
+    }
+  };
+
+  const candidates = [
+    raw.articlePhotos,
+    raw.photos,
+    raw.images,
+    raw.imageList,
+    raw.image_list,
+    raw.articlePhotoList,
+    raw.photoList,
+    raw.photo_list,
+    raw.cpLinkImageUrl,
+    raw.cpLinkThumbnailUrl,
+    raw.representativeImgUrl,
+    raw.thumbnail,
+    raw.thumbnailUrl,
+  ];
+
+  for (const candidate of candidates) {
+    collectCandidateValue(candidate);
+    if (urls.length >= 24) break;
+  }
+
+  return urls;
+}
 
 function extractCortarAddress(rawRecord) {
   const url = rawRecord?.request_url || rawRecord?.source_url || "";
@@ -1398,7 +1477,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
       "roomType",
     ], null);
 
-    const imageUrls = collectImageUrls(item, { imageLimit: this.imageLimit });
+    const imageUrls = collectNaverImageCandidates(item);
     const fallbackImageUrls = imageUrls.length === 0 && this.imageFallbackEnabled
       ? await enrichImageUrlsFromCpArticleUrl(
           pick(
@@ -1447,7 +1526,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
             pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title"], null) ||
               normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
           ),
-      direction: normalizeDirectionValue(
+      direction: normalizeDirection(
         pick(item, [
           "facing",
           "direction",

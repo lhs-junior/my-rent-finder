@@ -63,12 +63,22 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
   const [imgIdx, setImgIdx] = useState(0);
+  const [cachedDetail, setCachedDetail] = useState(null);
 
-  const imageCount = Array.isArray(detail?.images) ? detail.images.length : 0;
+  // Cache detail when it's available to prevent flickering during loading
+  useEffect(() => {
+    if (detail) {
+      setCachedDetail(detail);
+    }
+  }, [detail]);
+
+  // Use cached detail during loading to maintain UI continuity
+  const displayDetail = detail || cachedDetail;
+  const imageCount = Array.isArray(displayDetail?.images) ? displayDetail.images.length : 0;
   const hasImages = imageCount > 0;
 
   useEffect(() => {
-    if (!detail && !loading) return;
+    if (!displayDetail && !loading) return;
     const handleKey = (e) => {
       if (e.key === "Escape") { onClose(); return; }
       if (hasImages) {
@@ -82,9 +92,9 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
     };
-  }, [detail, loading, onClose, hasImages, imageCount]);
+  }, [displayDetail, loading, onClose, hasImages, imageCount]);
 
-  useEffect(() => { setImgIdx(0); }, [detail?.listing_id]);
+  useEffect(() => { setImgIdx(0); }, [displayDetail?.listing_id]);
 
   useEffect(() => {
     const el = galleryRef.current;
@@ -93,13 +103,13 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
     if (item) item.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
   }, [imgIdx]);
 
-  if (!detail && !loading) return null;
+  if (!displayDetail && !loading) return null;
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
   };
 
-  const externalUrl = detail ? resolveExternalListingUrl(detail) : null;
+  const externalUrl = displayDetail ? resolveExternalListingUrl(displayDetail) : null;
 
   const goPrev = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx((prev) => Math.max(0, prev - 1)); };
   const goNext = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx((prev) => Math.min(imageCount - 1, prev + 1)); };
@@ -109,10 +119,10 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
       <div className="mdl-panel">
         {/* Top bar with fav + close */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, position: "absolute", top: 10, right: 10, zIndex: 10 }}>
-          {detail && isFavorite && toggleFavorite && (
+          {displayDetail && isFavorite && toggleFavorite && (
             <FavoriteButton
-              active={typeof isFavorite === "function" ? isFavorite(detail.listing_id) : false}
-              onClick={() => toggleFavorite(detail.listing_id)}
+              active={typeof isFavorite === "function" ? isFavorite(displayDetail.listing_id) : false}
+              onClick={() => toggleFavorite(displayDetail.listing_id)}
             />
           )}
           <button className="mdl-close" style={{ position: "static" }} onClick={onClose} aria-label="닫기">
@@ -122,19 +132,19 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
           </button>
         </div>
 
-        {loading && !detail && (
+        {loading && !displayDetail && (
           <div className="mdl-loading">
             <div className="mdl-spinner" />
             <p>매물 정보를 불러오는 중...</p>
           </div>
         )}
 
-        {detail && (
+        {displayDetail && (
           <>
             {hasImages && (
               <div className="mdl-gallery">
                 <div className="mdl-gallery-scroll" ref={galleryRef}>
-                  {detail.images.map((img, idx) => (
+                  {displayDetail.images.map((img, idx) => (
                     <a
                       key={idx}
                       href={img.source_url}
@@ -167,31 +177,31 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
             <div className="mdl-header">
               <div className="mdl-badges">
                 <span className="mdl-badge mdl-badge--platform">
-                  {toPlatformLabel(detail.platform_code || detail.platform || "")}
+                  {toPlatformLabel(displayDetail.platform_code || displayDetail.platform || "")}
                 </span>
-                <span className="mdl-badge">{detail.lease_type || "월세"}</span>
-                <span className="mdl-id">#{detail.listing_id || "-"}</span>
+                <span className="mdl-badge">{displayDetail.lease_type || "월세"}</span>
+                <span className="mdl-id">#{displayDetail.listing_id || "-"}</span>
               </div>
-              <h2 className="mdl-title">{detail.title || detail.address_text || "-"}</h2>
-              {detail.title && detail.address_text && (
-                <p className="mdl-address">{detail.address_text}</p>
+              <h2 className="mdl-title">{displayDetail.title || displayDetail.address_text || "-"}</h2>
+              {displayDetail.title && displayDetail.address_text && (
+                <p className="mdl-address">{displayDetail.address_text}</p>
               )}
             </div>
 
             <div className="mdl-metrics">
               <div className="mdl-metric">
                 <span className="mdl-metric-label">월세</span>
-                <span className="mdl-metric-value">{toMoney(detail.rent_amount)}</span>
+                <span className="mdl-metric-value">{toMoney(displayDetail.rent_amount)}</span>
               </div>
               <div className="mdl-metric-sep" />
               <div className="mdl-metric">
                 <span className="mdl-metric-label">보증금</span>
-                <span className="mdl-metric-value">{toMoney(detail.deposit_amount)}</span>
+                <span className="mdl-metric-value">{toMoney(displayDetail.deposit_amount)}</span>
               </div>
               <div className="mdl-metric-sep" />
               <div className="mdl-metric">
                 <span className="mdl-metric-label">전용면적</span>
-                <span className="mdl-metric-value">{toArea(detail.area_exclusive_m2 || detail.area_gross_m2)}</span>
+                <span className="mdl-metric-value">{toArea(displayDetail.area_exclusive_m2 || displayDetail.area_gross_m2)}</span>
               </div>
             </div>
 
@@ -201,43 +211,43 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                 <div className="mdl-info-cell">
                   <span className="mdl-info-label">층수</span>
                   <span className="mdl-info-value">
-                    {detail.floor ?? "-"}층{detail.total_floor ? ` / ${detail.total_floor}층` : ""}
+                    {displayDetail.floor ?? "-"}층{displayDetail.total_floor ? ` / ${displayDetail.total_floor}층` : ""}
                   </span>
                 </div>
                 <div className="mdl-info-cell">
                   <span className="mdl-info-label">방향</span>
-                  <span className="mdl-info-value">{toText(detail.direction, "-")}</span>
+                  <span className="mdl-info-value">{toText(displayDetail.direction, "-")}</span>
                 </div>
                 <div className="mdl-info-cell">
                   <span className="mdl-info-label">용도</span>
-                  <span className="mdl-info-value">{toText(detail.building_use, "-")}</span>
+                  <span className="mdl-info-value">{toText(displayDetail.building_use, "-")}</span>
                 </div>
                 <div className="mdl-info-cell">
                   <span className="mdl-info-label">방</span>
-                  <span className="mdl-info-value">{detail.room_count ?? "-"}개</span>
+                  <span className="mdl-info-value">{displayDetail.room_count ?? "-"}개</span>
                 </div>
                 <div className="mdl-info-cell">
                   <span className="mdl-info-label">욕실</span>
-                  <span className="mdl-info-value">{detail.bathroom_count ?? "-"}개</span>
+                  <span className="mdl-info-value">{displayDetail.bathroom_count ?? "-"}개</span>
                 </div>
-                {detail.building_name && (
+                {displayDetail.building_name && (
                   <div className="mdl-info-cell">
                     <span className="mdl-info-label">건물명</span>
-                    <span className="mdl-info-value">{detail.building_name}</span>
+                    <span className="mdl-info-value">{displayDetail.building_name}</span>
                   </div>
                 )}
-                {detail.agent_name && (
+                {displayDetail.agent_name && (
                   <div className="mdl-info-cell mdl-info-cell--wide">
                     <span className="mdl-info-label">중개사</span>
                     <span className="mdl-info-value">
-                      {detail.agent_name}{detail.agent_phone ? ` (${detail.agent_phone})` : ""}
+                      {displayDetail.agent_name}{displayDetail.agent_phone ? ` (${displayDetail.agent_phone})` : ""}
                     </span>
                   </div>
                 )}
-                {detail.available_date && (
+                {displayDetail.available_date && (
                   <div className="mdl-info-cell">
                     <span className="mdl-info-label">입주가능</span>
-                    <span className="mdl-info-value">{detail.available_date}</span>
+                    <span className="mdl-info-value">{displayDetail.available_date}</span>
                   </div>
                 )}
               </div>
@@ -245,16 +255,16 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
 
             <div className="mdl-section">
               <h3 className="mdl-section-title">품질 검사</h3>
-              <QualityFlags flags={detail.quality_flags} />
-              {Array.isArray(detail.violations) && detail.violations.length > 0 && (
+              <QualityFlags flags={displayDetail.quality_flags} />
+              {Array.isArray(displayDetail.violations) && displayDetail.violations.length > 0 && (
                 <div style={{ marginTop: 12 }}>
                   <p style={{ fontWeight: 600, marginBottom: 6, fontSize: "0.85rem", color: "var(--text-soft)" }}>위반 사항</p>
-                  <Violations violations={detail.violations} />
+                  <Violations violations={displayDetail.violations} />
                 </div>
               )}
             </div>
 
-            {Array.isArray(detail.price_history) && detail.price_history.length > 0 && (
+            {Array.isArray(displayDetail.price_history) && displayDetail.price_history.length > 0 && (
               <div className="mdl-section">
                 <h3 className="mdl-section-title">가격 변동 이력</h3>
                 <div className="table-wrap">
@@ -269,7 +279,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                       </tr>
                     </thead>
                     <tbody>
-                      {detail.price_history.map((h, idx) => (
+                      {displayDetail.price_history.map((h, idx) => (
                         <tr key={h.history_id || idx}>
                           <td>{h.detected_at ? new Date(h.detected_at).toLocaleString("ko-KR") : "-"}</td>
                           <td>{toMoney(h.previous_rent)}</td>
@@ -294,9 +304,9 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                   원본 보기
                 </button>
               )}
-              {detail.source_url && !externalUrl && (
+              {displayDetail.source_url && !externalUrl && (
                 <a
-                  href={detail.source_url}
+                  href={displayDetail.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mdl-btn mdl-btn--outline"
