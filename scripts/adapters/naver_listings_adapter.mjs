@@ -34,9 +34,15 @@ function collectNaverImageCandidates(raw) {
       const parsed = new URL(trimmed.startsWith("//") ? `https:${trimmed}` : trimmed);
       const path = parsed.pathname.toLowerCase();
       if (!URL_IMAGE_RE.test(path)) return;
-      if (seen.has(trimmed)) return;
-      seen.add(trimmed);
-      urls.push(trimmed);
+      if (CP_IMAGE_PATH_BAD_PATTERNS.test(path)) return;
+      // land.mk.co.kr: root-level /B*/ paths are naver API-generated and 404
+      // valid CDN photos require /files/ or /files_new_ prefix
+      if (/^land\.mk\.co\.kr$/i.test(parsed.hostname) && !/^\/(files|files_new_)/i.test(parsed.pathname)) return;
+      if (parsed.protocol === "http:") parsed.protocol = "https:";
+      const normalized = parsed.toString();
+      if (seen.has(normalized)) return;
+      seen.add(normalized);
+      urls.push(normalized);
     } catch {
       // Invalid URL
     }
@@ -347,7 +353,7 @@ const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
 const CP_IMAGE_SOURCE_LIMIT = 24;
 const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
-const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.)/i;
+const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.|thmb_|\/static\/service\/|\/news\/\d{4}\/|\/estate\/\d{4}\/|mc_icon_|gnb_|_detail\.gif|qr_txt|\/new_year\/|searchicon|search_icon|icon_search|\/icon\/|\/icons\/)/i;
 const CP_IMAGE_SOURCE_HOST_HINTS = ["newimg.serve.co.kr", "img.serve.co.kr", "cdn.serve.co.kr", "serve.co.kr", "www.serve.co.kr"];
 const CP_HOST_IMAGE_RULES = [
   {
@@ -445,6 +451,10 @@ function normalizeCpImageUrl(raw, baseUrl = null, cpArticleHostname = null) {
 
   const path = parsed.pathname || "";
   const host = parsed.hostname.toLowerCase();
+  // Bad patterns always block — checked before allowlists so isAllowedCpImagePath can't override
+  if (CP_IMAGE_PATH_BAD_PATTERNS.test(path.toLowerCase())) return null;
+  // land.mk.co.kr: root-level /B*/ paths are naver API-generated and 404 (CDN requires /files/ prefix)
+  if (/^land\.mk\.co\.kr$/i.test(host) && !/^\/(files|files_new_)/i.test(path)) return null;
   if (!isAllowedCpImageHost(host, path, cpArticleHostname) && !isAllowedCpImagePath(path)) {
     return null;
   }
@@ -635,8 +645,8 @@ async function fetchTextWithRetry(url, {
 function extractCpImageUrlsFromHtml(html, imageLimit = 12, baseUrl = null, cpArticleHostname = null) {
   if (!html) return [];
   const imageAttributeRegex = /(?:src|href|data-src|data-original|srcset|poster)\s*=\s*["']([^"']+)["']/gi;
-  const absoluteImageRegex = /(?:https?:)?\/\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\\s<>]*)?/gi;
-  const relativeImageRegex = /\/[^'"\\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\\s<>]*)?/gi;
+  const absoluteImageRegex = /(?:https?:)?\/\/[^'"\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\s<>]*)?/gi;
+  const relativeImageRegex = /\/[^'"\s<>]+\.(?:jpg|jpeg|png|webp|gif|avif)(?:\?[^'"\s<>]*)?/gi;
   const out = [];
   const seen = new Set();
 
