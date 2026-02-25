@@ -45,6 +45,16 @@ jobs:
             --max-adapter-items 50 \
             --qa-strict false
 
+      - name: Check expired KB listings
+        if: always()
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node scripts/check_listing_status.mjs \
+            --platform kbland \
+            --batch-size 500 \
+            --delay-ms 200
+
       - name: Upload collection results
         if: always()
         uses: actions/upload-artifact@v4
