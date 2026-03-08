@@ -66,6 +66,26 @@ scripts/*_fidelity_*
 scripts/platform_fidelity_gate_*
 QA_*.md
 
+# Collector run output artifacts (not fixtures/samples)
+scripts/*_capture_results.json
+scripts/*_normalized.jsonl
+scripts/*_raw.jsonl
+scripts/tmp_*
+scripts/naver_normalized_queryprobe.json
+scripts/naver_capture_results_queryprobe.json
+scripts/naver_raw_samples_queryprobe.jsonl
+scripts/platform_sampling_results*.json
+scripts/platform_query_probe_results.json
+scripts/matcher_output.json
+scripts/adapters_all_output.json
+scripts/qa/*_report*.json
+scripts/qa/*_fidelity_*.json
+
+# Keep fixtures and reference data
+!scripts/*_raw_samples.jsonl
+!scripts/*_sniffed_data*.json
+!scripts/kbland_probe_report.json
+
 # Editor
 .vscode/
 .idea/
