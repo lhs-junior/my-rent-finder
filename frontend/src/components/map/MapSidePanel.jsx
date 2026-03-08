@@ -93,7 +93,8 @@ export default function MapSidePanel({
         detailControllerRef.current = null;
       }
     };
-  }, [detailId, markers, apiBase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- markers is intentionally excluded to prevent refetch on geo update
+  }, [detailId, apiBase]);
 
   useEffect(() => {
     setPage(1);

@@ -49,8 +49,15 @@ async function checkKbListing(externalId) {
   const json = await res.json();
   const code = json?.dataBody?.resultCode;
 
-  if (code === 30210) return { status: "expired" };
-  if (json?.dataBody?.data?.dtailInfo) return { status: "active" };
+  if (code === 30210) return { status: "expired", resultCode: "deleted" };
+  const info = json?.dataBody?.data?.dtailInfo;
+  if (info) {
+    // 매물상태구분 4 = 노출종료, 매물상태변경사유 contains "노출종료"
+    if (info["매물상태구분"] === 4 || /노출종료|거래완료|삭제/.test(info["매물상태변경사유"] || "")) {
+      return { status: "expired", resultCode: "exposure_ended" };
+    }
+    return { status: "active" };
+  }
   return { status: "unknown", resultCode: code };
 }
 

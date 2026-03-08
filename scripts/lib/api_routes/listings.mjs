@@ -474,10 +474,8 @@ export async function handleListingDetail(req, res, id) {
 // /api/listings/:id/verify — check if listing is still alive on source platform
 // ---------------------------------------------------------------------------
 
-const ZIGBANG_VERIFY_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Content-Type": "application/json",
-};
+const COMMON_VERIFY_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 async function verifyZigbang(itemId) {
   const numId = Number(itemId);
@@ -485,7 +483,7 @@ async function verifyZigbang(itemId) {
   try {
     const resp = await fetch("https://apis.zigbang.com/house/property/v1/items/list", {
       method: "POST",
-      headers: ZIGBANG_VERIFY_HEADERS,
+      headers: { "User-Agent": COMMON_VERIFY_UA, "Content-Type": "application/json" },
       body: JSON.stringify({ domain: "zigbang", item_ids: [numId] }),
       signal: AbortSignal.timeout(10000),
     });
@@ -495,8 +493,6 @@ async function verifyZigbang(itemId) {
     if (items.length === 0) return { alive: false, reason: "not_found" };
     const item = items[0];
     const status = item?.status;
-    // detail API returns boolean: true = active, false = expired
-    // v2 API may return "open" string — handle both
     if (status === true || status === "open") return { alive: true, reason: "active" };
     return { alive: false, reason: "expired" };
   } catch (err) {
@@ -504,8 +500,36 @@ async function verifyZigbang(itemId) {
   }
 }
 
+async function verifyKbland(externalId) {
+  try {
+    const url = `https://api.kbland.kr/land-property/property/dtailInfo?${encodeURIComponent("매물일련번호")}=${externalId}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": COMMON_VERIFY_UA, Accept: "application/json", Referer: "https://kbland.kr/" },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!resp.ok) return { alive: null, reason: `api_error_${resp.status}` };
+    const json = await resp.json();
+    const code = json?.dataBody?.resultCode;
+    if (code === 30210) return { alive: false, reason: "deleted" };
+    const info = json?.dataBody?.data?.dtailInfo;
+    if (info) {
+      if (info["매물상태구분"] === 4 || /노출종료|거래완료|삭제/.test(info["매물상태변경사유"] || "")) {
+        return { alive: false, reason: "exposure_ended" };
+      }
+      return { alive: true, reason: "active" };
+    }
+    return { alive: null, reason: `unknown_code_${code}` };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+const PLATFORM_VERIFIERS = {
+  zigbang: verifyZigbang,
+  kbland: verifyKbland,
+};
+
 export async function handleListingVerify(req, res, id) {
-  // Look up listing in DB to get platform and external_id
   const listing = await withDbClient(async (client) => {
     const result = await client.query(
       `SELECT listing_id, platform_code, external_id, source_ref, quality_flags
@@ -522,16 +546,15 @@ export async function handleListingVerify(req, res, id) {
 
   const platform = safeText(listing.platform_code, "");
   const sourceRef = safeText(listing.source_ref || listing.external_id, "");
+  const verifier = PLATFORM_VERIFIERS[platform];
 
-  if (platform !== "zigbang") {
-    // For non-zigbang platforms, return unknown (not yet implemented)
+  if (!verifier) {
     sendJson(res, 200, { alive: null, platform, reason: "not_supported" });
     return;
   }
 
-  const result = await verifyZigbang(sourceRef);
+  const result = await verifier(sourceRef);
 
-  // If confirmed expired, persist LISTING_EXPIRED flag to DB
   if (result.alive === false) {
     try {
       await withDbClient(async (client) => {
@@ -545,7 +568,7 @@ export async function handleListingVerify(req, res, id) {
         }
       });
     } catch {
-      // non-critical — don't fail the response
+      // non-critical
     }
   }
 

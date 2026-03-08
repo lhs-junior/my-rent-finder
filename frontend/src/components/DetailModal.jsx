@@ -99,11 +99,12 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
 
   useEffect(() => { setImgIdx(0); }, [displayDetail?.listing_id]);
 
-  // Auto-verify zigbang listings against source platform
+  // Auto-verify listings against source platform (zigbang, kbland)
   useEffect(() => {
     const platform = (displayDetail?.platform_code || displayDetail?.platform || "").toLowerCase();
     const listingId = displayDetail?.listing_id;
-    if (platform !== "zigbang" || !listingId) {
+    const verifiable = ["zigbang", "kbland"];
+    if (!verifiable.includes(platform) || !listingId) {
       setVerifyStatus({ checking: false, alive: null });
       return;
     }
