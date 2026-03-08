@@ -129,7 +129,7 @@ const platformAlias = {
   kb: "kbland",
   KB부동산: "kbland",
 };
-const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn"]);
+const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn", "kbland"]);
 function normalizePlatform(raw) {
   return (
     platformAlias[raw] ||
