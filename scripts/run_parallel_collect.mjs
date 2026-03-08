@@ -48,10 +48,12 @@ function writeJson(filePath, payload) {
 }
 
 function sanitizeFileToken(v) {
-  return String(v || "")
-    .replace(/[^\p{L}\p{N}\-_]/gu, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "") || "item";
+  return (
+    String(v || "")
+      .replace(/[^\p{L}\p{N}\-_]/gu, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "") || "item"
+  );
 }
 
 function unique(arr) {
@@ -76,27 +78,18 @@ const scriptPaths = {
   platformFidelityQa: path.resolve(process.cwd(), "scripts/qa/qa_platform_data_fidelity.mjs"),
   peterpanzCollect: path.resolve(process.cwd(), "scripts/peterpanz_auto_collector.mjs"),
   daangnCollect: path.resolve(process.cwd(), "scripts/daangn_auto_collector.mjs"),
+  kblandCollect: path.resolve(process.cwd(), "scripts/kbland_auto_collector.mjs"),
 };
 
-const runId = getArg(
-  args,
-  "--run-id",
-  new Date().toISOString().replace(/[T:.]/g, "-"),
-);
+const runId = getArg(args, "--run-id", new Date().toISOString().replace(/[T:.]/g, "-"));
 
-const workspace = resolveAbs(
-  getArg(args, "--out-dir", path.join("scripts", "parallel_collect_runs", runId)),
-);
+const workspace = resolveAbs(getArg(args, "--out-dir", path.join("scripts", "parallel_collect_runs", runId)));
 const qaReportPath = resolveAbs(
   getArg(args, "--qa-report", null),
   path.join(workspace, "qa_platform_data_fidelity_report.json"),
 );
-const probeOut = resolveAbs(
-  getArg(args, "--probe-out", path.join(workspace, "platform_query_probe_results.json")),
-);
-const targetsIn = resolveAbs(
-  getArg(args, "--targets", path.join(workspace, "platform_sampling_targets.json")),
-);
+const probeOut = resolveAbs(getArg(args, "--probe-out", path.join(workspace, "platform_query_probe_results.json")));
+const targetsIn = resolveAbs(getArg(args, "--targets", path.join(workspace, "platform_sampling_targets.json")));
 const targetsOut = resolveAbs(
   getArg(args, "--targets-out", path.join(workspace, "platform_sampling_targets_parallel.json")),
 );
@@ -114,12 +107,12 @@ const qaStrict = getBool(args, "--qa-strict", true);
 const qaMaxItems = getInt(args, "--qa-max-items", 0);
 const platformAlias = {
   zigbang: "zigbang",
-  "직방": "zigbang",
+  직방: "zigbang",
   dabang: "dabang",
   다방: "dabang",
   naver: "naver",
   "네이버 부동산": "naver",
-  "네이버부동산": "naver",
+  네이버부동산: "naver",
   r114: "r114",
   부동산114: "r114",
   피터팬: "peterpanz",
@@ -131,18 +124,22 @@ const platformAlias = {
   당근: "daangn",
   당근마켓: "daangn",
   daangn: "daangn",
+  kbland: "kbland",
+  kb부동산: "kbland",
+  kb: "kbland",
+  KB부동산: "kbland",
 };
-const selectedPlatforms = getList(args, "--platforms", [
-  "zigbang",
-  "dabang",
-  "naver",
-  "peterpanz",
-  "daangn",
-]);
+const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn"]);
 function normalizePlatform(raw) {
-  return platformAlias[raw] || String(raw || "").trim().toLowerCase();
+  return (
+    platformAlias[raw] ||
+    String(raw || "")
+      .trim()
+      .toLowerCase()
+  );
 }
 const disabledPlatforms = new Set(["r114"]);
+// kbland는 기본 목록에 없지만 --platforms=kbland로 명시적 지정 시 실행 가능 (점진적 활성화)
 const normalizedRequestedPlatforms = selectedPlatforms
   .map((p) => normalizePlatform(p))
   .filter(Boolean)
@@ -172,10 +169,7 @@ const timeoutMs = Math.max(500, getInt(args, "--timeout-ms", 12000));
 function runNode(label, script, args, options = {}) {
   return new Promise((resolve, reject) => {
     const startedAt = Date.now();
-    const command = [
-      script,
-      ...args,
-    ];
+    const command = [script, ...args];
     if (verbose) {
       console.log(`[run] node ${command.join(" ")}`);
     }
@@ -252,12 +246,8 @@ function mergeConditions(baseConditionPath) {
       ...(overrideDepositMax ? { depositMax: Number(overrideDepositMax) } : {}),
       ...(overrideMinArea ? { minAreaM2: Number(overrideMinArea) } : {}),
       ...(overrideTradeType ? { leaseType: overrideTradeType } : {}),
-      ...(overridePropertyTypes.length
-        ? { propertyTypes: overridePropertyTypes }
-        : {}),
-      ...(selectedSigunguList.length
-        ? { sigunguList: unique(selectedSigunguList) }
-        : {}),
+      ...(overridePropertyTypes.length ? { propertyTypes: overridePropertyTypes } : {}),
+      ...(selectedSigunguList.length ? { sigunguList: unique(selectedSigunguList) } : {}),
     },
   };
   const mergedPath = path.join(workspace, "platform_search_conditions_merged.json");
@@ -277,12 +267,12 @@ function resolveNaverTradeType(leaseTypeRaw) {
 function mapNaverPropertyTypes(propertyTypes) {
   const mapping = {
     "빌라/연립": "VL",
-    "연립": "YR",
+    연립: "YR",
     "단독/다가구": "DDDGG",
-    "단독": "DDDGG",
-    "다가구": "DDDGG",
-    "오피스텔": "OP",
-    "상가주택": "SGJT",
+    단독: "DDDGG",
+    다가구: "DDDGG",
+    오피스텔: "OP",
+    상가주택: "SGJT",
   };
   const mapped = new Set();
   for (const name of propertyTypes) {
@@ -304,31 +294,23 @@ function readConditionInput(conditionPath) {
 
 function normalizeNaverCondition(conditionInput, fallback) {
   const target = conditionInput?.target || conditionInput?.condition_input?.target || fallback || {};
-  const propertyTypes = (target.propertyTypes && Array.isArray(target.propertyTypes))
-    ? target.propertyTypes
-    : (Array.isArray(fallback?.propertyTypes) ? fallback.propertyTypes : []);
+  const propertyTypes =
+    target.propertyTypes && Array.isArray(target.propertyTypes)
+      ? target.propertyTypes
+      : Array.isArray(fallback?.propertyTypes)
+        ? fallback.propertyTypes
+        : [];
   return {
     sigungu: target.sigungu || fallback?.sigungu || null,
-    rentMax: Number.isFinite(Number(target.rentMax))
-      ? Number(target.rentMax)
-      : null,
-    depositMax: Number.isFinite(Number(target.depositMax))
-      ? Number(target.depositMax)
-      : null,
+    rentMax: Number.isFinite(Number(target.rentMax)) ? Number(target.rentMax) : null,
+    depositMax: Number.isFinite(Number(target.depositMax)) ? Number(target.depositMax) : null,
     minAreaM2: Number.isFinite(Number(target.minAreaM2))
       ? Number(target.minAreaM2)
       : Number.isFinite(Number(target.minArea))
-      ? Number(target.minArea)
-      : null,
-    tradeType: resolveNaverTradeType(
-      overrideTradeType ||
-        target.tradeType ||
-        target.leaseType ||
-        target.lease_type,
-    ),
-    realEstateTypes: mapNaverPropertyTypes(
-      overridePropertyTypes.length ? overridePropertyTypes : propertyTypes,
-    ),
+        ? Number(target.minArea)
+        : null,
+    tradeType: resolveNaverTradeType(overrideTradeType || target.tradeType || target.leaseType || target.lease_type),
+    realEstateTypes: mapNaverPropertyTypes(overridePropertyTypes.length ? overridePropertyTypes : propertyTypes),
   };
 }
 
@@ -382,8 +364,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
     const targets = targetMap.get(normalizedCode) || [];
     if (normalizedCode === "naver") {
       const naverSigunguFromTarget = extractSigunguCandidates(targets);
-      const fallbackSigungu =
-        conditionData?.target?.sigungu || conditionData?.target?.siGunGu;
+      const fallbackSigungu = conditionData?.target?.sigungu || conditionData?.target?.siGunGu;
       const naverFilters = conditionData?.filters || {};
       const sigunguCandidates = unique(
         [
@@ -441,19 +422,13 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             if (naverFilters.realEstateTypes) {
               naverArgs.push("--real-estate-types", naverFilters.realEstateTypes);
             }
-            const collectResult = await runNode(
-              `naver_auto:${sigungu}`,
-              scriptPaths.naverCollect,
-              naverArgs,
-              { stream: true },
-            );
+            const collectResult = await runNode(`naver_auto:${sigungu}`, scriptPaths.naverCollect, naverArgs, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `naver_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `naver_normalized_${runId}_${safe}.json`);
               const normalizeResult = await runNode(
                 `naver_normalize:${sigungu}`,
                 scriptPaths.naverNormalize,
@@ -469,10 +444,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                 ],
                 { stream: false },
               );
-              normalizedPath = path.join(
-                workspace,
-                `naver_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `naver_normalized_${runId}_${safe}.json`);
               return {
                 platform: "naver",
                 sigungu,
@@ -535,10 +507,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             const rawFile = path.join(workspace, `zigbang_raw_${runId}_${safe}.jsonl`);
             const metaFile = path.join(workspace, `zigbang_meta_${runId}_${safe}.json`);
             const zigbangArgs = [
-              "--sigungu", sigungu,
-              "--sample-cap", asSampleCapArg(perSigunguCap),
-              "--output-raw", rawFile,
-              "--output-meta", metaFile,
+              "--sigungu",
+              sigungu,
+              "--sample-cap",
+              asSampleCapArg(perSigunguCap),
+              "--output-raw",
+              rawFile,
+              "--output-meta",
+              metaFile,
             ];
 
             const zbFilters = conditionData?.filters || {};
@@ -552,20 +528,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
               zigbangArgs.push("--min-area", String(Math.floor(zbFilters.minAreaM2)));
             }
 
-            const collectResult = await runNode(
-              `zigbang_auto:${sigungu}`,
-              scriptPaths.zigbangCollect,
-              zigbangArgs,
-              { stream: true },
-            );
+            const collectResult = await runNode(`zigbang_auto:${sigungu}`, scriptPaths.zigbangCollect, zigbangArgs, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             let normalizeResult = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `zigbang_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `zigbang_normalized_${runId}_${safe}.json`);
               normalizeResult = await runNode(
                 `zigbang_adapter:${sigungu}`,
                 scriptPaths.listingAdapters,
@@ -634,10 +604,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             const rawFile = path.join(workspace, `peterpanz_raw_${runId}_${safe}.jsonl`);
             const metaFile = path.join(workspace, `peterpanz_meta_${runId}_${safe}.json`);
             const ppArgs = [
-              "--sigungu", sigungu,
-              "--sample-cap", asSampleCapArg(perSigunguCap),
-              "--output-raw", rawFile,
-              "--output-meta", metaFile,
+              "--sigungu",
+              sigungu,
+              "--sample-cap",
+              asSampleCapArg(perSigunguCap),
+              "--output-raw",
+              rawFile,
+              "--output-meta",
+              metaFile,
             ];
 
             const ppFilters = conditionData?.filters || {};
@@ -651,20 +625,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
               ppArgs.push("--min-area", String(Math.floor(Number(overrideMinArea || ppFilters.minAreaM2))));
             }
 
-            const collectResult = await runNode(
-              `peterpanz_auto:${sigungu}`,
-              scriptPaths.peterpanzCollect,
-              ppArgs,
-              { stream: true },
-            );
+            const collectResult = await runNode(`peterpanz_auto:${sigungu}`, scriptPaths.peterpanzCollect, ppArgs, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             let normalizeResult = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `peterpanz_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `peterpanz_normalized_${runId}_${safe}.json`);
               normalizeResult = await runNode(
                 `peterpanz_adapter:${sigungu}`,
                 scriptPaths.listingAdapters,
@@ -735,10 +703,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             const rawFile = path.join(workspace, `daangn_raw_${runId}_${safe}.jsonl`);
             const metaFile = path.join(workspace, `daangn_meta_${runId}_${safe}.json`);
             const daangnArgs = [
-              "--sigungu", sigungu,
-              "--sample-cap", asSampleCapArg(perSigunguCap),
-              "--output-raw", rawFile,
-              "--output-meta", metaFile,
+              "--sigungu",
+              sigungu,
+              "--sample-cap",
+              asSampleCapArg(perSigunguCap),
+              "--output-raw",
+              rawFile,
+              "--output-meta",
+              metaFile,
             ];
 
             const daangnFilters = conditionData?.filters || {};
@@ -752,20 +724,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
               daangnArgs.push("--min-area", String(Math.floor(Number(overrideMinArea || daangnFilters.minAreaM2))));
             }
 
-            const collectResult = await runNode(
-              `daangn_auto:${sigungu}`,
-              scriptPaths.daangnCollect,
-              daangnArgs,
-              { stream: true },
-            );
+            const collectResult = await runNode(`daangn_auto:${sigungu}`, scriptPaths.daangnCollect, daangnArgs, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             let normalizeResult = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `daangn_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `daangn_normalized_${runId}_${safe}.json`);
               normalizeResult = await runNode(
                 `daangn_adapter:${sigungu}`,
                 scriptPaths.listingAdapters,
@@ -855,20 +821,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
               dabangArgs.push("--min-area", String(Math.floor(dabangFilters.minAreaM2)));
             }
 
-            const collectResult = await runNode(
-              `dabang_auto:${sigungu}`,
-              scriptPaths.dabangCollect,
-              dabangArgs,
-              { stream: true },
-            );
+            const collectResult = await runNode(`dabang_auto:${sigungu}`, scriptPaths.dabangCollect, dabangArgs, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             let normalizeResult = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `dabang_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `dabang_normalized_${runId}_${safe}.json`);
               normalizeResult = await runNode(
                 `dabang_adapter:${sigungu}`,
                 scriptPaths.listingAdapters,
@@ -888,6 +848,103 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
             return {
               platform: "dabang",
+              sigungu,
+              rawFile,
+              metaFile,
+              normalizedPath,
+              collectResult,
+              normalizeResult,
+              targetCap: perSigunguCap,
+              success: true,
+            };
+          },
+        });
+      }
+      continue;
+    }
+
+    if (normalizedCode === "kbland") {
+      const kblandSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigungu = conditionData?.target?.sigungu;
+      const sigunguCandidates = unique(
+        [
+          ...kblandSigunguFromTarget,
+          ...selectedSigunguList,
+          ...(overrideSigungu ? [overrideSigungu] : []),
+          ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
+        ].filter(Boolean),
+      ).slice(0, Math.max(1, naverMaxRegions));
+
+      if (sigunguCandidates.length === 0) {
+        jobs.push({
+          name: "kbland",
+          run: async () => ({
+            platform: "kbland",
+            success: true,
+            skipped: true,
+            reason: "sigungu target missing",
+          }),
+        });
+        continue;
+      }
+
+      const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
+      for (const sigungu of sigunguCandidates) {
+        jobs.push({
+          name: `kbland:${sigungu}`,
+          run: async () => {
+            const safe = sanitizeFileToken(sigungu);
+            const rawFile = path.join(workspace, `kbland_raw_${runId}_${safe}.jsonl`);
+            const metaFile = path.join(workspace, `kbland_meta_${runId}_${safe}.json`);
+            const kblandArgs = [
+              "--sigungu",
+              sigungu,
+              "--sample-cap",
+              asSampleCapArg(perSigunguCap),
+              "--output-raw",
+              rawFile,
+              "--output-meta",
+              metaFile,
+            ];
+
+            const kblandFilters = conditionData?.filters || {};
+            if (Number.isFinite(Number(kblandFilters.rentMax))) {
+              kblandArgs.push("--rent-max", String(kblandFilters.rentMax));
+            }
+            if (Number.isFinite(Number(kblandFilters.depositMax))) {
+              kblandArgs.push("--deposit-max", String(kblandFilters.depositMax));
+            }
+            if (Number.isFinite(Number(kblandFilters.minAreaM2))) {
+              kblandArgs.push("--min-area", String(Math.floor(kblandFilters.minAreaM2)));
+            }
+
+            const collectResult = await runNode(`kbland_auto:${sigungu}`, scriptPaths.kblandCollect, kblandArgs, {
+              stream: true,
+            });
+
+            let normalizedPath = null;
+            let normalizeResult = null;
+            if (runNormalize) {
+              normalizedPath = path.join(workspace, `kbland_normalized_${runId}_${safe}.json`);
+              normalizeResult = await runNode(
+                `kbland_adapter:${sigungu}`,
+                scriptPaths.listingAdapters,
+                [
+                  "--platform",
+                  "kbland",
+                  "--input",
+                  rawFile,
+                  "--out",
+                  normalizedPath,
+                  "--max-items",
+                  asAdapterMaxArg(perSigunguCap),
+                ],
+                { stream: false },
+              );
+            }
+
+            return {
+              platform: "kbland",
               sigungu,
               rawFile,
               metaFile,
@@ -958,20 +1015,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
               r114Args.push("--min-area", String(Math.floor(r114Filters.minAreaM2)));
             }
 
-            const collectResult = await runNode(
-              `r114_auto:${sigungu}`,
-              scriptPaths.r114Collect,
-              r114Args,
-              { stream: true },
-            );
+            const collectResult = await runNode(`r114_auto:${sigungu}`, scriptPaths.r114Collect, r114Args, {
+              stream: true,
+            });
 
             let normalizedPath = null;
             let normalizeResult = null;
             if (runNormalize) {
-              normalizedPath = path.join(
-                workspace,
-                `r114_normalized_${runId}_${safe}.json`,
-              );
+              normalizedPath = path.join(workspace, `r114_normalized_${runId}_${safe}.json`);
               normalizeResult = await runNode(
                 `r114_adapter:${sigungu}`,
                 scriptPaths.listingAdapters,
@@ -1106,10 +1157,7 @@ async function runJobs(jobs, concurrency) {
     }
   }
 
-  const loops = Array.from(
-    { length: Math.min(concurrency, Math.max(1, jobs.length)) },
-    () => worker(),
-  );
+  const loops = Array.from({ length: Math.min(concurrency, Math.max(1, jobs.length)) }, () => worker());
   await Promise.all(loops);
   return results.filter(Boolean);
 }
@@ -1118,11 +1166,7 @@ function isAlias(value) {
   return normalizePlatform(value) !== null;
 }
 
-const selectedCodesSet = new Set(
-  selectedPlatformList
-    .map((p) => normalizePlatform(p))
-    .filter(Boolean),
-);
+const selectedCodesSet = new Set(selectedPlatformList.map((p) => normalizePlatform(p)).filter(Boolean));
 
 let probeConditionsPath = probeConditions;
 const mergeResult = mergeConditions(probeConditions);
@@ -1172,7 +1216,8 @@ function assessDataQuality(result) {
       const dataQuality = meta.dataQuality;
       if (dataQuality) return dataQuality;
       if (totalListings >= 10) return { grade: "GOOD", listings: totalListings };
-      if (totalListings > 0 || clickedListings > 0) return { grade: "PARTIAL", listings: totalListings, clicked: clickedListings };
+      if (totalListings > 0 || clickedListings > 0)
+        return { grade: "PARTIAL", listings: totalListings, clicked: clickedListings };
       return { grade: "EMPTY", listings: 0 };
     } catch {}
   }
@@ -1183,7 +1228,7 @@ function assessDataQuality(result) {
     try {
       const data = JSON.parse(fs.readFileSync(outputFile, "utf8"));
       const samples = data.platforms?.[0]?.samples || data.samples || [];
-      const failed = samples.filter(s => s.sample_status === "FAILED").length;
+      const failed = samples.filter((s) => s.sample_status === "FAILED").length;
       const total = samples.length;
       if (total === 0) return { grade: "EMPTY", samples: 0 };
       if (failed === total) return { grade: "FAIL", failedSamples: failed, totalSamples: total };
@@ -1243,14 +1288,7 @@ if (persistToDb) {
 
 let qaResult = null;
 if (runFidelityQA) {
-  const qaArgs = [
-    "--summary",
-    summaryPath,
-    "--report",
-    qaReportPath,
-    "--strict",
-    String(qaStrict),
-  ];
+  const qaArgs = ["--summary", summaryPath, "--report", qaReportPath, "--strict", String(qaStrict)];
   if (qaMaxItems > 0) {
     qaArgs.push("--max-items", String(qaMaxItems));
   }
@@ -1263,17 +1301,23 @@ if (runFidelityQA) {
   });
 }
 
-console.log(JSON.stringify({
-  runId,
-  workspace,
-  startedAt: startAt,
-  finishedAt: endAt,
-  jobs: results.length,
-  succeeded: summary.totals.succeeded,
-  skipped: summary.totals.skipped,
-  failed: summary.totals.failed,
-  summaryPath,
-  qaReportPath,
-  qaResult: qaResult ? qaResult.exitCode : null,
-  dbPersist,
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      runId,
+      workspace,
+      startedAt: startAt,
+      finishedAt: endAt,
+      jobs: results.length,
+      succeeded: summary.totals.succeeded,
+      skipped: summary.totals.skipped,
+      failed: summary.totals.failed,
+      summaryPath,
+      qaReportPath,
+      qaResult: qaResult ? qaResult.exitCode : null,
+      dbPersist,
+    },
+    null,
+    2,
+  ),
+);
