@@ -29,23 +29,29 @@ function getArg(name, fallback = null) {
 }
 const hasFlag = (name) => args.includes(name);
 
-const sigungu = getArg("--sigungu", "노원구");
+// --sigungu-list=노원구,중랑구 또는 --sigungu=노원구 (하위 호환)
+const sigunguList = getArg("--sigungu-list", null);
+const sigungu = sigunguList || getArg("--sigungu", "노원구");
 const sampleCap = Number(getArg("--sample-cap", "200"));
 const rentMax = Number(getArg("--rent-max", "80"));
 const depositMax = Number(getArg("--deposit-max", "6000"));
 const minAreaM2 = Number(getArg("--min-area", "40"));
 const verbose = hasFlag("--verbose");
 
+// 파이프라인 호환 출력 경로 (기본값: 기존 경로)
+const outputRaw = getArg("--output-raw", null);
+const outputMeta = getArg("--output-meta", null);
+
 // ── 구별 좌표 + 바운딩박스 ──
 const DISTRICTS = {
-  노원구: { lat: 37.6542, lng: 127.0568, bbox: { sLat: 37.625, sLng: 127.030, eLat: 37.690, eLng: 127.085 } },
-  중랑구: { lat: 37.6063, lng: 127.0925, bbox: { sLat: 37.580, sLng: 127.060, eLat: 37.630, eLng: 127.110 } },
-  동대문구: { lat: 37.5744, lng: 127.0395, bbox: { sLat: 37.555, sLng: 127.015, eLat: 37.600, eLng: 127.065 } },
-  광진구: { lat: 37.5384, lng: 127.0823, bbox: { sLat: 37.525, sLng: 127.060, eLat: 37.560, eLng: 127.105 } },
-  성북구: { lat: 37.5894, lng: 127.0164, bbox: { sLat: 37.570, sLng: 126.990, eLat: 37.615, eLng: 127.040 } },
-  성동구: { lat: 37.5633, lng: 127.0371, bbox: { sLat: 37.545, sLng: 127.010, eLat: 37.580, eLng: 127.065 } },
-  중구: { lat: 37.5641, lng: 126.9979, bbox: { sLat: 37.550, sLng: 126.975, eLat: 37.580, eLng: 127.020 } },
-  종로구: { lat: 37.5735, lng: 126.9790, bbox: { sLat: 37.560, sLng: 126.955, eLat: 37.600, eLng: 127.005 } },
+  노원구: { lat: 37.6542, lng: 127.0568, bbox: { sLat: 37.625, sLng: 127.03, eLat: 37.69, eLng: 127.085 } },
+  중랑구: { lat: 37.6063, lng: 127.0925, bbox: { sLat: 37.58, sLng: 127.06, eLat: 37.63, eLng: 127.11 } },
+  동대문구: { lat: 37.5744, lng: 127.0395, bbox: { sLat: 37.555, sLng: 127.015, eLat: 37.6, eLng: 127.065 } },
+  광진구: { lat: 37.5384, lng: 127.0823, bbox: { sLat: 37.525, sLng: 127.06, eLat: 37.56, eLng: 127.105 } },
+  성북구: { lat: 37.5894, lng: 127.0164, bbox: { sLat: 37.57, sLng: 126.99, eLat: 37.615, eLng: 127.04 } },
+  성동구: { lat: 37.5633, lng: 127.0371, bbox: { sLat: 37.545, sLng: 127.01, eLat: 37.58, eLng: 127.065 } },
+  중구: { lat: 37.5641, lng: 126.9979, bbox: { sLat: 37.55, sLng: 126.975, eLat: 37.58, eLng: 127.02 } },
+  종로구: { lat: 37.5735, lng: 126.979, bbox: { sLat: 37.56, sLng: 126.955, eLat: 37.6, eLng: 127.005 } },
 };
 
 // KB부동산 propList/filter 물건종류 코드
@@ -67,12 +73,14 @@ async function getClusters(page, district) {
   const clusters = await page.evaluate(() => {
     const vm = document.querySelector("#app")?.__vue__;
     const list = vm?.$store?.state?.map?.markerMaemulList || [];
-    return list.map(m => ({
-      id: m.클러스터식별자,
-      count: m.매물개수,
-      lat: m.wgs84위도,
-      lng: m.wgs84경도,
-    })).filter(c => c.id && c.count > 0)
+    return list
+      .map((m) => ({
+        id: m.클러스터식별자,
+        count: m.매물개수,
+        lat: m.wgs84위도,
+        lng: m.wgs84경도,
+      }))
+      .filter((c) => c.id && c.count > 0)
       .sort((a, b) => b.count - a.count);
   });
 
@@ -111,7 +119,9 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
         if (data?.propertyList) {
           collected.push(...data.propertyList);
           if (data.총매물건수 > data.propertyList.length) {
-            console.warn(`     ⚠ 페이지네이션 필요: 총${data.총매물건수}건 중 ${data.propertyList.length}건만 반환됨 (cluster ${clusterId})`);
+            console.warn(
+              `     ⚠ 페이지네이션 필요: 총${data.총매물건수}건 중 ${data.propertyList.length}건만 반환됨 (cluster ${clusterId})`,
+            );
           }
         }
       } catch (parseErr) {
@@ -123,17 +133,19 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
       handled = true;
     } catch (e) {
       if (!handled) {
-        try { await route.continue(); } catch {}
+        try {
+          await route.continue();
+        } catch {}
       }
     }
   });
 
   // /cl/ 페이지로 이동 → 사이트가 propList/filter 자동 호출
   try {
-    await page.goto(
-      `https://kbland.kr/cl/${clusterId}?xy=${lat},${lng},17`,
-      { waitUntil: "domcontentloaded", timeout: 20000 }
-    );
+    await page.goto(`https://kbland.kr/cl/${clusterId}?xy=${lat},${lng},17`, {
+      waitUntil: "domcontentloaded",
+      timeout: 20000,
+    });
     await page.waitForTimeout(3000);
   } catch (navErr) {
     console.warn(`     ⚠ 네비게이션 실패 (cluster ${clusterId}): ${navErr.message}`);
@@ -154,9 +166,7 @@ async function fetchImageUrls(page, listingId) {
       return await r.json();
     }, url);
     const photos = result?.dataBody?.data?.psalePhtoList || [];
-    return photos
-      .map((p) => p["전체이미지경로"])
-      .filter((u) => typeof u === "string" && u.startsWith("http"));
+    return photos.map((p) => p["전체이미지경로"]).filter((u) => typeof u === "string" && u.startsWith("http"));
   } catch (e) {
     console.warn(`     ⚠ 이미지 조회 실패 (${listingId}): ${e.message}`);
     return [];
@@ -338,8 +348,8 @@ async function main() {
   const districts = sigungu.split(",").map((s) => s.trim());
   const allRecords = [];
   const stats = {};
-  const globalSeenIds = new Set();      // 매물일련번호 cross-district dedup
-  const visitedClusters = new Set();    // 클러스터 cross-district dedup
+  const globalSeenIds = new Set(); // 매물일련번호 cross-district dedup
+  const visitedClusters = new Set(); // 클러스터 cross-district dedup
 
   // CDP 연결
   let browser;
@@ -349,7 +359,9 @@ async function main() {
   } catch (e) {
     console.error(`✗ CDP 연결 실패: ${e.message}`);
     console.error("  Chrome을 디버깅 모드로 실행하세요:");
-    console.error('  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"');
+    console.error(
+      '  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"',
+    );
     process.exit(1);
   }
 
@@ -357,14 +369,17 @@ async function main() {
   let page = null;
   for (const ctx of browser.contexts()) {
     for (const p of ctx.pages()) {
-      if (p.url().includes("kbland.kr")) { page = p; break; }
+      if (p.url().includes("kbland.kr")) {
+        page = p;
+        break;
+      }
     }
     if (page) break;
   }
 
   if (!page) {
     console.log("ℹ kbland.kr 탭 없음 — 새 페이지를 생성하여 SPA 로드합니다...");
-    const context = browser.contexts()[0] || await browser.newContext();
+    const context = browser.contexts()[0] || (await browser.newContext());
     page = await context.newPage();
     await page.goto("https://kbland.kr/map?xy=37.6423,127.0714,14", {
       waitUntil: "networkidle",
@@ -409,10 +424,12 @@ async function main() {
     }
 
     // 2단계: 각 클러스터에서 매물 리스트 수집
-    const freshClusters = clusters.filter(c => !visitedClusters.has(c.id));
+    const freshClusters = clusters.filter((c) => !visitedClusters.has(c.id));
     const skippedCount = clusters.length - freshClusters.length;
     if (skippedCount > 0) {
-      console.log(`  2) ${clusters.length}개 클러스터 중 ${skippedCount}개 이전 구에서 방문 → ${freshClusters.length}개 순회`);
+      console.log(
+        `  2) ${clusters.length}개 클러스터 중 ${skippedCount}개 이전 구에서 방문 → ${freshClusters.length}개 순회`,
+      );
     } else {
       console.log(`  2) ${freshClusters.length}개 클러스터 순회 (propList/filter 인터셉트)...`);
     }
@@ -438,7 +455,9 @@ async function main() {
       }
 
       if (verbose || newCount > 0) {
-        console.log(`     [${clusterIdx}/${freshClusters.length}] ${cluster.id}: API ${listings.length}건, 신규 ${newCount}건 (누적 ${districtRecords.length})`);
+        console.log(
+          `     [${clusterIdx}/${freshClusters.length}] ${cluster.id}: API ${listings.length}건, 신규 ${newCount}건 (누적 ${districtRecords.length})`,
+        );
       }
     }
 
@@ -494,7 +513,9 @@ async function main() {
 
     // 샘플 출력
     for (const r of capped.slice(0, 3)) {
-      console.log(`     • ${r.매물일련번호}: [${r.매물종별구분명}] ${r.읍면동명} ${r.건물명} | ${r.월세보증금}/${r.월세가}만 | ${r.전용면적}㎡ ${r.방수}방 ${r.방향명 || ""}`);
+      console.log(
+        `     • ${r.매물일련번호}: [${r.매물종별구분명}] ${r.읍면동명} ${r.건물명} | ${r.월세보증금}/${r.월세가}만 | ${r.전용면적}㎡ ${r.방수}방 ${r.방향명 || ""}`,
+      );
     }
 
     // JSONL 레코드 생성
@@ -506,30 +527,38 @@ async function main() {
   // ── 결과 저장 ──
   const startedAt = new Date().toISOString();
   const outputDir = path.join(process.cwd(), "scripts");
-  const rawFile = path.join(outputDir, "kbland_raw.jsonl");
+  // --output-raw 인자 사용, 없으면 기본 경로
+  const rawFile = outputRaw ? path.resolve(outputRaw) : path.join(outputDir, "kbland_raw.jsonl");
   const normalizedFile = path.join(outputDir, "kbland_normalized.jsonl");
+
+  // raw 파일 디렉토리 생성 (--output-raw로 다른 경로 지정 시)
+  if (outputRaw) {
+    fs.mkdirSync(path.dirname(rawFile), { recursive: true });
+  }
 
   fs.writeFileSync(
     rawFile,
-    allRecords.length > 0
-      ? allRecords.map((r) => JSON.stringify(r.raw)).join("\n") + "\n"
-      : "",
+    allRecords.length > 0 ? allRecords.map((r) => JSON.stringify(r.raw)).join("\n") + "\n" : "",
     "utf8",
   );
   console.log(`\n📁 Raw JSONL: ${rawFile} (${allRecords.length}건)`);
 
   fs.writeFileSync(
     normalizedFile,
-    allRecords.length > 0
-      ? allRecords.map((r) => JSON.stringify(r.norm)).join("\n") + "\n"
-      : "",
+    allRecords.length > 0 ? allRecords.map((r) => JSON.stringify(r.norm)).join("\n") + "\n" : "",
     "utf8",
   );
   console.log(`📁 Normalized JSONL: ${normalizedFile} (${allRecords.length}건)`);
 
   const finishedAt = new Date().toISOString();
   const runId = `kbland_${Date.now()}`;
-  const resultFile = path.join(outputDir, "kbland_capture_results.json");
+  // --output-meta 인자 사용, 없으면 기본 경로
+  const resultFile = outputMeta ? path.resolve(outputMeta) : path.join(outputDir, "kbland_capture_results.json");
+
+  // meta 파일 디렉토리 생성 (--output-meta로 다른 경로 지정 시)
+  if (outputMeta) {
+    fs.mkdirSync(path.dirname(resultFile), { recursive: true });
+  }
   const resultData = {
     runId,
     success: allRecords.length > 0,
@@ -564,7 +593,9 @@ async function main() {
       console.log(`  ${district}: ✗ ${s.error}`);
     } else {
       const skipInfo = s.skippedClusters > 0 ? ` (${s.skippedClusters} skipped)` : "";
-      console.log(`  ${district}: 클러스터 ${s.visitedClusters}/${s.clusters}${skipInfo} | 원본 ${s.raw} | 필터 ${s.filtered} | 최종 ${s.final}`);
+      console.log(
+        `  ${district}: 클러스터 ${s.visitedClusters}/${s.clusters}${skipInfo} | 원본 ${s.raw} | 필터 ${s.filtered} | 최종 ${s.final}`,
+      );
     }
   }
   console.log(`\n  총 수집: ${allRecords.length}건 (고유 매물 ${globalSeenIds.size}개)`);

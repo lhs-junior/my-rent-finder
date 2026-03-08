@@ -1,0 +1,26 @@
+{
+  "recommended_approach": "cdp_intercept",
+  "timestamp": "2026-03-08T11:59:23.271Z",
+  "sigungu": "노원구",
+  "probes": [
+    {
+      "method": "detail_api",
+      "success": false,
+      "statusCode": 200,
+      "error": null
+    },
+    {
+      "method": "direct_fetch",
+      "success": false,
+      "statusCode": 200,
+      "listingCount": 0,
+      "error": null,
+      "responseKeys": []
+    }
+  ],
+  "summary": {
+    "detail_api_works": false,
+    "proplist_filter_works": false,
+    "listing_count": 0
+  }
+}

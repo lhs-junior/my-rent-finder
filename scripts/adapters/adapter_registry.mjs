@@ -6,6 +6,7 @@ import { ZigbangListingAdapter } from "./zigbang_listings_adapter.mjs";
 import { R114ListingAdapter } from "./r114_listings_adapter.mjs";
 import { DaangnListingAdapter } from "./daangn_listings_adapter.mjs";
 import { PeterpanzListingAdapter } from "./peterpanz_listings_adapter.mjs";
+import { KblandListingAdapter } from "./kbland_listings_adapter.mjs";
 
 export const ADAPTER_REGISTRY = {
   naver: {
@@ -20,8 +21,7 @@ export const ADAPTER_REGISTRY = {
     platformCode: "zigbang",
     platformName: "직방",
     collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () =>
-      new ZigbangListingAdapter(),
+    adapterFactory: () => new ZigbangListingAdapter(),
     readiness: "READY",
     notes: "STEALTH raw 정규화 파서 연결 완료(직방)",
   },
@@ -29,8 +29,7 @@ export const ADAPTER_REGISTRY = {
     platformCode: "dabang",
     platformName: "다방",
     collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () =>
-      new DabangListingAdapter(),
+    adapterFactory: () => new DabangListingAdapter(),
     readiness: "READY",
     notes: "STEALTH raw 정규화 파서 연결 완료(다방)",
   },
@@ -38,8 +37,7 @@ export const ADAPTER_REGISTRY = {
     platformCode: "r114",
     platformName: "부동산114",
     collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () =>
-      new R114ListingAdapter(),
+    adapterFactory: () => new R114ListingAdapter(),
     readiness: "BLOCKED",
     notes: "임시 제외(수집/정규화 데이터 품질 저하로 인한 비활성화). 원인 확인 후 재활성화 예정.",
   },
@@ -47,8 +45,7 @@ export const ADAPTER_REGISTRY = {
     platformCode: "daangn",
     platformName: "당근부동산",
     collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () =>
-      new DaangnListingAdapter(),
+    adapterFactory: () => new DaangnListingAdapter(),
     readiness: "READY",
     notes: "당근 raw 정규화 파서 연결 완료",
   },
@@ -56,15 +53,24 @@ export const ADAPTER_REGISTRY = {
     platformCode: "peterpanz",
     platformName: "피터팬",
     collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () =>
-      new PeterpanzListingAdapter(),
+    adapterFactory: () => new PeterpanzListingAdapter(),
     readiness: "READY",
     notes: "STEALTH raw 정규화 파서 연결 완료(피터팬)",
+  },
+  kbland: {
+    platformCode: "kbland",
+    platformName: "KB부동산",
+    collectionMode: "STEALTH_AUTOMATION",
+    adapterFactory: () => new KblandListingAdapter(),
+    readiness: "READY",
+    notes: "KB부동산 raw 정규화 파서 연결 완료",
   },
 };
 
 const ADAPTER_ALIAS = {
   naver_land: "naver",
+  kb부동산: "kbland",
+  kb: "kbland",
 };
 
 export function getAdapter(platformCode) {
