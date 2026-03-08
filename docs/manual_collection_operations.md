@@ -124,8 +124,13 @@ curl -s http://localhost:9222/json/version | head -5
 ### Step 4: 수집 실행
 
 ```bash
-# 전체 구역 수집 (기본: 노원구만)
-node scripts/kbland_auto_collector.mjs --sample-cap=0 --verbose
+# 전체 8개 구 수집
+node scripts/kbland_auto_collector.mjs \
+  --sigungu-list=노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구 \
+  --sample-cap=0 --verbose
+
+# 특정 구만 수집
+node scripts/kbland_auto_collector.mjs --sigungu=노원구 --sample-cap=0 --verbose
 ```
 
 ### Step 5: DB 저장
