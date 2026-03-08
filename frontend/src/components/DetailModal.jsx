@@ -13,6 +13,8 @@ const QUALITY_FLAG_LABELS = {
   duplicated: "중복 의심",
   price_outlier: "가격 이상치",
   area_outlier: "면적 이상치",
+  LISTING_EXPIRED: "매물 만료",
+  STALE_SUSPECT: "업데이트 의심",
 };
 
 const VIOLATION_SEVERITY_CLASS = {
@@ -59,11 +61,12 @@ function Violations({ violations }) {
   );
 }
 
-export default function DetailModal({ detail, loading, onClose, onOpenExternal, isFavorite, toggleFavorite }) {
+export default function DetailModal({ detail, loading, onClose, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
   const [imgIdx, setImgIdx] = useState(0);
   const [cachedDetail, setCachedDetail] = useState(null);
+  const [verifyStatus, setVerifyStatus] = useState({ checking: false, alive: null });
 
   // Cache detail when it's available to prevent flickering during loading
   useEffect(() => {
@@ -95,6 +98,27 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   }, [displayDetail, loading, onClose, hasImages, imageCount]);
 
   useEffect(() => { setImgIdx(0); }, [displayDetail?.listing_id]);
+
+  // Auto-verify zigbang listings against source platform
+  useEffect(() => {
+    const platform = (displayDetail?.platform_code || displayDetail?.platform || "").toLowerCase();
+    const listingId = displayDetail?.listing_id;
+    if (platform !== "zigbang" || !listingId) {
+      setVerifyStatus({ checking: false, alive: null });
+      return;
+    }
+    setVerifyStatus({ checking: true, alive: null });
+    const base = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
+    const controller = new AbortController();
+    fetch(`${base}/api/listings/${listingId}/verify`, { signal: controller.signal })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) setVerifyStatus({ checking: false, alive: data.alive });
+        else setVerifyStatus({ checking: false, alive: null });
+      })
+      .catch(() => setVerifyStatus({ checking: false, alive: null }));
+    return () => controller.abort();
+  }, [displayDetail?.listing_id, displayDetail?.platform_code, displayDetail?.platform, apiBase]);
 
   useEffect(() => {
     const el = galleryRef.current;
@@ -171,6 +195,12 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                   </>
                 )}
                 <span className="mdl-gallery-count">{imgIdx + 1} / {imageCount}</span>
+              </div>
+            )}
+
+            {verifyStatus.alive === false && (
+              <div className="mdl-expired-banner">
+                이 매물은 원본 사이트에서 거래 완료되었거나 삭제된 것으로 확인됩니다.
               </div>
             )}
 
@@ -298,10 +328,16 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
               {externalUrl && (
                 <button
                   type="button"
-                  className="mdl-btn mdl-btn--primary"
-                  onClick={() => onOpenExternal ? onOpenExternal(detail) : window.open(externalUrl, "_blank", "noopener,noreferrer")}
+                  className={`mdl-btn ${verifyStatus.alive === false ? "mdl-btn--warn" : "mdl-btn--primary"}`}
+                  disabled={verifyStatus.checking}
+                  onClick={() => {
+                    if (verifyStatus.alive === false) {
+                      if (!window.confirm("이 매물은 원본 사이트에서 만료된 것으로 확인됩니다.\n그래도 원본 사이트로 이동하시겠습니까?")) return;
+                    }
+                    onOpenExternal ? onOpenExternal(detail) : window.open(externalUrl, "_blank", "noopener,noreferrer");
+                  }}
                 >
-                  원본 보기
+                  {verifyStatus.checking ? "확인 중..." : verifyStatus.alive === false ? "원본 보기 (만료됨)" : "원본 보기"}
                 </button>
               )}
               {displayDetail.source_url && !externalUrl && (

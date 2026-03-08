@@ -22,7 +22,7 @@ import {
 } from "./lib/api_helpers.mjs";
 import { handleHealth } from "./lib/api_routes/health.mjs";
 import { handleOps, handleCollectionRuns } from "./lib/api_routes/ops.mjs";
-import { handleListings, handleListingDetail, handleListingsGeo } from "./lib/api_routes/listings.mjs";
+import { handleListings, handleListingDetail, handleListingsGeo, handleListingVerify } from "./lib/api_routes/listings.mjs";
 import { handleMatches, handleMatchGroup } from "./lib/api_routes/matches.mjs";
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "./lib/api_routes/favorites.mjs";
 
@@ -190,6 +190,13 @@ async function route(req, res) {
       await handleMatches(req, res);
       return;
     }
+    // /api/listings/:id/verify — check if listing is still alive on source
+    const verifyMatch = pathname.match(/^\/api\/listings\/(\d+)\/verify$/);
+    if (verifyMatch) {
+      await handleListingVerify(req, res, verifyMatch[1]);
+      return;
+    }
+
     if (pathname.startsWith("/api/listings/")) {
       let listingIdText = null;
       try {

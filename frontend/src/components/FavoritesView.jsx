@@ -97,6 +97,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
+          apiBase={apiBase}
         />
       )}
     </div>

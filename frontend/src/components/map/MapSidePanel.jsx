@@ -208,6 +208,7 @@ export default function MapSidePanel({
           onClose={onCloseDetail}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
+          apiBase={apiBase}
         />
       )}
     </div>

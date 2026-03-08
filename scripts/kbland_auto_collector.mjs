@@ -363,10 +363,20 @@ async function main() {
   }
 
   if (!page) {
-    console.error("✗ kbland.kr 탭이 열려있지 않습니다. 브라우저에서 kbland.kr에 로그인해주세요.");
-    process.exit(1);
+    console.log("ℹ kbland.kr 탭 없음 — 새 페이지를 생성하여 SPA 로드합니다...");
+    const context = browser.contexts()[0] || await browser.newContext();
+    page = await context.newPage();
+    await page.goto("https://kbland.kr/map?xy=37.6423,127.0714,14", {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
+    // SPA Vuex 스토어 초기화 대기 (지도 렌더링 + API 바인딩)
+    await page.waitForTimeout(5000);
+    console.log(`✓ kbland.kr 신규 탭 로드 완료: ${page.url().substring(0, 60)}`);
+  } else {
+    console.log(`✓ kbland.kr 기존 탭: ${page.url().substring(0, 60)}`);
   }
-  console.log(`✓ kbland.kr 탭: ${page.url().substring(0, 60)}\n`);
+  console.log("");
 
   for (const district of districts) {
     console.log(`\n${"=".repeat(40)}`);

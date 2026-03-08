@@ -471,6 +471,88 @@ export async function handleListingDetail(req, res, id) {
 }
 
 // ---------------------------------------------------------------------------
+// /api/listings/:id/verify — check if listing is still alive on source platform
+// ---------------------------------------------------------------------------
+
+const ZIGBANG_VERIFY_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Content-Type": "application/json",
+};
+
+async function verifyZigbang(itemId) {
+  const numId = Number(itemId);
+  if (!Number.isFinite(numId) || numId <= 0) return { alive: false, reason: "invalid_id" };
+  try {
+    const resp = await fetch("https://apis.zigbang.com/house/property/v1/items/list", {
+      method: "POST",
+      headers: ZIGBANG_VERIFY_HEADERS,
+      body: JSON.stringify({ domain: "zigbang", item_ids: [numId] }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!resp.ok) return { alive: null, reason: `api_error_${resp.status}` };
+    const body = await resp.json();
+    const items = body?.items ?? [];
+    if (items.length === 0) return { alive: false, reason: "not_found" };
+    const item = items[0];
+    const status = item?.status;
+    // detail API returns boolean: true = active, false = expired
+    // v2 API may return "open" string — handle both
+    if (status === true || status === "open") return { alive: true, reason: "active" };
+    return { alive: false, reason: "expired" };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+export async function handleListingVerify(req, res, id) {
+  // Look up listing in DB to get platform and external_id
+  const listing = await withDbClient(async (client) => {
+    const result = await client.query(
+      `SELECT listing_id, platform_code, external_id, source_ref, quality_flags
+       FROM normalized_listings WHERE listing_id = $1 AND deleted_at IS NULL`,
+      [id],
+    );
+    return result.rows?.[0] ?? null;
+  });
+
+  if (!listing) {
+    sendJson(res, 404, { error: "listing_not_found" });
+    return;
+  }
+
+  const platform = safeText(listing.platform_code, "");
+  const sourceRef = safeText(listing.source_ref || listing.external_id, "");
+
+  if (platform !== "zigbang") {
+    // For non-zigbang platforms, return unknown (not yet implemented)
+    sendJson(res, 200, { alive: null, platform, reason: "not_supported" });
+    return;
+  }
+
+  const result = await verifyZigbang(sourceRef);
+
+  // If confirmed expired, persist LISTING_EXPIRED flag to DB
+  if (result.alive === false) {
+    try {
+      await withDbClient(async (client) => {
+        const flags = Array.isArray(listing.quality_flags) ? listing.quality_flags : [];
+        if (!flags.includes("LISTING_EXPIRED")) {
+          const updated = [...flags.filter((f) => f !== "STALE_SUSPECT"), "LISTING_EXPIRED"];
+          await client.query(
+            `UPDATE normalized_listings SET quality_flags = $1::jsonb, updated_at = NOW() WHERE listing_id = $2`,
+            [JSON.stringify(updated), id],
+          );
+        }
+      });
+    } catch {
+      // non-critical — don't fail the response
+    }
+  }
+
+  sendJson(res, 200, { alive: result.alive, platform, reason: result.reason });
+}
+
+// ---------------------------------------------------------------------------
 // /api/listings/geo
 // ---------------------------------------------------------------------------
 
