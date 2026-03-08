@@ -53,7 +53,10 @@ async function checkKbListing(externalId) {
   const info = json?.dataBody?.data?.dtailInfo;
   if (info) {
     // 매물상태구분 "4" = 노출종료/기간만료 (API returns string, not number)
-    if (String(info["매물상태구분"]) === "4" || /노출종료|거래완료|삭제|기간만료/.test(info["매물상태변경사유"] || "")) {
+    if (
+      String(info["매물상태구분"]) === "4" ||
+      /노출종료|거래완료|삭제|기간만료/.test(info["매물상태변경사유"] || "")
+    ) {
       return { status: "expired", resultCode: "exposure_ended" };
     }
     return { status: "active" };
@@ -92,7 +95,7 @@ async function checkDabangListing(externalId) {
   const res = await fetch(url, {
     headers: {
       "User-Agent": COMMON_UA,
-      "Accept": "text/html",
+      Accept: "text/html",
     },
     redirect: "manual",
     signal: AbortSignal.timeout(10000),
@@ -124,7 +127,7 @@ async function checkPeterpanzListing(externalId) {
   const res = await fetch(url, {
     headers: {
       "User-Agent": COMMON_UA,
-      "Accept": "text/html",
+      Accept: "text/html",
     },
     redirect: "manual",
     signal: AbortSignal.timeout(10000),
@@ -153,7 +156,7 @@ async function checkNaverListing(externalId) {
   const res = await fetch(url, {
     headers: {
       "User-Agent": COMMON_UA,
-      "Accept": "text/html,application/xhtml+xml",
+      Accept: "text/html,application/xhtml+xml",
       "Accept-Language": "ko-KR,ko;q=0.9",
     },
     redirect: "manual",
@@ -170,7 +173,13 @@ async function checkNaverListing(externalId) {
   if (res.status === 200) {
     const html = await res.text();
     // Check for expired/deleted indicators
-    if (html.includes("삭제된 매물") || html.includes("존재하지 않는 매물") || html.includes("거래가 완료")) {
+    if (
+      html.includes("삭제된 매물") ||
+      html.includes("존재하지 않는 매물") ||
+      html.includes("거래가 완료") ||
+      html.includes("거래 완료된 매물") ||
+      html.includes("이미 거래된")
+    ) {
       return { status: "expired", resultCode: "page_expired" };
     }
     // Check for active listing indicators
@@ -191,31 +200,38 @@ async function checkDaangnListing(externalId, _row) {
   const sourceUrl = _row?.source_url;
   const url = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
 
+  // redirect: "follow" — 당근은 301→410 패턴으로 거래완료 매물을 반환하므로
+  // manual 사용 시 301에서 멈춰 활성으로 오판함
   const res = await fetch(url, {
-    headers: { "User-Agent": COMMON_UA, "Accept": "text/html" },
-    redirect: "manual",
+    headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
+    redirect: "follow",
     signal: AbortSignal.timeout(10000),
   });
 
+  // 410 Gone — 당근이 거래완료/삭제 매물에 사용하는 표준 응답
+  if (res.status === 410) return { status: "expired", resultCode: "gone" };
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
-  if (res.status >= 300 && res.status < 400) {
-    // Check if redirect target is a "not found" or homepage
-    const location = res.headers.get("location") || "";
-    if (location.includes("/realty") && !location.includes("error") && !location.includes("not-found")) {
-      return { status: "active" };
-    }
-    return { status: "expired", resultCode: "redirect" };
-  }
+
   if (res.status === 200) {
     const html = await res.text();
-    if (html.includes("RealEstateListing") || html.includes("realty_post")) {
-      return { status: "active" };
+    // 거래완료/삭제 텍스트 감지 (Remix error 응답 + 페이지 내 문구)
+    if (
+      html.includes("이미 거래된 매물") ||
+      html.includes("이미 거래") ||
+      html.includes("거래가 완료") ||
+      html.includes("거래완료")
+    ) {
+      return { status: "expired", resultCode: "traded" };
     }
     if (html.includes("삭제") || html.includes("존재하지 않") || html.includes("만료")) {
       return { status: "expired", resultCode: "page_expired" };
     }
-    // If we got a page but can't determine, assume active
-    return { status: "active" };
+    // 활성 매물 확인
+    if (html.includes("RealEstateListing") || html.includes("realty_post")) {
+      return { status: "active" };
+    }
+    // 판단 불가 시 — 당근 페이지는 항상 realty_post가 있으므로, 없으면 비정상
+    return { status: "unknown", resultCode: "unrecognized_page" };
   }
   return { status: "error", httpStatus: res.status };
 }
@@ -304,9 +320,7 @@ async function checkPlatform(platformCode, client) {
 // ── 메인 ──
 
 async function main() {
-  const platformList = platform === "all"
-    ? Object.keys(CHECKERS)
-    : [platform];
+  const platformList = platform === "all" ? Object.keys(CHECKERS) : [platform];
 
   // Validate platforms
   for (const p of platformList) {
@@ -336,7 +350,10 @@ async function main() {
   console.log("\n\n=== 전체 상태 체크 결과 ===");
   console.log(`  소요시간: ${elapsed}s\n`);
 
-  let totalChecked = 0, totalActive = 0, totalExpired = 0, totalErrors = 0;
+  let totalChecked = 0,
+    totalActive = 0,
+    totalExpired = 0,
+    totalErrors = 0;
   for (const r of results) {
     console.log(`  [${r.platform}] 체크: ${r.checked} | 활성: ${r.active} | 종료: ${r.expired} | 오류: ${r.errors}`);
     totalChecked += r.checked;

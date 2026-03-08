@@ -7,18 +7,30 @@ import {
   normalizeDirection,
 } from "./base_listing_adapter.mjs";
 
-const BUILDING_TYPE_NAMES = new Set(["단독", "빌라", "연립", "다가구", "오피스텔", "아파트", "상가주택", "다세대", "주택", "원룸", "투룸"]);
+const BUILDING_TYPE_NAMES = new Set([
+  "단독",
+  "빌라",
+  "연립",
+  "다가구",
+  "오피스텔",
+  "아파트",
+  "상가주택",
+  "다세대",
+  "주택",
+  "원룸",
+  "투룸",
+]);
 const URL_IMAGE_RE = /\.(jpg|jpeg|png|webp|gif|avif|bmp|svg)(\?|$)/i;
 
 const CORTAR_TO_ADDRESS = {
-  "1135000000": "서울특별시 노원구",
-  "1126000000": "서울특별시 중랑구",
-  "1123000000": "서울특별시 동대문구",
-  "1121500000": "서울특별시 광진구",
-  "1129000000": "서울특별시 성북구",
-  "1120000000": "서울특별시 성동구",
-  "1114000000": "서울특별시 중구",
-  "1111000000": "서울특별시 종로구",
+  1135000000: "서울특별시 노원구",
+  1126000000: "서울특별시 중랑구",
+  1123000000: "서울특별시 동대문구",
+  1121500000: "서울특별시 광진구",
+  1129000000: "서울특별시 성북구",
+  1120000000: "서울특별시 성동구",
+  1114000000: "서울특별시 중구",
+  1111000000: "서울특별시 종로구",
 };
 
 function collectNaverImageCandidates(raw) {
@@ -164,6 +176,20 @@ function normalizeHttpUrl(value) {
   return null;
 }
 
+function isNaverHost(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return (
+      host === "land.naver.com" ||
+      host === "new.land.naver.com" ||
+      host === "fin.land.naver.com" ||
+      host.endsWith(".land.naver.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function normalizeNaverTradeType(tradeTypeCode, tradeTypeName, leaseType) {
   const combined = normalizeText(`${tradeTypeCode || ""} ${tradeTypeName || ""} ${leaseType || ""}`).toUpperCase();
   if (/(\bA1\b|매매|SALE|매입)/.test(combined)) return "A1";
@@ -172,50 +198,24 @@ function normalizeNaverTradeType(tradeTypeCode, tradeTypeName, leaseType) {
 }
 
 function resolveNaverSourceUrl(item, rawRecord, sourceRef) {
-  const rawCandidates = [
-    pick(item, ["cpMobileArticleUrl", "cpMobileArticleLink", "cpMobileArticleLinkUrl"], null),
-    pick(item, ["cpPcArticleUrl", "cpPcArticleLink", "cpPcArticleLinkUrl"], null),
-    pick(item, ["cpPcArticleBridgeUrl", "cpMobileArticleBridgeUrl"], null),
+  // 1단계: item-level naver.com URL 탐색 (per-item URL만, page-level 제외)
+  const perItemCandidates = [
     pick(item, ["articleUrl", "url", "detailUrl", "detail_url"], null),
-    rawRecord?.source_url,
-    rawRecord?.request_url,
+    pick(item, ["cpPcArticleBridgeUrl", "cpMobileArticleBridgeUrl"], null),
   ];
 
-  for (const candidate of rawCandidates) {
+  for (const candidate of perItemCandidates) {
     const normalized = normalizeHttpUrl(candidate);
-    if (normalized) return normalized;
+    if (normalized && isNaverHost(normalized)) return normalized;
   }
 
+  // 2단계: sourceRef(articleNo) 기반으로 고유 naver.com URL 구성
   const fallbackRef = normalizeText(sourceRef || "");
   if (!fallbackRef) return "";
 
-  const parsedRequestUrl = (() => {
-    try {
-      return rawRecord?.request_url ? new URL(String(rawRecord.request_url)) : null;
-    } catch {
-      return null;
-    }
-  })();
-
-  const requestMs = parsedRequestUrl?.searchParams?.get("ms") || "";
-  const requestA = parsedRequestUrl?.searchParams?.get("a") || pick(item, ["tradeItem", "realEstateTypeCode", "houseTypeCode"], null);
-  const fallbackA = normalizeText(requestA) || "DDDGG:JWJT:SGJT:VL";
-  const fallbackB = normalizeNaverTradeType(
-    pick(item, ["tradeTypeCode", "tradeType", "tradeTypeName"], null),
-    pick(item, ["tradeTpNm", "tradeTypeName", "leaseType"], null),
-    normalizeText(item?.tradeTypeCode || item?.tradeTypeName || ""),
-  );
-
-  const fallbackD = normalizeText(item?.rentPrc || item?.tradePrc || "80") || "80";
-
-  const fallbackPattern = normalizeHttpUrl(
-    requestMs
-      ? `https://new.land.naver.com/houses?ms=${encodeURIComponent(requestMs)}&a=${encodeURIComponent(fallbackA)}&b=${encodeURIComponent(fallbackB)}&d=${encodeURIComponent(fallbackD)}&e=RETAIL&articleNo=${encodeURIComponent(fallbackRef)}`
-      : `https://fin.land.naver.com/articles/${encodeURIComponent(fallbackRef)}`,
-  );
-  if (fallbackPattern) {
-    return fallbackPattern;
-  }
+  // fin.land.naver.com/articles/{articleNo} — 네이버 부동산 매물 상세 정규 URL
+  const articleUrl = normalizeHttpUrl(`https://fin.land.naver.com/articles/${encodeURIComponent(fallbackRef)}`);
+  if (articleUrl) return articleUrl;
 
   return "";
 }
@@ -329,14 +329,7 @@ function normalizeLeaseTypeFilter(rawFilter) {
 }
 
 const CP_IMAGE_HOSTS = new Set(["image.bizmk.kr", "land.mk.co.kr", "homesdid.co.kr"]);
-const CP_IMAGE_HOST_SUFFIXES = [
-  ".mk.co.kr",
-  ".homesdid.co.kr",
-  ".bizmk.kr",
-  ".serve.co.kr",
-  ".ten.co.kr",
-  "ten.co.kr",
-];
+const CP_IMAGE_HOST_SUFFIXES = [".mk.co.kr", ".homesdid.co.kr", ".bizmk.kr", ".serve.co.kr", ".ten.co.kr", "ten.co.kr"];
 const CP_IMAGE_PATH_HINTS = [
   "/memulPhoto/",
   "/files/",
@@ -353,8 +346,15 @@ const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
 const CP_IMAGE_SOURCE_LIMIT = 24;
 const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
-const CP_IMAGE_PATH_BAD_PATTERNS = /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.|thmb_|\/static\/service\/|\/news\/\d{4}\/|\/estate\/\d{4}\/|mc_icon_|gnb_|_detail\.gif|qr_txt|\/new_year\/|searchicon|search_icon|icon_search|\/icon\/|\/icons\/)/i;
-const CP_IMAGE_SOURCE_HOST_HINTS = ["newimg.serve.co.kr", "img.serve.co.kr", "cdn.serve.co.kr", "serve.co.kr", "www.serve.co.kr"];
+const CP_IMAGE_PATH_BAD_PATTERNS =
+  /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.|thmb_|\/static\/service\/|\/news\/\d{4}\/|\/estate\/\d{4}\/|mc_icon_|gnb_|_detail\.gif|qr_txt|\/new_year\/|searchicon|search_icon|icon_search|\/icon\/|\/icons\/)/i;
+const CP_IMAGE_SOURCE_HOST_HINTS = [
+  "newimg.serve.co.kr",
+  "img.serve.co.kr",
+  "cdn.serve.co.kr",
+  "serve.co.kr",
+  "www.serve.co.kr",
+];
 const CP_HOST_IMAGE_RULES = [
   {
     suffixes: ["land.mk.co.kr", ".mk.co.kr", "bizmk.kr", "image.bizmk.kr"],
@@ -399,7 +399,9 @@ function isAllowedCpImageHost(hostname, pathname = "", cpArticleHostname = null)
 
   // Dynamic: allow images from same root domain as the CP article page itself
   if (cpArticleHostname) {
-    const rootDomain = String(cpArticleHostname).toLowerCase().replace(/^(?:www|img|image|photo|cdn|static|media)\./i, "");
+    const rootDomain = String(cpArticleHostname)
+      .toLowerCase()
+      .replace(/^(?:www|img|image|photo|cdn|static|media)\./i, "");
     if (rootDomain && (host === rootDomain || host.endsWith(`.${rootDomain}`))) {
       return CP_IMAGE_EXTENSION_RE.test(normalizedPathname) && !CP_IMAGE_PATH_BAD_PATTERNS.test(normalizedPathname);
     }
@@ -564,14 +566,14 @@ function extractRedirectFromHtml(html, baseUrl) {
   return null;
 }
 
-async function fetchTextWithRetry(url, {
-  timeoutMs = CP_IMAGE_TIMEOUT_MS,
-  retries = CP_IMAGE_FETCH_RETRIES,
-  maxRedirects = 3,
-} = {}) {
+async function fetchTextWithRetry(
+  url,
+  { timeoutMs = CP_IMAGE_TIMEOUT_MS, retries = CP_IMAGE_FETCH_RETRIES, maxRedirects = 3 } = {},
+) {
   const headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
   };
 
@@ -712,7 +714,11 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
 
   const articleUrlForBase = fetchResult.finalUrl || normalizedArticleUrl;
   const cpArticleHostname = (() => {
-    try { return new URL(articleUrlForBase).hostname.toLowerCase(); } catch { return null; }
+    try {
+      return new URL(articleUrlForBase).hostname.toLowerCase();
+    } catch {
+      return null;
+    }
   })();
 
   const cpImageUrls = extractCpImageUrlsFromHtml(fetchResult.text, imageLimit, articleUrlForBase, cpArticleHostname);
@@ -1196,10 +1202,11 @@ function collectImageUrls(item, options = {}) {
 
   walk(item);
 
-  const text = normalizeText(pick(item, ["articleText", "description", "descriptionText", "content", "detailText", "comment"], ""));
+  const text = normalizeText(
+    pick(item, ["articleText", "description", "descriptionText", "content", "detailText", "comment"], ""),
+  );
   if (text) {
-    const matchedUrls =
-      text.match(/https?:\/\/[^\s'"<>]+\.(?:jpg|jpeg|png|webp|avif|gif)(?:\?[^\s'"<>]*)?/gi) || [];
+    const matchedUrls = text.match(/https?:\/\/[^\s'"<>]+\.(?:jpg|jpeg|png|webp|avif|gif)(?:\?[^\s'"<>]*)?/gi) || [];
     for (const matched of matchedUrls) {
       addUrl(matched);
       if (out.length >= imageLimit) break;
@@ -1222,18 +1229,22 @@ function normalizeAddress(item) {
       "도로명주소",
       "지번주소",
     ]) ||
-      pick(item, [
-        "areaName",
-        "tradeAreaName",
-        "complexAddress",
-        "regionName",
-        "dongName",
-        "gugunName",
-        "detailAddress",
-        "address1",
-        "jibunAddress",
-        "roadAddress",
-      ], ""),
+      pick(
+        item,
+        [
+          "areaName",
+          "tradeAreaName",
+          "complexAddress",
+          "regionName",
+          "dongName",
+          "gugunName",
+          "detailAddress",
+          "address1",
+          "jibunAddress",
+          "roadAddress",
+        ],
+        "",
+      ),
   );
 
   if (cand) return cand;
@@ -1247,7 +1258,11 @@ function isAccessBlocked(payload) {
   if (!payload || typeof payload !== "object") return false;
 
   const parts = [
-    pick(payload, ["message", "errorMessage", "messageKo", "msg", "description", "reason", "detail", "alert", "statusText"], ""),
+    pick(
+      payload,
+      ["message", "errorMessage", "messageKo", "msg", "description", "reason", "detail", "alert", "statusText"],
+      "",
+    ),
     pick(payload, ["code", "errorCode", "status", "statusCode", "resultCode", "error", "errCode"], ""),
     pick(payload, ["error_msg", "error_desc", "errorMessageKo"], ""),
   ];
@@ -1279,9 +1294,7 @@ function isAccessBlocked(payload) {
 function buildFallbackRef(item) {
   const addr = normalizeAddress(item);
   const rent = asNumber(pick(item, ["tradePrc", "rentPrc", "rent", "monthlyRent", "rentAmount"], null));
-  const deposit = asNumber(
-    pick(item, ["deposit", "보증금", "depositAmount", "depositPrc", "prcDeposit"], null),
-  );
+  const deposit = asNumber(pick(item, ["deposit", "보증금", "depositAmount", "depositPrc", "prcDeposit"], null));
   const area = parseArea(pick(item, ["spc1", "spc2", "exclusiveArea", "supplyArea", "grossArea"]));
   const room = parseRoom(pick(item, ["room", "roomCount", "roomCnt", "articleType", "roomType"], null));
   const key = `${addr || ""}|${rent || ""}|${deposit || ""}|${area.value || ""}|${room || ""}`;
@@ -1310,9 +1323,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
     this.imageFallbackLimit = Number.isFinite(Number(options.imageFallbackLimit))
       ? Math.max(1, Math.min(24, Number(options.imageFallbackLimit)))
       : this.imageLimit;
-    this.leaseTypeFilter = normalizeLeaseTypeFilter(
-      options.leaseTypeFilter || options.leaseType,
-    );
+    this.leaseTypeFilter = normalizeLeaseTypeFilter(options.leaseTypeFilter || options.leaseType);
     this.maxCandidates = Number.isFinite(Number(options.maxCandidates))
       ? Math.max(1000, Number(options.maxCandidates))
       : 8000;
@@ -1342,15 +1353,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
     for (const row of rows) {
       if (!row || typeof row !== "object") continue;
       const sourceRef =
-        pick(row, [
-          "atclNo",
-          "articleNo",
-          "articleId",
-          "complexNo",
-          "complexNoCd",
-          "itemNo",
-          "id",
-        ]) || buildFallbackRef(row);
+        pick(row, ["atclNo", "articleNo", "articleId", "complexNo", "complexNoCd", "itemNo", "id"]) ||
+        buildFallbackRef(row);
 
       const key = `naver::${String(sourceRef)}`;
       const nextScore = scoreListingCandidate(row);
@@ -1370,40 +1374,17 @@ export class NaverListingAdapter extends BaseListingAdapter {
 
   async normalizeOne(item, rawRecord) {
     const sourceRef =
-      pick(item, [
-        "atclNo",
-        "articleNo",
-        "articleId",
-        "complexNo",
-        "complexNoCd",
-        "itemNo",
-        "id",
-      ]) || buildFallbackRef(item);
+      pick(item, ["atclNo", "articleNo", "articleId", "complexNo", "complexNoCd", "itemNo", "id"]) ||
+      buildFallbackRef(item);
 
     if (!sourceRef && !pick(item, ["atclNm", "articleName", "title", "articleTitle", "atclNm"], null)) {
       return null;
     }
 
-    const tradeTypeCode = pick(
-      item,
-      [
-        "tradeTypeCode",
-        "tradeType",
-        "tradeTypeCd",
-      ],
-      null,
-    );
+    const tradeTypeCode = pick(item, ["tradeTypeCode", "tradeType", "tradeTypeCd"], null);
     const tradeTypeName = pick(
       item,
-      [
-        "tradTpNm",
-        "tradeType",
-        "tradeTypeName",
-        "leaseType",
-        "rentType",
-        "type",
-        "articleType",
-      ],
+      ["tradTpNm", "tradeType", "tradeTypeName", "leaseType", "rentType", "type", "articleType"],
       null,
     );
     let addr = normalizeAddress(item);
@@ -1411,38 +1392,13 @@ export class NaverListingAdapter extends BaseListingAdapter {
       addr = extractCortarAddress(rawRecord);
     }
     const exclusive = parseArea(
-      pick(
-        item,
-        [
-          "area1",
-          "spc1",
-          "exclusiveArea",
-          "전용면적",
-          "exclusiveAreaM2",
-          "areaExcl",
-        ],
-        null,
-      ),
+      pick(item, ["area1", "spc1", "exclusiveArea", "전용면적", "exclusiveAreaM2", "areaExcl"], null),
     );
     const gross = parseArea(
-      pick(
-        item,
-        [
-          "area2",
-          "spc2",
-          "grossArea",
-          "supplyArea",
-          "공급면적",
-          "supplyAreaM2",
-          "areaGross",
-        ],
-        null,
-      ),
+      pick(item, ["area2", "spc2", "grossArea", "supplyArea", "공급면적", "supplyAreaM2", "areaGross"], null),
     );
 
-    const floorValue = parseFloorRaw(
-      pick(item, ["flrInfo", "floorInfo", "floor", "floorInfoText", "floorText"], null),
-    );
+    const floorValue = parseFloorRaw(pick(item, ["flrInfo", "floorInfo", "floor", "floorInfoText", "floorText"], null));
 
     const leaseType = normalizeLeaseType(tradeTypeName, tradeTypeCode);
     if (!this.isLeaseTypeAllowed(leaseType)) {
@@ -1450,16 +1406,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
     }
 
     const splitPrice = parseDealOrWarrantPrc(
-      pick(
-        item,
-        [
-          "dealOrWarrantPrc",
-          "dealOrWarrantPrice",
-          "tradePrice",
-          "sameAddrMaxPrc",
-        ],
-        null,
-      ),
+      pick(item, ["dealOrWarrantPrc", "dealOrWarrantPrice", "tradePrice", "sameAddrMaxPrc"], null),
     );
 
     let rentAmount = asNumber(
@@ -1499,15 +1446,11 @@ export class NaverListingAdapter extends BaseListingAdapter {
       areaClaimed = "range";
     }
 
-    const roomRaw = pick(item, [
-      "roomCount",
-      "roomCnt",
-      "room",
-      "articleType",
-      "tradeType",
-      "roomNm",
-      "roomType",
-    ], null);
+    const roomRaw = pick(
+      item,
+      ["roomCount", "roomCnt", "room", "articleType", "tradeType", "roomNm", "roomType"],
+      null,
+    );
 
     const imageUrls = collectNaverImageCandidates(item);
     let fallbackImageUrls = [];
@@ -1564,25 +1507,14 @@ export class NaverListingAdapter extends BaseListingAdapter {
               normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
           ),
       direction: normalizeDirection(
-        pick(item, [
-          "facing",
-          "direction",
-          "directionText",
-          "houseDirection",
-          "houseDir",
-          "dir",
-        ], null),
+        pick(item, ["facing", "direction", "directionText", "houseDirection", "houseDir", "dir"], null),
       ),
       building_use: normalizeBuildingUseValue(
-        pick(item, [
-          "houseType",
-          "houseTypeNm",
-          "houseTypeName",
-          "atclType",
-          "buildingType",
-          "buildingTypeNm",
-          "type",
-        ], null),
+        pick(
+          item,
+          ["houseType", "houseTypeNm", "houseTypeName", "atclType", "buildingType", "buildingTypeNm", "type"],
+          null,
+        ),
       ),
       floor: floorValue.floor,
       total_floor: floorValue.total_floor,
@@ -1615,13 +1547,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
           code: ADAPTER_VALIDATION_CODES.ADDRESS_NORMALIZE_FAIL,
           message: "주소 정규화 실패",
           detail: {
-            address_candidates: pick(item, [
-              "address",
-              "addr",
-              "atclAddr",
-              "articleAddress",
-              "fullAddress",
-            ], null),
+            address_candidates: pick(item, ["address", "addr", "atclAddr", "articleAddress", "fullAddress"], null),
           },
         },
       ];

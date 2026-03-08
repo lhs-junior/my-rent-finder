@@ -25,7 +25,8 @@ const DAANGN_MIN_AREA_M2 = (() => {
 
 const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
 const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
-const IMAGE_PATH_BLACKLIST_RE = /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy)(?:$|[./?\/])/i;
+const IMAGE_PATH_BLACKLIST_RE =
+  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy)(?:$|[./?\/])/i;
 const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
 
 function isLikelyImageSource(rawUrl) {
@@ -107,12 +108,12 @@ function collectImageValues(value, seen, out, depth = 4) {
     const keyText = String(key || "").toLowerCase();
     if (!candidate) continue;
     if (
-      /(url|uri|src|image|photo|thumb|thumbnail|media|path|link|href)/.test(keyText)
-      || keyText === "images"
-      || keyText === "image_urls"
-      || keyText === "imageUrl"
-      || keyText === "img"
-      || keyText === "media"
+      /(url|uri|src|image|photo|thumb|thumbnail|media|path|link|href)/.test(keyText) ||
+      keyText === "images" ||
+      keyText === "image_urls" ||
+      keyText === "imageUrl" ||
+      keyText === "img" ||
+      keyText === "media"
     ) {
       collectImageValues(candidate, seen, out, depth - 1);
     }
@@ -370,26 +371,24 @@ async function cleanupNormalizedRowsForSourceRef(client, platform, sourceRef) {
     [platformCode, normalizedSourceRef],
   );
 
-  const listingIds = lookup.rows
-    .map((row) => toInt(row?.listing_id, null))
-    .filter((id) => id !== null);
+  const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
   await cleanupNormalizedRowsByListingIds(client, listingIds);
 }
 
 function toSafeSourceUrl(raw) {
   return toText(
-    raw?.source_url
-      || raw?.request_url
-      || raw?.url
-      || raw?.sourceUrl
-      || raw?.payload_json?.source_url
-      || raw?.payload_json?.sourceUrl
-      || raw?.payload_json?.url
-      || raw?.payload_json?.request_url
-      || raw?.list_data?.source_url
-      || raw?.list_data?.url
-      || raw?.link
-      || raw?.home_url,
+    raw?.source_url ||
+      raw?.request_url ||
+      raw?.url ||
+      raw?.sourceUrl ||
+      raw?.payload_json?.source_url ||
+      raw?.payload_json?.sourceUrl ||
+      raw?.payload_json?.url ||
+      raw?.payload_json?.request_url ||
+      raw?.list_data?.source_url ||
+      raw?.list_data?.url ||
+      raw?.link ||
+      raw?.home_url,
     "",
   );
 }
@@ -408,22 +407,22 @@ function extractExternalId(raw, platformCode) {
   const fallbackSeed = (() => {
     if (platform === "daangn") {
       return toText(
-        raw?.source_ref
-          || raw?.sourceRef
-          || raw?.source_url
-          || raw?.sourceUrl
-          || raw?.payload_json?.source_ref
-          || raw?.payload_json?.sourceRef
-          || raw?.payload_json?.source_url
-          || raw?.payload_json?.url
-          || raw?.payload_json?.request_url
-          || raw?.list_data?.source_ref
-          || raw?.list_data?.sourceRef
-          || raw?.list_data?.source_url
-          || raw?.url
-          || raw?.link
-          || raw?.home_url
-          || "",
+        raw?.source_ref ||
+          raw?.sourceRef ||
+          raw?.source_url ||
+          raw?.sourceUrl ||
+          raw?.payload_json?.source_ref ||
+          raw?.payload_json?.sourceRef ||
+          raw?.payload_json?.source_url ||
+          raw?.payload_json?.url ||
+          raw?.payload_json?.request_url ||
+          raw?.list_data?.source_ref ||
+          raw?.list_data?.sourceRef ||
+          raw?.list_data?.source_url ||
+          raw?.url ||
+          raw?.link ||
+          raw?.home_url ||
+          "",
         "",
       );
     }
@@ -454,13 +453,15 @@ function extractCollectedAt(raw) {
 
 function buildCanonicalKey(platformCode, sourceRef, sourceUrl, addressCode, rentAmount, depositAmount, areaExclusive) {
   const seed = `${platformCode}|${sourceRef || ""}|${sourceUrl || ""}|${addressCode || ""}|${toText(rentAmount, "")}|${toText(depositAmount, "")}|${toText(areaExclusive, "")}`;
-  return ensureFnv11(seed) || ensureFnv11(`${platformCode}|${sourceRef || sourceUrl || addressCode || "listing"}`) || "11000000000";
+  return (
+    ensureFnv11(seed) ||
+    ensureFnv11(`${platformCode}|${sourceRef || sourceUrl || addressCode || "listing"}`) ||
+    "11000000000"
+  );
 }
 
 async function cleanupNormalizedRowsByListingIds(client, listingIds) {
-  const normalized = listingIds
-    .map((id) => toInt(id, null))
-    .filter((id) => id !== null);
+  const normalized = listingIds.map((id) => toInt(id, null)).filter((id) => id !== null);
   if (!normalized.length) return;
 
   await client.query(
@@ -515,9 +516,7 @@ async function cleanupNormalizedRowsForRawId(client, platform, rawId) {
     [platformCode, rawId],
   );
 
-  const listingIds = lookup.rows
-    .map((row) => toInt(row?.listing_id, null))
-    .filter((id) => id !== null);
+  const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
   await cleanupNormalizedRowsByListingIds(client, listingIds);
 }
 
@@ -556,9 +555,7 @@ async function cleanupNormalizedRowsForSourceUrl(client, platform, sourceUrl) {
     [platformCode, candidates],
   );
 
-  const listingIds = lookup.rows
-    .map((row) => toInt(row?.listing_id, null))
-    .filter((id) => id !== null);
+  const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
   await cleanupNormalizedRowsByListingIds(client, listingIds);
 }
 
@@ -598,11 +595,7 @@ function inferQuality(item) {
   const rent = item?.rent_amount ?? item?.rentAmount ?? item?.rent ?? null;
   const deposit = item?.deposit_amount ?? item?.depositAmount ?? item?.deposit ?? null;
   const hasPrice = rent != null || deposit != null;
-  const area = item?.area_exclusive_m2
-    ?? item?.areaExclusiveM2
-    ?? item?.area_gross_m2
-    ?? item?.areaGrossM2
-    ?? null;
+  const area = item?.area_exclusive_m2 ?? item?.areaExclusiveM2 ?? item?.area_gross_m2 ?? item?.areaGrossM2 ?? null;
   const hasArea = area != null;
   return {
     required: Number(hasAddress && hasPrice && hasArea),
@@ -665,15 +658,16 @@ async function upsertPlatformCode(client, platformCode) {
   const code = normalizePlatform(platformCode);
   if (!code) return;
   const platformName = platformNameFromCode(code);
-  const homeUrl = {
-    naver: "https://new.land.naver.com",
-    zigbang: "https://www.zigbang.com",
-    dabang: "https://www.dabangapp.com",
-    r114: "https://www.r114.com",
-    peterpanz: "https://www.peterpanz.com",
-    daangn: "https://www.daangn.com",
-    kbland: "https://www.kb.land",
-  }[code] || null;
+  const homeUrl =
+    {
+      naver: "https://new.land.naver.com",
+      zigbang: "https://www.zigbang.com",
+      dabang: "https://www.dabangapp.com",
+      r114: "https://www.r114.com",
+      peterpanz: "https://www.peterpanz.com",
+      daangn: "https://www.daangn.com",
+      kbland: "https://www.kb.land",
+    }[code] || null;
 
   await client.query(
     `
@@ -846,10 +840,7 @@ async function resolveRawIdBySourceUrl(client, platformCode, sourceUrl) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
   const normalizedSourceUrl = normalizePlatformSourceUrl(platform, sourceUrl);
-  const candidates = new Set([
-    toText(sourceUrl, ""),
-    normalizedSourceUrl,
-  ]);
+  const candidates = new Set([toText(sourceUrl, ""), normalizedSourceUrl]);
   for (const candidate of Array.from(candidates)) {
     if (!candidate) continue;
     const withoutSlash = String(candidate).replace(/\/+$/, "");
@@ -885,35 +876,21 @@ async function resolveRawIdBySourceUrl(client, platformCode, sourceUrl) {
 async function resolveRawExternalIdByRawId(client, rawId) {
   const numericRawId = toInt(rawId, null);
   if (numericRawId === null) return null;
-  const result = await client.query(
-    `SELECT external_id FROM raw_listings WHERE raw_id = $1 LIMIT 1`,
-    [numericRawId],
-  );
+  const result = await client.query(`SELECT external_id FROM raw_listings WHERE raw_id = $1 LIMIT 1`, [numericRawId]);
   return toText(result.rows?.[0]?.external_id, null);
 }
 
-async function upsertNormalizedListing(
-  client,
-  item,
-  platformCode,
-  runId,
-  rawIdByExternal,
-  imageQueue,
-) {
+async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
-  let sourceRef = normalizePlatformSourceRef(
-    platform,
-    toText(item?.source_ref || item?.sourceRef, ""),
-  );
+  let sourceRef = normalizePlatformSourceRef(platform, toText(item?.source_ref || item?.sourceRef, ""));
   const sourceUrl = normalizePlatformSourceUrl(
     platform,
     toText(item?.source_url || item?.sourceUrl || item?.url || "", ""),
   );
-  const fallbackSourceUrl = !sourceUrl && platform === "daangn" && sourceRef
-    ? `https://www.daangn.com/kr/realty/${sourceRef}`
-    : null;
+  const fallbackSourceUrl =
+    !sourceUrl && platform === "daangn" && sourceRef ? `https://www.daangn.com/kr/realty/${sourceRef}` : null;
   const finalSourceUrl = sourceUrl || fallbackSourceUrl;
   if (!finalSourceUrl) return null;
   let externalId = normalizePlatformSourceRef(
@@ -930,11 +907,7 @@ async function upsertNormalizedListing(
   if (!sourceRef) sourceRef = externalId;
 
   const rawExternalId = toText(
-    item?.raw_external_id
-      || item?.raw_id
-      || item?.rawExternalId
-      || item?.source_ref
-      || item?.sourceRef,
+    item?.raw_external_id || item?.raw_id || item?.rawExternalId || item?.source_ref || item?.sourceRef,
     null,
   );
 
@@ -1060,14 +1033,7 @@ async function upsertNormalizedListing(
   const addressText = toText(item?.address_text || item?.addressText || item?.address || "", "서울특별시");
   const addressCode = toText(item?.address_code || item?.addressCode, "") || ensureFnv11(addressText) || "11000000000";
   const leaseType = normalizeLeaseType(
-    toText(
-      item?.lease_type
-        || item?.leaseType
-        || item?.trade_type
-        || item?.tradeType
-        || item?.tradeTypeName,
-      "월세",
-    ),
+    toText(item?.lease_type || item?.leaseType || item?.trade_type || item?.tradeType || item?.tradeTypeName, "월세"),
   );
   const areaClaimRaw = item?.area_claimed || item?.areaClaimed || null;
   const areaClaimed = normalizeAreaClaimed(
@@ -1217,10 +1183,11 @@ async function upsertNormalizedListing(
   const listingId = toInt(result.rows?.[0]?.listing_id, null);
   if (!listingId) return null;
 
-  await client.query(
-    `UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = $1`,
-    [rawId],
-  ).catch(() => {});
+  await client
+    .query(`UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = $1`, [
+      rawId,
+    ])
+    .catch(() => {});
 
   const imageUrls = normalizeImageList(item);
   for (let index = 0; index < imageUrls.length; index += 1) {
@@ -1313,7 +1280,9 @@ async function upsertImageQueue(client, imageQueue) {
         continue;
       }
       if (error?.code === "23503") {
-        console.warn(`⚠️  listing_images FK violation skipped: listing_id=${item.listingId} not in normalized_listings (source_url=${item.sourceUrl})`);
+        console.warn(
+          `⚠️  listing_images FK violation skipped: listing_id=${item.listingId} not in normalized_listings (source_url=${item.sourceUrl})`,
+        );
         continue;
       }
       throw error;
@@ -1340,8 +1309,9 @@ async function persistContractViolations(client, platformCode, rawId, listingId,
   if (!violations.length || !listingId) return;
   for (const violation of violations) {
     const scopeId = `${platformCode}:${listingId}:${violation.code}`;
-    await client.query(
-      `
+    await client
+      .query(
+        `
       INSERT INTO contract_violations (
         scope,
         scope_id,
@@ -1364,17 +1334,18 @@ async function persistContractViolations(client, platformCode, rawId, listingId,
         $8
       )
       `,
-      [
-        scopeId,
-        normalizePlatform(platformCode),
-        rawId || null,
-        listingId,
-        violation.code,
-        violation.message,
-        JSON.stringify(violation.detail),
-        violation.severity,
-      ],
-    ).catch(() => {});
+        [
+          scopeId,
+          normalizePlatform(platformCode),
+          rawId || null,
+          listingId,
+          violation.code,
+          violation.message,
+          JSON.stringify(violation.detail),
+          violation.severity,
+        ],
+      )
+      .catch(() => {});
   }
 }
 
@@ -1404,8 +1375,14 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
   const startedAt = safeDate(platformRuns.find((r) => r?.startedAt)?.startedAt || first.startedAt);
   const finishedAt = safeDate(platformRuns.find((r) => r?.finishedAt)?.finishedAt || first.finishedAt);
 
-  const queryCity = toText(first?.targetCity || first?.query_city || summary?.target?.sido || summary?.target?.sidoName || null, null);
-  const queryDistrict = toText(first?.sigungu || first?.query_district || summary?.target?.sigungu || summary?.target?.gu || null, null);
+  const queryCity = toText(
+    first?.targetCity || first?.query_city || summary?.target?.sido || summary?.target?.sidoName || null,
+    null,
+  );
+  const queryDistrict = toText(
+    first?.sigungu || first?.query_district || summary?.target?.sigungu || summary?.target?.gu || null,
+    null,
+  );
   const targetMinRent = toNumber(first?.targetMinRent, null);
   const targetMaxRent = toNumber(first?.targetMaxRent, null);
   const targetMinArea = toNumber(first?.targetMinArea, null);
@@ -1474,7 +1451,23 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
     }
   }
 
-  await upsertImageQueue(client, imageQueue);
+  // Defensive: filter out imageQueue entries whose listing_id was deleted by cleanup during the batch
+  if (imageQueue.length > 0) {
+    const uniqueListingIds = [...new Set(imageQueue.map((q) => q.listingId).filter(Boolean))];
+    if (uniqueListingIds.length > 0) {
+      const alive = await client.query(
+        `SELECT listing_id FROM normalized_listings WHERE listing_id = ANY($1::bigint[])`,
+        [uniqueListingIds],
+      );
+      const aliveSet = new Set(alive.rows.map((r) => r.listing_id));
+      const before = imageQueue.length;
+      const filtered = imageQueue.filter((q) => aliveSet.has(q.listingId));
+      if (filtered.length < before) {
+        console.warn(`⚠️  imageQueue: filtered ${before - filtered.length}/${before} entries with stale listing_ids`);
+      }
+      await upsertImageQueue(client, filtered);
+    }
+  }
 }
 
 async function runPersistSummary(client, summaryPath) {
@@ -1564,11 +1557,16 @@ function resolvePairId(value, map) {
   const key = toText(value, "");
   if (!key) return null;
   if (map.has(key)) return map.get(key);
-  const withPlatformPrefix = map.has(`zigbang:${key}`) ? map.get(`zigbang:${key}`)
-    : map.has(`naver:${key}`) ? map.get(`naver:${key}`)
-      : map.has(`dabang:${key}`) ? map.get(`dabang:${key}`)
-        : map.has(`r114:${key}`) ? map.get(`r114:${key}`)
-          : map.has(`peterpanz:${key}`) ? map.get(`peterpanz:${key}`)
+  const withPlatformPrefix = map.has(`zigbang:${key}`)
+    ? map.get(`zigbang:${key}`)
+    : map.has(`naver:${key}`)
+      ? map.get(`naver:${key}`)
+      : map.has(`dabang:${key}`)
+        ? map.get(`dabang:${key}`)
+        : map.has(`r114:${key}`)
+          ? map.get(`r114:${key}`)
+          : map.has(`peterpanz:${key}`)
+            ? map.get(`peterpanz:${key}`)
             : null;
   if (withPlatformPrefix) return withPlatformPrefix;
   const num = toInt(key, null);
@@ -1583,27 +1581,19 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
   const pairs = Array.isArray(matchOutput.pairs) ? matchOutput.pairs : [];
   const groups = Array.isArray(matchOutput.match_groups) ? matchOutput.match_groups : [];
   const candidates = toInt(
-    matchOutput.input_summary?.candidate_pairs
-      || matchOutput.candidate_pairs
-      || matchOutput.summary?.candidate_pairs,
+    matchOutput.input_summary?.candidate_pairs || matchOutput.candidate_pairs || matchOutput.summary?.candidate_pairs,
     0,
   );
   const autoMatch = toInt(
-    matchOutput.input_summary?.auto_match
-      || matchOutput.auto_match
-      || matchOutput.summary?.auto_match,
+    matchOutput.input_summary?.auto_match || matchOutput.auto_match || matchOutput.summary?.auto_match,
     0,
   );
   const reviewRequired = toInt(
-    matchOutput.input_summary?.review_required
-      || matchOutput.review_required
-      || matchOutput.summary?.review_required,
+    matchOutput.input_summary?.review_required || matchOutput.review_required || matchOutput.summary?.review_required,
     0,
   );
   const distinctCount = toInt(
-    matchOutput.input_summary?.distinct
-      || matchOutput.distinct
-      || matchOutput.summary?.distinct,
+    matchOutput.input_summary?.distinct || matchOutput.distinct || matchOutput.summary?.distinct,
     0,
   );
 
@@ -1632,7 +1622,9 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
       autoMatch,
       reviewRequired,
       distinctCount,
-      JSON.stringify(matchOutput.threshold_json || matchOutput.rules_snapshot || { autoMatch: 93, reviewRequiredMin: 80 }),
+      JSON.stringify(
+        matchOutput.threshold_json || matchOutput.rules_snapshot || { autoMatch: 93, reviewRequiredMin: 80 },
+      ),
       safeDate(matchOutput.generated_at || matchOutput.started_at || new Date().toISOString()),
       safeDate(matchOutput.generated_at || matchOutput.finished_at || new Date().toISOString()),
       JSON.stringify({
@@ -1671,14 +1663,11 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
     if (!source || !target || source === target) continue;
 
     const normalized = toText(pair.status, "DISTINCT");
-    const status = ["AUTO_MATCH", "REVIEW_REQUIRED", "DISTINCT"].includes(normalized)
-      ? normalized
-      : "DISTINCT";
+    const status = ["AUTO_MATCH", "REVIEW_REQUIRED", "DISTINCT"].includes(normalized) ? normalized : "DISTINCT";
     const orderedSource = Math.min(source, target);
     const orderedTarget = Math.max(source, target);
-    await client.query(
-      pairQuery,
-      [
+    await client
+      .query(pairQuery, [
         matcherRunId,
         orderedSource,
         orderedTarget,
@@ -1690,10 +1679,11 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
         toNumber(pair.attribute_score, 0),
         status,
         JSON.stringify(pair.reason_json || pair.reason || {}),
-      ],
-    ).then(() => {
-      storedPairs += 1;
-    }).catch(() => {});
+      ])
+      .then(() => {
+        storedPairs += 1;
+      })
+      .catch(() => {});
   }
 
   let storedGroups = 0;
@@ -1710,7 +1700,10 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
       `,
       [
         matcherRunId,
-        toText(group.canonical_key || group.group_id || group.id, ensureFnv11(`${matcherRunId}:${toText(group.group_id, "group")}`) || `11${String(Date.now()).slice(-9)}`),
+        toText(
+          group.canonical_key || group.group_id || group.id,
+          ensureFnv11(`${matcherRunId}:${toText(group.group_id, "group")}`) || `11${String(Date.now()).slice(-9)}`,
+        ),
         "OPEN",
         JSON.stringify(group),
       ],
@@ -1722,15 +1715,17 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
     for (const memberId of members) {
       const memberListing = resolvePairId(memberId, listingMap);
       if (!memberListing) continue;
-      await client.query(
-        `
+      await client
+        .query(
+          `
         INSERT INTO match_group_members (group_id, listing_id, score)
         VALUES ($1, $2, $3)
         ON CONFLICT (group_id, listing_id) DO UPDATE
         SET score = GREATEST(match_group_members.score, EXCLUDED.score)
         `,
-        [groupId, memberListing, toNumber(memberId?.score, 100)],
-      ).catch(() => {});
+          [groupId, memberListing, toNumber(memberId?.score, 100)],
+        )
+        .catch(() => {});
     }
   }
 
@@ -1820,11 +1815,12 @@ export async function persistOperationsToDb(summaryPath, options = {}) {
     runId: toText(options.runId, null),
   });
 
-  const matcherResult = persistMatches && matchOutputPath
-    ? await persistMatchesToDb(summaryPath, matchOutputPath, {
-      runId: summaryResult.runId,
-    })
-    : null;
+  const matcherResult =
+    persistMatches && matchOutputPath
+      ? await persistMatchesToDb(summaryPath, matchOutputPath, {
+          runId: summaryResult.runId,
+        })
+      : null;
 
   return {
     summaryResult,
