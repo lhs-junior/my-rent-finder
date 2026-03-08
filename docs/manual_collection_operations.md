@@ -121,25 +121,28 @@ curl -s http://localhost:9222/json/version | head -5
 
 정상이면 `Browser`, `webSocketDebuggerUrl` 등이 출력됨.
 
-### Step 4: 수집 실행
+### Step 4: 수집 + DB 저장 (한 번에)
 
 ```bash
-# 전체 8개 구 수집
+# 전체 8개 구 수집 + DB 저장
+node scripts/run_parallel_collect.mjs --platforms kbland --sample-cap=0 --persist-to-db
+```
+
+> `run_parallel_collect.mjs`가 내부적으로 `kbland_auto_collector.mjs`를 호출하고 DB 저장까지 처리합니다.
+
+#### 수집만 하고 DB 저장은 나중에 하려면
+
+```bash
+# Step 4a: 수집만 (파일로 저장)
 node scripts/kbland_auto_collector.mjs \
   --sigungu-list=노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구 \
   --sample-cap=0 --verbose
 
-# 특정 구만 수집
-node scripts/kbland_auto_collector.mjs --sigungu=노원구 --sample-cap=0 --verbose
-```
-
-### Step 5: DB 저장
-
-```bash
+# Step 4b: DB 저장
 node scripts/run_parallel_collect.mjs --platforms kbland --sample-cap=0 --persist-to-db
 ```
 
-### Step 6: 종료 매물 정리
+### Step 5: 종료 매물 정리
 
 ```bash
 node scripts/check_listing_status.mjs --platform kbland
