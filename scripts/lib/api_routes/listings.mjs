@@ -53,13 +53,7 @@ function normalizeMoneyHintOrder(text) {
   return null;
 }
 
-function shouldSwapDabangDaangnMoney({
-  platformCode,
-  leaseType,
-  rentAmount,
-  depositAmount,
-  rawText,
-}) {
+function shouldSwapDabangDaangnMoney({ platformCode, leaseType, rentAmount, depositAmount, rawText }) {
   if (!MONEY_ORIENTED_PLATFORMS.has(normalizeMoneyText(platformCode))) {
     return false;
   }
@@ -85,13 +79,7 @@ function shouldSwapDabangDaangnMoney({
   return pair.left >= MONEY_SWAP_RENT_MIN && pair.right <= MONEY_SWAP_DEPOSIT_MAX;
 }
 
-function normalizeListingMoney({
-  platformCode,
-  leaseType,
-  rawText,
-  rentAmount,
-  depositAmount,
-}) {
+function normalizeListingMoney({ platformCode, leaseType, rawText, rentAmount, depositAmount }) {
   const rent = toNumber(rentAmount, null);
   const deposit = toNumber(depositAmount, null);
   if (rent === null || deposit === null) {
@@ -109,13 +97,15 @@ function normalizeListingMoney({
     };
   }
 
-  if (!shouldSwapDabangDaangnMoney({
-    platformCode,
-    leaseType,
-    rentAmount: rent,
-    depositAmount: deposit,
-    rawText,
-  })) {
+  if (
+    !shouldSwapDabangDaangnMoney({
+      platformCode,
+      leaseType,
+      rentAmount: rent,
+      depositAmount: deposit,
+      rawText,
+    })
+  ) {
     return {
       rent_amount: rent,
       deposit_amount: deposit,
@@ -156,21 +146,11 @@ export async function handleListings(req, res) {
   const runId = safeText(url.searchParams.get("run_id"), null);
   const platform = safeText(url.searchParams.get("platform_code"), null);
   const address = safeText(url.searchParams.get("address"), null);
-  const maxRent = url.searchParams.has("max_rent")
-    ? parseQueryNumber(url.searchParams.get("max_rent"), null)
-    : null;
-  const minRent = url.searchParams.has("min_rent")
-    ? parseQueryNumber(url.searchParams.get("min_rent"), null)
-    : null;
-  const minArea = url.searchParams.has("min_area")
-    ? parseQueryNumber(url.searchParams.get("min_area"), null)
-    : null;
-  const maxArea = url.searchParams.has("max_area")
-    ? parseQueryNumber(url.searchParams.get("max_area"), null)
-    : null;
-  const minFloor = url.searchParams.has("min_floor")
-    ? parseQueryInt(url.searchParams.get("min_floor"), null)
-    : null;
+  const maxRent = url.searchParams.has("max_rent") ? parseQueryNumber(url.searchParams.get("max_rent"), null) : null;
+  const minRent = url.searchParams.has("min_rent") ? parseQueryNumber(url.searchParams.get("min_rent"), null) : null;
+  const minArea = url.searchParams.has("min_area") ? parseQueryNumber(url.searchParams.get("min_area"), null) : null;
+  const maxArea = url.searchParams.has("max_area") ? parseQueryNumber(url.searchParams.get("max_area"), null) : null;
+  const minFloor = url.searchParams.has("min_floor") ? parseQueryInt(url.searchParams.get("min_floor"), null) : null;
   const limit = Math.max(1, parseQueryInt(url.searchParams.get("limit"), 50));
   const offset = Math.max(0, parseQueryInt(url.searchParams.get("offset"), 0));
 
@@ -216,19 +196,23 @@ export async function handleListings(req, res) {
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const DEDUP_RK = dedupRankExpression("nl");
 
-    const countResult = await client.query(`
+    const countResult = await client.query(
+      `
       SELECT COUNT(*) AS total FROM (
         SELECT nl.listing_id, ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
         WHERE ${cond.join(" AND ")}
       ) _d WHERE _d._rk = 1
-    `, [...params]);
+    `,
+      [...params],
+    );
     const total = parseInt(countResult.rows?.[0]?.total || "0", 10);
 
     params.push(limit);
     params.push(offset);
-    const rows = await client.query(`
+    const rows = await client.query(
+      `
       SELECT * FROM (
         SELECT nl.listing_id, nl.platform_code, nl.source_url,
                COALESCE(
@@ -252,12 +236,17 @@ export async function handleListings(req, res) {
       ) _d WHERE _d._rk = 1
       ORDER BY _d.created_at DESC
       LIMIT $${params.length - 1} OFFSET $${params.length}
-    `, params);
+    `,
+      params,
+    );
     const listingRowsInner = rows.rows || [];
 
     const listingIds = listingRowsInner.map((row) => toInt(row.listing_id, null)).filter((value) => value !== null);
     const imageRows = listingIds.length
-      ? await client.query(`SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`, [listingIds])
+      ? await client.query(
+          `SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`,
+          [listingIds],
+        )
       : { rows: [] };
     const imageMap = parseImageMap(imageRows.rows || []);
 
@@ -312,7 +301,8 @@ export async function handleListings(req, res) {
         first_image_url: firstImageMap.get(listingId) || null,
         is_stale: (() => {
           try {
-            const flags = typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : (row.quality_flags || []);
+            const flags =
+              typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : row.quality_flags || [];
             return Array.isArray(flags) && flags.includes("STALE_SUSPECT");
           } catch {
             return false;
@@ -345,12 +335,15 @@ export async function handleListings(req, res) {
 
 export async function handleListingDetail(req, res, id) {
   const listing = await withDbClient(async (client) => {
-    const rows = await client.query(`
+    const rows = await client.query(
+      `
       SELECT nl.*, rl.run_id, rl.payload_json
       FROM normalized_listings nl
       JOIN raw_listings rl ON rl.raw_id = nl.raw_id
       WHERE nl.listing_id = $1 AND nl.deleted_at IS NULL
-    `, [id]);
+    `,
+      [id],
+    );
     if (!rows.rows?.length) return null;
     const row = rows.rows[0];
     const normalizedMoney = normalizeListingMoney({
@@ -360,15 +353,21 @@ export async function handleListingDetail(req, res, id) {
       rentAmount: row.rent_amount,
       depositAmount: row.deposit_amount,
     });
-    const imageRows = await client.query(`SELECT source_url, status, is_primary FROM listing_images WHERE listing_id = $1 ORDER BY is_primary DESC, image_id DESC`, [id]);
-    const violationRows = await client.query(`SELECT violation_code, message, detail, severity, detected_at FROM contract_violations WHERE listing_id = $1 ORDER BY detected_at DESC`, [id]);
+    const imageRows = await client.query(
+      `SELECT source_url, status, is_primary FROM listing_images WHERE listing_id = $1 ORDER BY is_primary DESC, image_id DESC`,
+      [id],
+    );
+    const violationRows = await client.query(
+      `SELECT violation_code, message, detail, severity, detected_at FROM contract_violations WHERE listing_id = $1 ORDER BY detected_at DESC`,
+      [id],
+    );
 
     let priceHistory = [];
     try {
       const histResult = await client.query(
         `SELECT history_id, rent_amount, deposit_amount, previous_rent, previous_deposit, detected_at, run_id
          FROM listing_price_history WHERE listing_id = $1 ORDER BY detected_at DESC LIMIT 50`,
-        [id]
+        [id],
       );
       priceHistory = histResult.rows;
     } catch (err) {
@@ -376,12 +375,11 @@ export async function handleListingDetail(req, res, id) {
       if (!err.message?.includes("does not exist")) throw err;
     }
 
-    const rawAttrs = row?.payload_json && typeof row.payload_json === "object"
-      ? row.payload_json
-      : null;
-    const sourceRefFromRaw = rawAttrs && typeof rawAttrs === "object"
-      ? toText(rawAttrs.articleNo || rawAttrs.atclNo || rawAttrs.articleId || rawAttrs.id || rawAttrs.listingId, "")
-      : "";
+    const rawAttrs = row?.payload_json && typeof row.payload_json === "object" ? row.payload_json : null;
+    const sourceRefFromRaw =
+      rawAttrs && typeof rawAttrs === "object"
+        ? toText(rawAttrs.articleNo || rawAttrs.atclNo || rawAttrs.articleId || rawAttrs.id || rawAttrs.listingId, "")
+        : "";
 
     return {
       listing: {
@@ -422,7 +420,7 @@ export async function handleListingDetail(req, res, id) {
         images: imageRows.rows || [],
         quality_flags: (() => {
           try {
-            return typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : (row.quality_flags || []);
+            return typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : row.quality_flags || [];
           } catch {
             return [];
           }
@@ -513,7 +511,10 @@ async function verifyKbland(externalId) {
     if (code === 30210) return { alive: false, reason: "deleted" };
     const info = json?.dataBody?.data?.dtailInfo;
     if (info) {
-      if (String(info["매물상태구분"]) === "4" || /노출종료|거래완료|삭제|기간만료/.test(info["매물상태변경사유"] || "")) {
+      if (
+        String(info["매물상태구분"]) === "4" ||
+        /노출종료|거래완료|삭제|기간만료/.test(info["매물상태변경사유"] || "")
+      ) {
         return { alive: false, reason: "exposure_ended" };
       }
       return { alive: true, reason: "active" };
@@ -524,15 +525,147 @@ async function verifyKbland(externalId) {
   }
 }
 
+// ── 다방 verify ──
+
+async function verifyDabang(externalId) {
+  try {
+    const url = `https://www.dabangapp.com/room/${externalId}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": COMMON_VERIFY_UA, Accept: "text/html" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resp.status === 404) return { alive: false, reason: "not_found" };
+    if (resp.status === 410) return { alive: false, reason: "gone" };
+    if (resp.status >= 300 && resp.status < 400) {
+      const location = resp.headers.get("location") || "";
+      if (!location.includes(`/room/${externalId}`)) return { alive: false, reason: "redirect" };
+      return { alive: true, reason: "active" };
+    }
+    if (resp.status === 200) {
+      const html = await resp.text();
+      if (html.includes("해당 방을 찾을 수 없") || html.includes("삭제된 방") || html.includes("존재하지 않는")) {
+        return { alive: false, reason: "page_expired" };
+      }
+      return { alive: true, reason: "active" };
+    }
+    return { alive: null, reason: `http_${resp.status}` };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+// ── 피터팬 verify ──
+
+async function verifyPeterpanz(externalId) {
+  try {
+    const url = `https://www.peterpanz.com/house/${externalId}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": COMMON_VERIFY_UA, Accept: "text/html" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resp.status === 404) return { alive: false, reason: "not_found" };
+    if (resp.status >= 300 && resp.status < 400) return { alive: false, reason: "redirect" };
+    if (resp.status === 200) {
+      const html = await resp.text();
+      if (html.includes("해당 매물을 찾을 수 없") || html.includes("삭제된 매물") || html.includes("존재하지 않는")) {
+        return { alive: false, reason: "page_expired" };
+      }
+      return { alive: true, reason: "active" };
+    }
+    return { alive: null, reason: `http_${resp.status}` };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+// ── 네이버 부동산 verify ──
+
+async function verifyNaver(externalId) {
+  try {
+    const url = `https://fin.land.naver.com/articles/${externalId}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": COMMON_VERIFY_UA, Accept: "text/html", "Accept-Language": "ko-KR,ko;q=0.9" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resp.status === 404) return { alive: false, reason: "not_found" };
+    if (resp.status >= 300 && resp.status < 400) {
+      const location = resp.headers.get("location") || "";
+      if (location.includes("/articles/") && location.includes(externalId)) return { alive: true, reason: "active" };
+      return { alive: false, reason: "redirect" };
+    }
+    if (resp.status === 200) {
+      const html = await resp.text();
+      if (
+        html.includes("삭제된 매물") ||
+        html.includes("존재하지 않는 매물") ||
+        html.includes("거래가 완료") ||
+        html.includes("거래 완료된 매물") ||
+        html.includes("이미 거래된")
+      ) {
+        return { alive: false, reason: "page_expired" };
+      }
+      if (html.includes("articleDetail") || html.includes("매물번호")) return { alive: true, reason: "active" };
+      if (html.length > 5000) return { alive: true, reason: "active" };
+      return { alive: false, reason: "empty_page" };
+    }
+    return { alive: null, reason: `http_${resp.status}` };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
+// ── 당근 부동산 verify ──
+
+async function verifyDaangn(externalId, sourceUrl) {
+  try {
+    const url = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": COMMON_VERIFY_UA, Accept: "text/html" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resp.status === 410) return { alive: false, reason: "gone" };
+    if (resp.status === 404) return { alive: false, reason: "not_found" };
+    if (resp.status === 200) {
+      const html = await resp.text();
+      if (
+        html.includes("이미 거래된 매물") ||
+        html.includes("이미 거래") ||
+        html.includes("거래가 완료") ||
+        html.includes("거래완료")
+      ) {
+        return { alive: false, reason: "traded" };
+      }
+      if (html.includes("삭제") || html.includes("존재하지 않") || html.includes("만료")) {
+        return { alive: false, reason: "page_expired" };
+      }
+      if (html.includes("RealEstateListing") || html.includes("realty_post")) {
+        return { alive: true, reason: "active" };
+      }
+      return { alive: null, reason: "unrecognized_page" };
+    }
+    return { alive: null, reason: `http_${resp.status}` };
+  } catch (err) {
+    return { alive: null, reason: `fetch_error: ${err.message}` };
+  }
+}
+
 const PLATFORM_VERIFIERS = {
   zigbang: verifyZigbang,
   kbland: verifyKbland,
+  dabang: verifyDabang,
+  peterpanz: verifyPeterpanz,
+  naver: verifyNaver,
+  daangn: verifyDaangn,
 };
 
 export async function handleListingVerify(req, res, id) {
   const listing = await withDbClient(async (client) => {
     const result = await client.query(
-      `SELECT listing_id, platform_code, external_id, source_ref, quality_flags
+      `SELECT listing_id, platform_code, external_id, source_ref, source_url, quality_flags
        FROM normalized_listings WHERE listing_id = $1 AND deleted_at IS NULL`,
       [id],
     );
@@ -553,19 +686,22 @@ export async function handleListingVerify(req, res, id) {
     return;
   }
 
-  const result = await verifier(sourceRef);
+  // 당근은 source_url 기반 verify가 필요 (slug URL)
+  const sourceUrl = safeText(listing.source_url || "", "");
+  const result = platform === "daangn" ? await verifier(sourceRef, sourceUrl) : await verifier(sourceRef);
 
   if (result.alive === false) {
     try {
       await withDbClient(async (client) => {
         const flags = Array.isArray(listing.quality_flags) ? listing.quality_flags : [];
-        if (!flags.includes("LISTING_EXPIRED")) {
-          const updated = [...flags.filter((f) => f !== "STALE_SUSPECT"), "LISTING_EXPIRED"];
-          await client.query(
-            `UPDATE normalized_listings SET quality_flags = $1::jsonb, updated_at = NOW() WHERE listing_id = $2`,
-            [JSON.stringify(updated), id],
-          );
-        }
+        const updated = [...flags.filter((f) => f !== "STALE_SUSPECT" && f !== "LISTING_EXPIRED"), "LISTING_EXPIRED"];
+        // quality_flags 업데이트 + deleted_at 설정 (soft-delete)
+        await client.query(
+          `UPDATE normalized_listings
+           SET quality_flags = $1::jsonb, deleted_at = NOW(), updated_at = NOW()
+           WHERE listing_id = $2 AND deleted_at IS NULL`,
+          [JSON.stringify(updated), id],
+        );
       });
     } catch {
       // non-critical
@@ -592,7 +728,10 @@ export async function handleListingsGeo(req, res) {
   }
 
   // Clamp bounds to South Korea range (don't reject — user may be zoomed out)
-  const KR_LAT_MIN = 32, KR_LAT_MAX = 40, KR_LNG_MIN = 123, KR_LNG_MAX = 133;
+  const KR_LAT_MIN = 32,
+    KR_LAT_MAX = 40,
+    KR_LNG_MIN = 123,
+    KR_LNG_MAX = 133;
   const cSwLat = Math.max(KR_LAT_MIN, Math.min(KR_LAT_MAX, swLat));
   const cNeLat = Math.max(KR_LAT_MIN, Math.min(KR_LAT_MAX, neLat));
   const cSwLng = Math.max(KR_LNG_MIN, Math.min(KR_LNG_MAX, swLng));
@@ -609,17 +748,11 @@ export async function handleListingsGeo(req, res) {
   const maxDeposit = parseQueryNumber(url.searchParams.get("max_deposit"), null);
   const minArea = parseQueryNumber(url.searchParams.get("min_area"), null);
   const maxArea = parseQueryNumber(url.searchParams.get("max_area"), null);
-  const minFloor = url.searchParams.has("min_floor")
-    ? parseQueryInt(url.searchParams.get("min_floor"), null)
-    : null;
+  const minFloor = url.searchParams.has("min_floor") ? parseQueryInt(url.searchParams.get("min_floor"), null) : null;
   const limit = Math.min(500, Math.max(1, parseQueryInt(url.searchParams.get("limit"), 500)));
 
   const result = await withDbClient(async (client) => {
-    const cond = [
-      "nl.lat IS NOT NULL",
-      "nl.lng IS NOT NULL",
-      "nl.deleted_at IS NULL",
-    ];
+    const cond = ["nl.lat IS NOT NULL", "nl.lng IS NOT NULL", "nl.deleted_at IS NULL"];
     const params = [];
 
     params.push(cSwLat, cNeLat);
@@ -628,7 +761,10 @@ export async function handleListingsGeo(req, res) {
     cond.push(`nl.lng BETWEEN $${params.length - 1} AND $${params.length}`);
 
     if (platform) {
-      const platforms = platform.split(",").map(p => p.trim()).filter(Boolean);
+      const platforms = platform
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean);
       if (platforms.length === 1) {
         params.push(platforms[0]);
         cond.push(`nl.platform_code = $${params.length}`);
@@ -670,7 +806,8 @@ export async function handleListingsGeo(req, res) {
     const GEO_DEDUP_RK = dedupRankExpression("nl");
 
     params.push(limit);
-    const rows = await client.query(`
+    const rows = await client.query(
+      `
       SELECT * FROM (
         SELECT nl.listing_id, nl.lat, nl.lng, nl.platform_code,
                nl.lease_type, nl.title,
@@ -684,15 +821,20 @@ export async function handleListingsGeo(req, res) {
       ) _d WHERE _d._rk = 1
       ORDER BY _d.created_at DESC
       LIMIT $${params.length}
-    `, params);
+    `,
+      params,
+    );
 
-    const countResult = await client.query(`
+    const countResult = await client.query(
+      `
       SELECT COUNT(*) AS total FROM (
         SELECT nl.listing_id, ${GEO_DEDUP_RK} AS _rk
         FROM normalized_listings nl
         WHERE ${cond.join(" AND ")}
       ) _d WHERE _d._rk = 1
-    `, params.slice(0, -1));
+    `,
+      params.slice(0, -1),
+    );
 
     return {
       markers: (rows.rows || []).map((row) => {
