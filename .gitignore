@@ -49,6 +49,9 @@ frontend_ui_smoke_check.mjs
 .omx/
 .claude/settings.local.json
 
+# API capture logs (may contain third-party keys)
+scripts/*_api_final.json
+
 # QA/debug temp files
 tmp_*
 scripts/_*
