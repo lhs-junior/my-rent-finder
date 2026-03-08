@@ -274,6 +274,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
+          apiBase={apiBase}
         />
       )}
     </section>

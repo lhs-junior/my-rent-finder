@@ -1521,6 +1521,28 @@ pre {
   background: #f8faff;
 }
 
+.mdl-btn--warn {
+  flex: 1;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+.mdl-btn--warn:hover {
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.mdl-expired-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #92400e;
+  line-height: 1.4;
+}
+
 /* Modal table override */
 .mdl-section .table-wrap {
   margin-top: 4px;
