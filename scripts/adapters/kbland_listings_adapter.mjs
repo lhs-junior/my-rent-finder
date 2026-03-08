@@ -22,6 +22,14 @@ const KBLAND_FIELD_HINTS = {
   listHintPaths: ["payload_json"],
 };
 
+function fixBuildingUse(propertyType) {
+  if (!propertyType) return null;
+  if (/연립|빌라/.test(propertyType)) return "빌라/연립";
+  if (/다가구|단독/.test(propertyType)) return "단독/다가구";
+  if (/오피스텔/.test(propertyType)) return "오피스텔";
+  return null;
+}
+
 export class KblandListingAdapter extends BaseUserOnlyAdapter {
   constructor(options = {}) {
     super({
@@ -34,16 +42,28 @@ export class KblandListingAdapter extends BaseUserOnlyAdapter {
     this.notes = ["KB부동산 raw 정규화 파서 연결 완료"];
   }
 
-  postProcess(item, rawRecord) {
-    // source_url이 없거나 kbland 도메인이 아닌 경우 source_ref로 생성
-    const sourceRef = item.source_ref || rawRecord?.external_id;
-    if (sourceRef && (!item.source_url || !item.source_url.includes("kbland.kr"))) {
-      item.source_url = `https://kbland.kr/p/${sourceRef}`;
-    }
-    // rawRecord에 source_url이 있으면 우선 사용
-    if (rawRecord?.source_url && rawRecord.source_url.includes("kbland.kr")) {
-      item.source_url = rawRecord.source_url;
-    }
-    return item;
+  normalizeFromRawRecord(rawRecord) {
+    const results = super.normalizeFromRawRecord(rawRecord);
+    const payload = rawRecord?.payload_json || rawRecord;
+    const propertyType = payload?.propertyType;
+    const correctedBuildingUse = fixBuildingUse(propertyType);
+
+    return results.map((item) => {
+      // source_url 보정
+      const sourceRef = item.source_ref || rawRecord?.external_id;
+      if (sourceRef && (!item.source_url || !item.source_url.includes("kbland.kr"))) {
+        item.source_url = `https://kbland.kr/p/${sourceRef}`;
+      }
+      if (rawRecord?.source_url && rawRecord.source_url.includes("kbland.kr")) {
+        item.source_url = rawRecord.source_url;
+      }
+
+      // building_use 보정 (parseBuildingUseFallback의 "연립/다세대" 오매핑 수정)
+      if (correctedBuildingUse) {
+        item.building_use = correctedBuildingUse;
+      }
+
+      return item;
+    });
   }
 }
