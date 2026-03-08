@@ -513,7 +513,7 @@ async function verifyKbland(externalId) {
     if (code === 30210) return { alive: false, reason: "deleted" };
     const info = json?.dataBody?.data?.dtailInfo;
     if (info) {
-      if (info["매물상태구분"] === 4 || /노출종료|거래완료|삭제/.test(info["매물상태변경사유"] || "")) {
+      if (String(info["매물상태구분"]) === "4" || /노출종료|거래완료|삭제|기간만료/.test(info["매물상태변경사유"] || "")) {
         return { alive: false, reason: "exposure_ended" };
       }
       return { alive: true, reason: "active" };
