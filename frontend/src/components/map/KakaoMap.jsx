@@ -222,6 +222,7 @@ const KakaoMap = forwardRef(function KakaoMap({
 
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
+  const lastBoundsRef = useRef(null);
 
   const onMarkerClickRef = useRef(onMarkerClick);
   onMarkerClickRef.current = onMarkerClick;
@@ -460,10 +461,16 @@ const KakaoMap = forwardRef(function KakaoMap({
               const b = map.getBounds();
               const sw = b.getSouthWest();
               const ne = b.getNorthEast();
-              onBoundsChangeRef.current?.({
-                sw: { lat: sw.getLat(), lng: sw.getLng() },
-                ne: { lat: ne.getLat(), lng: ne.getLng() },
-              });
+              const next = { sw: { lat: sw.getLat(), lng: sw.getLng() }, ne: { lat: ne.getLat(), lng: ne.getLng() } };
+              // Skip if bounds barely changed (< ~10m drift from relayout)
+              const prev = lastBoundsRef.current;
+              if (prev
+                && Math.abs(prev.sw.lat - next.sw.lat) < 0.0001
+                && Math.abs(prev.sw.lng - next.sw.lng) < 0.0001
+                && Math.abs(prev.ne.lat - next.ne.lat) < 0.0001
+                && Math.abs(prev.ne.lng - next.ne.lng) < 0.0001) return;
+              lastBoundsRef.current = next;
+              onBoundsChangeRef.current?.(next);
             }, 300);
           };
 
