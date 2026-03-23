@@ -91,3 +91,4 @@ scripts/qa/*_fidelity_*.json
 .idea/
 *.swp
 *.swo
+.vercel
