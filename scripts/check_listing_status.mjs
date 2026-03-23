@@ -336,14 +336,11 @@ async function main() {
   if (dryRun) console.log("[status-check] DRY RUN — DB 변경 없음");
 
   const startTime = Date.now();
-  const results = [];
 
-  await withDbClient(async (client) => {
-    for (const p of platformList) {
-      const result = await checkPlatform(p, client);
-      if (result) results.push(result);
-    }
-  });
+  // 플랫폼별 병렬 처리 — 각 플랫폼이 독립적인 DB 커넥션 사용
+  const results = (
+    await Promise.all(platformList.map((p) => withDbClient((client) => checkPlatform(p, client))))
+  ).filter(Boolean);
 
   // 전체 요약
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

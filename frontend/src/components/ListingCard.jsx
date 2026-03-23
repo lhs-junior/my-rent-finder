@@ -46,8 +46,6 @@ export default function ListingCard({ item, onClick, isFavorite, onToggleFavorit
       : null),
   );
 
-  const priceText = `보증금 ${displayMoney(price.deposit)} / 월세 ${price.rent != null ? `${price.rent}만` : "-"}`;
-
   if (compact) {
     return (
       <div
@@ -77,7 +75,8 @@ export default function ListingCard({ item, onClick, isFavorite, onToggleFavorit
           </span>
         </div>
         <div className="listing-card-body">
-          <div className="listing-card-price">{priceText}</div>
+          <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
+          <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
           <div className="listing-card-address">{item.address_text || "-"}</div>
           {tags.length > 0 && (
             <div className="listing-card-meta">
@@ -127,7 +126,8 @@ export default function ListingCard({ item, onClick, isFavorite, onToggleFavorit
         )}
       </div>
       <div className="listing-card-body">
-        <div className="listing-card-price">{priceText}</div>
+        <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
+        <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
         <div className="listing-card-address">{item.address_text || "-"}</div>
         {tags.length > 0 && (
           <div className="listing-card-meta">

@@ -133,39 +133,40 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     <section className="view-shell">
       <header className="section-head">
         <h2>매물 검색</h2>
-        <div className="filter-grid">
-          <label className="filter-group">
-            <span className="filter-label">플랫폼</span>
-            <select value={platformCode} onChange={(event) => setPlatformCode(event.target.value)}>
-              {PLATFORM_OPTIONS.map((option) => (
-                <option key={option.value || "__all__"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="filter-group">
-            <span className="filter-label">주소/동</span>
-            <input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="예: 마포구" />
-          </label>
-          <label className="filter-group filter-group--pair">
-            <span className="filter-label">월세 (만원)</span>
-            <div className="filter-pair">
-              <input value={minRent} onChange={(event) => setMinRent(event.target.value)} placeholder="최소" />
-              <span className="filter-separator">~</span>
-              <input value={maxRent} onChange={(event) => setMaxRent(event.target.value)} placeholder="최대" />
+        <div className="filter-strip">
+          <div className="filter-chips-row">
+            {PLATFORM_OPTIONS.map((option) => (
+              <button
+                key={option.value || "__all__"}
+                type="button"
+                className={`filter-chip${platformCode === option.value ? " filter-chip--active" : ""}`}
+                onClick={() => setPlatformCode(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div className="filter-row">
+            <div className="filter-inline">
+              <span className="filter-inline-label">월세</span>
+              <input value={minRent} onChange={(event) => setMinRent(event.target.value)} placeholder="0" />
+              <span className="filter-sep">~</span>
+              <input value={maxRent} onChange={(event) => setMaxRent(event.target.value)} placeholder="80" />
+              <span className="filter-unit">만원</span>
             </div>
-          </label>
-          <label className="filter-group filter-group--pair">
-            <span className="filter-label">면적 (㎡)</span>
-            <div className="filter-pair">
+            <div className="filter-inline">
+              <span className="filter-inline-label">면적</span>
               <input value={minArea} onChange={(event) => setMinArea(event.target.value)} placeholder="최소" />
-              <span className="filter-separator">~</span>
+              <span className="filter-sep">~</span>
               <input value={maxArea} onChange={(event) => setMaxArea(event.target.value)} placeholder="최대" />
+              <span className="filter-unit">m²</span>
             </div>
-          </label>
-          <label className="filter-group">
-            <span className="filter-label">층수</span>
+            <input
+              className="filter-address-input"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              placeholder="주소/동 검색"
+            />
             <select value={minFloor} onChange={(event) => setMinFloor(event.target.value)}>
               {FLOOR_FILTER_OPTIONS.map((option) => (
                 <option key={option.value || "__all__"} value={option.value}>
@@ -173,35 +174,32 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
                 </option>
               ))}
             </select>
-          </label>
-          <label className="filter-group">
-            <span className="filter-label">표시 건수</span>
             <select value={limit} onChange={(event) => setLimit(Math.max(1, Number(event.target.value) || 40))}>
               <option value={20}>20건</option>
               <option value={40}>40건</option>
               <option value={80}>80건</option>
             </select>
-          </label>
-          <div className="filter-actions">
-            <button type="button" onClick={handleSearch}>조회</button>
-            <button
-              type="button"
-              className="filter-reset"
-              onClick={() => {
-                setPlatformCode("");
-                setAddress("");
-                setMinRent("0");
-                setMaxRent("80");
-                setMinArea("");
-                setMaxArea("");
-                setMinFloor("");
-                setError("");
-                setDetail(null);
-                setPage(1);
-              }}
-            >
-              초기화
-            </button>
+            <div className="filter-actions-inline">
+              <button type="button" onClick={handleSearch}>조회</button>
+              <button
+                type="button"
+                className="filter-reset"
+                onClick={() => {
+                  setPlatformCode("");
+                  setAddress("");
+                  setMinRent("0");
+                  setMaxRent("80");
+                  setMinArea("");
+                  setMaxArea("");
+                  setMinFloor("");
+                  setError("");
+                  setDetail(null);
+                  setPage(1);
+                }}
+              >
+                초기화
+              </button>
+            </div>
           </div>
         </div>
       </header>

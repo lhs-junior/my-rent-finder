@@ -76,13 +76,13 @@ node scripts/run_parallel_collect.mjs \
 
 크로스 플랫폼 중복 매칭 기준은 `scripts/matcher_v1.mjs`의 `DEFAULT_RULES`에 정의되어 있습니다.
 
-| 항목 | 가중치 | 설명 |
-|------|-------|------|
-| 주소 | 30% | 텍스트 토큰 매칭 |
-| 거리 | 20% | 좌표 기반 거리 (20m 이내 → 고득점) |
-| 면적 | 25% | 전용/공급 면적 비교 (6% 오차 허용) |
-| 가격 | 15% | 월세 8%, 보증금 12% 오차 허용 |
-| 속성 | 10% | 층수, 방향, 방 수 등 |
+| 항목 | 가중치 | 설명                               |
+| ---- | ------ | ---------------------------------- |
+| 주소 | 30%    | 텍스트 토큰 매칭                   |
+| 거리 | 20%    | 좌표 기반 거리 (20m 이내 → 고득점) |
+| 면적 | 25%    | 전용/공급 면적 비교 (6% 오차 허용) |
+| 가격 | 15%    | 월세 8%, 보증금 12% 오차 허용      |
+| 속성 | 10%    | 층수, 방향, 방 수 등               |
 
 - **93점 이상**: 자동 매칭 (동일 매물로 판정)
 - **80~93점**: 리뷰 필요 (수동 확인 대상)
@@ -92,26 +92,26 @@ node scripts/run_parallel_collect.mjs \
 
 ### 활성 (파이프라인 통합)
 
-| 플랫폼 | 수집 방식 | 스크립트 | 비고 |
-|--------|----------|---------|------|
-| 네이버부동산 | Playwright Stealth | `naver_auto_collector.mjs` | 마커 기반 구역별 수집 |
-| 다방 | Playwright Stealth | `dabang_auto_collector.mjs` | `hasMore` 기반 페이지네이션 |
-| 직방 | Playwright Stealth | `zigbang_auto_collector.mjs` | 전용면적 40m² 이상 필터 |
-| 피터팬 | Direct Node.js fetch | `peterpanz_auto_collector.mjs` | 브라우저 불필요 |
-| 당근부동산 | Playwright Stealth | `daangn_auto_collector.mjs` | 구별 location ID 매핑 |
+| 플랫폼       | 수집 방식            | 스크립트                       | 비고                        |
+| ------------ | -------------------- | ------------------------------ | --------------------------- |
+| 네이버부동산 | Playwright Stealth   | `naver_auto_collector.mjs`     | 마커 기반 구역별 수집       |
+| 다방         | Playwright Stealth   | `dabang_auto_collector.mjs`    | `hasMore` 기반 페이지네이션 |
+| 직방         | Playwright Stealth   | `zigbang_auto_collector.mjs`   | 전용면적 40m² 이상 필터     |
+| 피터팬       | Direct Node.js fetch | `peterpanz_auto_collector.mjs` | 브라우저 불필요             |
+| 당근부동산   | Playwright Stealth   | `daangn_auto_collector.mjs`    | 구별 location ID 매핑       |
 
 ### 독립 수집기 (수동 실행)
 
-| 플랫폼 | 수집 방식 | 스크립트 | 비고 |
-|--------|----------|---------|------|
+| 플랫폼   | 수집 방식                               | 스크립트                    | 비고                                       |
+| -------- | --------------------------------------- | --------------------------- | ------------------------------------------ |
 | KB부동산 | Chrome CDP + Playwright Route Intercept | `kbland_auto_collector.mjs` | Chrome 디버깅 모드 필요, 파이프라인 미통합 |
 
 KB부동산은 Vuex/Axios 인터셉터가 주입하는 인증 헤더를 재현할 수 없어, Chrome CDP를 통해 실제 브라우저 세션에 붙어서 API 응답을 가로채는 방식으로 수집합니다. 자동화 파이프라인과 구조가 달라 별도 실행이 필요합니다.
 
 ### 비활성
 
-| 플랫폼 | 상태 | 사유 |
-|--------|-----|------|
+| 플랫폼    | 상태    | 사유                                                                |
+| --------- | ------- | ------------------------------------------------------------------- |
 | 부동산114 | BLOCKED | 수집/정규화 데이터 품질 저하로 비활성화. 원인 확인 후 재활성화 예정 |
 
 ## 기술 스택
@@ -221,10 +221,15 @@ KB부동산을 별도로 수집하려면:
 
 ```bash
 # 1. Chrome을 디버깅 모드로 실행
+# macOS
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"
+
+# Linux
 google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"
 
 # 2. 수집기 실행
-node scripts/kbland_auto_collector.mjs
+node scripts/kbland_auto_collector.mjs --sigungu-list=노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구
+
 ```
 
 ### 5. 좌표 백필 (지도 뷰용)
@@ -254,41 +259,41 @@ npm run ops:full:stack
 
 ### 수집
 
-| 명령어 | 설명 |
-|-------|------|
-| `npm run collect:parallel` | 활성 플랫폼 병렬 수집 (파일 저장) |
-| `npm run collect:parallel:db` | 병렬 수집 + DB 저장 |
-| `npm run collect:parallel:db:full` | 전체 운영 파이프라인 |
+| 명령어                             | 설명                              |
+| ---------------------------------- | --------------------------------- |
+| `npm run collect:parallel`         | 활성 플랫폼 병렬 수집 (파일 저장) |
+| `npm run collect:parallel:db`      | 병렬 수집 + DB 저장               |
+| `npm run collect:parallel:db:full` | 전체 운영 파이프라인              |
 
 ### 데이터베이스
 
-| 명령어 | 설명 |
-|-------|------|
-| `npm run db:up` | PostgreSQL 컨테이너 시작 |
-| `npm run db:down` | PostgreSQL 컨테이너 종료 (볼륨 삭제) |
-| `npm run db:init` | 스키마 초기화 |
-| `npm run db:migrate` | 마이그레이션 실행 |
-| `npm run db:logs` | PostgreSQL 로그 확인 |
+| 명령어               | 설명                                 |
+| -------------------- | ------------------------------------ |
+| `npm run db:up`      | PostgreSQL 컨테이너 시작             |
+| `npm run db:down`    | PostgreSQL 컨테이너 종료 (볼륨 삭제) |
+| `npm run db:init`    | 스키마 초기화                        |
+| `npm run db:migrate` | 마이그레이션 실행                    |
+| `npm run db:logs`    | PostgreSQL 로그 확인                 |
 
 ### 대시보드
 
-| 명령어 | 설명 |
-|-------|------|
-| `npm start` | 프론트엔드 빌드 + API 서버 |
-| `npm run api:server` | API 서버만 실행 (4100 포트) |
-| `npm run front:dev` | 프론트엔드 개발 서버 (HMR) |
-| `npm run front:build` | 프론트엔드 프로덕션 빌드 |
+| 명령어                   | 설명                         |
+| ------------------------ | ---------------------------- |
+| `npm start`              | 프론트엔드 빌드 + API 서버   |
+| `npm run api:server`     | API 서버만 실행 (4100 포트)  |
+| `npm run front:dev`      | 프론트엔드 개발 서버 (HMR)   |
+| `npm run front:build`    | 프론트엔드 프로덕션 빌드     |
 | `npm run ops:full:stack` | DB + 파이프라인 + API 올인원 |
 
 ### QA / 개발
 
-| 명령어 | 설명 |
-|-------|------|
-| `npm test` | 테스트 실행 (Vitest) |
-| `npm run lint` | ESLint 검사 |
-| `npm run format` | Prettier 포맷 적용 |
-| `npm run qa:platform-fidelity` | 플랫폼별 데이터 충실도 검증 |
-| `npm run qa:platform-fidelity:gate` | 충실도 게이트 (CI용) |
+| 명령어                              | 설명                        |
+| ----------------------------------- | --------------------------- |
+| `npm test`                          | 테스트 실행 (Vitest)        |
+| `npm run lint`                      | ESLint 검사                 |
+| `npm run format`                    | Prettier 포맷 적용          |
+| `npm run qa:platform-fidelity`      | 플랫폼별 데이터 충실도 검증 |
+| `npm run qa:platform-fidelity:gate` | 충실도 게이트 (CI용)        |
 
 ## 대시보드 화면
 
@@ -328,15 +333,15 @@ docker compose up -d
 
 ## 환경변수
 
-| 변수 | 기본값 | 설명 |
-|------|-------|------|
-| `PGHOST` | `127.0.0.1` | PostgreSQL 호스트 |
-| `PGPORT` | `5432` | PostgreSQL 포트 |
-| `PGDATABASE` | `my_rent_finder` | 데이터베이스 이름 |
-| `PGUSER` | `postgres` | DB 사용자 |
-| `PGPASSWORD` | `postgres` | DB 비밀번호 |
-| `PGHOST_PORT` | `5432` | Docker 포트 매핑 |
-| `API_HOST` | `127.0.0.1` | API 서버 호스트 |
-| `API_PORT` | `4100` | API 서버 포트 |
-| `KAKAO_REST_API_KEY` | — | 카카오 REST API 키 (지오코딩용) |
-| `VITE_KAKAO_JS_KEY` | — | 카카오 JavaScript 앱 키 (지도 뷰용) |
+| 변수                 | 기본값           | 설명                                |
+| -------------------- | ---------------- | ----------------------------------- |
+| `PGHOST`             | `127.0.0.1`      | PostgreSQL 호스트                   |
+| `PGPORT`             | `5432`           | PostgreSQL 포트                     |
+| `PGDATABASE`         | `my_rent_finder` | 데이터베이스 이름                   |
+| `PGUSER`             | `postgres`       | DB 사용자                           |
+| `PGPASSWORD`         | `postgres`       | DB 비밀번호                         |
+| `PGHOST_PORT`        | `5432`           | Docker 포트 매핑                    |
+| `API_HOST`           | `127.0.0.1`      | API 서버 호스트                     |
+| `API_PORT`           | `4100`           | API 서버 포트                       |
+| `KAKAO_REST_API_KEY` | —                | 카카오 REST API 키 (지오코딩용)     |
+| `VITE_KAKAO_JS_KEY`  | —                | 카카오 JavaScript 앱 키 (지도 뷰용) |
