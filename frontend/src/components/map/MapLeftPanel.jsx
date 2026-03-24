@@ -10,8 +10,6 @@ export default function MapLeftPanel({
   loading,
   selectedId,
   onCardClick,
-  isFavorite,
-  toggleFavorite,
 }) {
   const listRef = useRef(null);
 
