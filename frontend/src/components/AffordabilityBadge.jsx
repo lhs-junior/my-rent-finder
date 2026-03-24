@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
-export function AffordabilityBadge({ salePrice }) {
+export function AffordabilityBadge({ salePrice, onResult }) {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (!salePrice) return;
     fetch(`/api/affordability?salePrice=${salePrice}`)
       .then((r) => r.json())
-      .then(setResult)
+      .then((r) => { setResult(r); onResult?.(r); })
       .catch(() => setResult(null));
   }, [salePrice]);
 

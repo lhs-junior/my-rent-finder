@@ -7,6 +7,8 @@ import MatchingBoard from "./components/MatchingBoard.jsx";
 import ListingSearch from "./components/ListingSearch.jsx";
 import FavoritesView from "./components/FavoritesView.jsx";
 import MapView from "./components/map/MapView.jsx";
+import { SaleListingsView } from "./components/SaleListingsView.jsx";
+import { SettingsModal } from "./components/SettingsModal.jsx";
 
 class MapErrorBoundary extends Component {
   constructor(props) {
@@ -135,6 +137,7 @@ export default function App() {
   });
   const health = useApiHealth(apiBase);
   const { favoriteIds, isFavorite, toggleFavorite } = useFavorites(apiBase);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -201,6 +204,13 @@ export default function App() {
             </svg>
             찜{favoriteIds.size > 0 && <span className="nav-tab-badge">{favoriteIds.size}</span>}
           </button>
+          <button
+            type="button"
+            className={`nav-tab ${activeView === "sale" ? "nav-tab--active" : ""}`}
+            onClick={() => setActiveView("sale")}
+          >
+            매매
+          </button>
         </nav>
         <SettingsMenu
           activeView={activeView}
@@ -211,6 +221,16 @@ export default function App() {
           setRunId={setRunId}
           health={health}
         />
+        <button
+          type="button"
+          className="settings-btn"
+          onClick={() => setShowSettings(true)}
+          aria-label="재정 설정"
+          title="재정 설정"
+        >
+          🔧
+        </button>
+        {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       </header>
 
       <main className={`app-content${activeView === "map" ? " app-content--fullwidth" : ""}`}>
@@ -219,6 +239,7 @@ export default function App() {
         {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
         {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} /></MapErrorBoundary>}
         {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} />}
+        {activeView === "sale" && <SaleListingsView apiBase={apiBase} />}
       </main>
     </div>
   );

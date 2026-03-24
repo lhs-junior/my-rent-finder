@@ -92,5 +92,5 @@ export function normalizeImageUrl(url) {
 }
 
 export function normalizeView(value) {
-  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "ops" ? value : "map";
+  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "ops" || value === "sale" ? value : "map";
 }
