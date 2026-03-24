@@ -5,6 +5,7 @@ import { AffordabilityBadge } from "./AffordabilityBadge.jsx";
 export function SaleListingsView({ apiBase = "" }) {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     sigungu: "",
     salePriceMax: "",
@@ -14,13 +15,17 @@ export function SaleListingsView({ apiBase = "" }) {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     const params = new URLSearchParams({ lease_type: "매매" });
     if (filters.sigungu) params.set("address", filters.sigungu);
 
     fetch(`${apiBase}/api/listings?${params}`)
       .then((r) => r.json())
       .then((data) => setListings(data.listings || []))
-      .catch(() => setListings([]))
+      .catch((err) => {
+        setError(err.message || "데이터를 불러올 수 없습니다");
+        setListings([]);
+      })
       .finally(() => setLoading(false));
   }, [filters.sigungu, filters.salePriceMax, apiBase]);
 
@@ -52,6 +57,7 @@ export function SaleListingsView({ apiBase = "" }) {
       </div>
 
       {loading && <p>로딩 중...</p>}
+      {error && <p className="error">오류: {error}</p>}
       <div className="listing-grid">
         {displayed.map((listing) => (
           <div key={listing.listing_id} className="listing-card">
