@@ -75,6 +75,7 @@ export default function MapLeftPanel({
                 key={opt.v}
                 type="button"
                 className={`map-img-btn${(filters.has_image || "") === opt.v ? " map-img-btn--active" : ""}`}
+                aria-pressed={(filters.has_image || "") === opt.v}
                 onClick={() => set("has_image", opt.v)}
               >
                 {opt.l}
