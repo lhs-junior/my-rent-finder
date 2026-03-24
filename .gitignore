@@ -53,6 +53,7 @@ frontend_ui_smoke_check.mjs
 .agents/
 .codex/
 .sisyphus/
+.superpowers/
 
 # API capture logs (may contain third-party keys)
 scripts/*_api_final.json

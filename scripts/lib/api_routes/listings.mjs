@@ -190,6 +190,12 @@ export async function handleListings(req, res) {
       params.push(minFloor);
       cond.push(`(nl.floor IS NULL OR nl.floor = 0 OR nl.floor >= $${params.length})`);
     }
+    const hasImage = safeText(url.searchParams.get("has_image"), null);
+    if (hasImage === "true") {
+      cond.push(`EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
+    } else if (hasImage === "false") {
+      cond.push(`NOT EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const DEDUP_RK = dedupRankExpression("nl");
@@ -822,6 +828,12 @@ export async function handleListingsGeo(req, res) {
     if (minFloor !== null) {
       params.push(minFloor);
       cond.push(`nl.floor >= $${params.length}`);
+    }
+    const hasImage = safeText(url.searchParams.get("has_image"), null);
+    if (hasImage === "true") {
+      cond.push(`EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
+    } else if (hasImage === "false") {
+      cond.push(`NOT EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
     }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
