@@ -100,13 +100,13 @@ node scripts/run_parallel_collect.mjs \
 | 피터팬       | Direct Node.js fetch | `peterpanz_auto_collector.mjs` | 브라우저 불필요             |
 | 당근부동산   | Playwright Stealth   | `daangn_auto_collector.mjs`    | 구별 location ID 매핑       |
 
-### 독립 수집기 (수동 실행)
+### 조건부 통합 (Chrome 준비 필요)
 
-| 플랫폼   | 수집 방식                               | 스크립트                    | 비고                                       |
-| -------- | --------------------------------------- | --------------------------- | ------------------------------------------ |
-| KB부동산 | Chrome CDP + Playwright Route Intercept | `kbland_auto_collector.mjs` | Chrome 디버깅 모드 필요, 파이프라인 미통합 |
+| 플랫폼   | 수집 방식                               | 스크립트                    | 비고                                                |
+| -------- | --------------------------------------- | --------------------------- | --------------------------------------------------- |
+| KB부동산 | Chrome CDP + Playwright Route Intercept | `kbland_auto_collector.mjs` | Chrome 디버깅 모드 + `kbland.kr/map` 탭 준비 필요 |
 
-KB부동산은 Vuex/Axios 인터셉터가 주입하는 인증 헤더를 재현할 수 없어, Chrome CDP를 통해 실제 브라우저 세션에 붙어서 API 응답을 가로채는 방식으로 수집합니다. 자동화 파이프라인과 구조가 달라 별도 실행이 필요합니다.
+KB부동산은 Vuex/Axios 인터셉터가 주입하는 인증 헤더를 재현할 수 없어, Chrome CDP를 통해 실제 브라우저 세션에 붙어서 API 응답을 가로채는 방식으로 수집합니다. 현재는 `run_parallel_collect.mjs`와 어댑터 파이프라인에 연결되어 있지만, 실행 전 Chrome을 `--remote-debugging-port=9222`로 띄우고 `https://kbland.kr/map` 탭을 준비해야 합니다.
 
 ### 비활성
 
@@ -217,7 +217,7 @@ npm run collect:parallel:db
 npm run collect:parallel:db:full
 ```
 
-KB부동산을 별도로 수집하려면:
+KB부동산은 아래 순서로 수집합니다:
 
 ```bash
 # 1. Chrome을 디버깅 모드로 실행
@@ -227,9 +227,16 @@ KB부동산을 별도로 수집하려면:
 # Linux
 google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"
 
-# 2. 수집기 실행
-node scripts/kbland_auto_collector.mjs --sigungu-list=노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구
+# 2. 열린 Chrome에서 https://kbland.kr/map 접속
 
+# 3. 파이프라인 수집 + DB 저장
+npm run collect:kbland:db
+```
+
+수집기만 직접 실행하고 싶다면:
+
+```bash
+node scripts/kbland_auto_collector.mjs --sigungu-list=노원구,중랑구,동대문구,광진구,성북구,성동구,중구,종로구
 ```
 
 ### 5. 좌표 백필 (지도 뷰용)

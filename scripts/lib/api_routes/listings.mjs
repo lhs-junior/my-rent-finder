@@ -122,19 +122,15 @@ function normalizeListingMoney({ platformCode, leaseType, rawText, rentAmount, d
 
 function dedupRankExpression(alias = "nl") {
   return `ROW_NUMBER() OVER (
-           PARTITION BY COALESCE(
-             NULLIF(BTRIM(${alias}.source_ref), ''),
-             NULLIF(BTRIM(${alias}.external_id), ''),
-             md5(CONCAT_WS(
-               '|',
-               COALESCE(${alias}.platform_code, ''),
-               COALESCE(${alias}.address_text, ''),
-               COALESCE(${alias}.rent_amount::text, ''),
-               COALESCE(${alias}.deposit_amount::text, ''),
-               COALESCE(${alias}.room_count::text, '0'),
-               COALESCE(${alias}.floor::text, '0')
-             ))
-           )
+           PARTITION BY md5(CONCAT_WS(
+             '|',
+             COALESCE(${alias}.platform_code, ''),
+             COALESCE(${alias}.address_text, ''),
+             COALESCE(${alias}.rent_amount::text, ''),
+             COALESCE(${alias}.deposit_amount::text, ''),
+             COALESCE(${alias}.room_count::text, '0'),
+             COALESCE(${alias}.floor::text, '0')
+           ))
            ORDER BY COALESCE(${alias}.area_exclusive_m2, ${alias}.area_gross_m2, 0) DESC, ${alias}.created_at DESC
          )`;
 }

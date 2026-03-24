@@ -300,8 +300,14 @@ function normalizeNaverCondition(conditionInput, fallback) {
       : Array.isArray(fallback?.propertyTypes)
         ? fallback.propertyTypes
         : [];
+  const sigunguList = Array.isArray(target.sigunguList) && target.sigunguList.length
+    ? target.sigunguList
+    : Array.isArray(fallback?.sigunguList) && fallback.sigunguList.length
+      ? fallback.sigunguList
+      : null;
   return {
     sigungu: target.sigungu || fallback?.sigungu || null,
+    sigunguList,
     rentMax: Number.isFinite(Number(target.rentMax)) ? Number(target.rentMax) : null,
     depositMax: Number.isFinite(Number(target.depositMax)) ? Number(target.depositMax) : null,
     minAreaM2: Number.isFinite(Number(target.minAreaM2))
@@ -891,13 +897,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
     if (normalizedCode === "kbland") {
       const kblandSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
         [
           ...kblandSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
-          ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
+          ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
         ].filter(Boolean),
       ).slice(0, Math.max(1, naverMaxRegions));
 
@@ -914,73 +921,70 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
         continue;
       }
 
-      const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
-      for (const sigungu of sigunguCandidates) {
-        jobs.push({
-          name: `kbland:${sigungu}`,
-          run: async () => {
-            const safe = sanitizeFileToken(sigungu);
-            const rawFile = path.join(workspace, `kbland_raw_${runId}_${safe}.jsonl`);
-            const metaFile = path.join(workspace, `kbland_meta_${runId}_${safe}.json`);
-            const kblandArgs = [
-              "--sigungu",
-              sigungu,
-              "--sample-cap",
-              asSampleCapArg(perSigunguCap),
-              "--output-raw",
-              rawFile,
-              "--output-meta",
-              metaFile,
-            ];
+      // kbland는 Chrome CDP 단일 세션 사용 → 하나의 프로세스가 --sigungu-list로 순차 처리
+      jobs.push({
+        name: "kbland",
+        run: async () => {
+          const rawFile = path.join(workspace, `kbland_raw_${runId}.jsonl`);
+          const metaFile = path.join(workspace, `kbland_meta_${runId}.json`);
+          const kblandArgs = [
+            "--sigungu-list",
+            sigunguCandidates.join(","),
+            "--sample-cap",
+            asSampleCapArg(sampleCap),
+            "--output-raw",
+            rawFile,
+            "--output-meta",
+            metaFile,
+          ];
 
-            const kblandFilters = conditionData?.filters || {};
-            const kblandFilterArgs = buildFilterArgs({
-              rentMax: kblandFilters.rentMax,
-              depositMax: kblandFilters.depositMax,
-              minAreaM2: kblandFilters.minAreaM2,
-            });
-            kblandArgs.push(...kblandFilterArgs);
+          const kblandFilters = conditionData?.filters || {};
+          const kblandFilterArgs = buildFilterArgs({
+            rentMax: kblandFilters.rentMax,
+            depositMax: kblandFilters.depositMax,
+            minAreaM2: kblandFilters.minAreaM2,
+          });
+          kblandArgs.push(...kblandFilterArgs);
 
-            const collectResult = await runNode(`kbland_auto:${sigungu}`, scriptPaths.kblandCollect, kblandArgs, {
-              stream: true,
-            });
+          const collectResult = await runNode("kbland_auto", scriptPaths.kblandCollect, kblandArgs, {
+            stream: true,
+          });
 
-            let normalizedPath = null;
-            let normalizeResult = null;
-            if (runNormalize) {
-              normalizedPath = path.join(workspace, `kbland_normalized_${runId}_${safe}.json`);
-              normalizeResult = await runNode(
-                `kbland_adapter:${sigungu}`,
-                scriptPaths.listingAdapters,
-                [
-                  "--platform",
-                  "kbland",
-                  "--input",
-                  rawFile,
-                  "--out",
-                  normalizedPath,
-                  "--max-items",
-                  asAdapterMaxArg(perSigunguCap),
-                  ...kblandFilterArgs,
-                ],
-                { stream: false },
-              );
-            }
+          let normalizedPath = null;
+          let normalizeResult = null;
+          if (runNormalize) {
+            normalizedPath = path.join(workspace, `kbland_normalized_${runId}.json`);
+            normalizeResult = await runNode(
+              "kbland_adapter",
+              scriptPaths.listingAdapters,
+              [
+                "--platform",
+                "kbland",
+                "--input",
+                rawFile,
+                "--out",
+                normalizedPath,
+                "--max-items",
+                asAdapterMaxArg(sampleCap),
+                ...kblandFilterArgs,
+              ],
+              { stream: false },
+            );
+          }
 
-            return {
-              platform: "kbland",
-              sigungu,
-              rawFile,
-              metaFile,
-              normalizedPath,
-              collectResult,
-              normalizeResult,
-              targetCap: perSigunguCap,
-              success: true,
-            };
-          },
-        });
-      }
+          return {
+            platform: "kbland",
+            sigungu: sigunguCandidates.join(","),
+            rawFile,
+            metaFile,
+            normalizedPath,
+            collectResult,
+            normalizeResult,
+            targetCap: sampleCap,
+            success: true,
+          };
+        },
+      });
       continue;
     }
 
