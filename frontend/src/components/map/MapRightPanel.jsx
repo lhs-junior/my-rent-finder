@@ -14,7 +14,20 @@ export default function MapRightPanel({
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const controllerRef = useRef(null);
+
+  // ESC로 라이트박스 닫기
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setLightbox(false);
+      if (e.key === "ArrowLeft") setImgIdx(i => (i - 1 + images.length) % images.length);
+      if (e.key === "ArrowRight") setImgIdx(i => (i + 1) % images.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, images.length]);
 
   useEffect(() => {
     if (!detailId) { setDetail(null); return; }
@@ -37,6 +50,7 @@ export default function MapRightPanel({
   const curImg = images[imgIdx]?.source_url;
 
   return (
+    <>
     <div className={`map-right-panel${open ? " map-right-panel--open" : ""}`}>
       <div className="map-right-header">
         <span className="map-right-title">매물 상세</span>
@@ -49,7 +63,7 @@ export default function MapRightPanel({
           <>
             {images.length > 0 && (
               <div className="map-right-gallery">
-                <img src={normalizeImageUrl(curImg)} alt="" loading="lazy" />
+                <img src={normalizeImageUrl(curImg)} alt="" loading="lazy" onClick={() => setLightbox(true)} style={{ cursor: "pointer" }} />
                 {images.length > 1 && (
                   <>
                     <button type="button" className="map-gallery-btn map-gallery-btn--prev" onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)} aria-label="이전">‹</button>
@@ -91,5 +105,34 @@ export default function MapRightPanel({
         )}
       </div>
     </div>
+    {lightbox && images.length > 0 && (
+      <div className="map-lightbox" onClick={() => setLightbox(false)}>
+        <button type="button" className="map-lightbox-close" onClick={() => setLightbox(false)} aria-label="닫기">✕</button>
+        <img
+          src={normalizeImageUrl(images[imgIdx]?.source_url)}
+          alt=""
+          className="map-lightbox-img"
+          onClick={e => e.stopPropagation()}
+        />
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              className="map-lightbox-btn map-lightbox-btn--prev"
+              onClick={e => { e.stopPropagation(); setImgIdx(i => (i - 1 + images.length) % images.length); }}
+              aria-label="이전"
+            >‹</button>
+            <button
+              type="button"
+              className="map-lightbox-btn map-lightbox-btn--next"
+              onClick={e => { e.stopPropagation(); setImgIdx(i => (i + 1) % images.length); }}
+              aria-label="다음"
+            >›</button>
+            <span className="map-lightbox-count">{imgIdx + 1} / {images.length}</span>
+          </>
+        )}
+      </div>
+    )}
+    </>
   );
 }
