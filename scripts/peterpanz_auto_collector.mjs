@@ -126,6 +126,145 @@ function vlog(msg) {
   if (verbose) console.log(`[peterpanz]   ${msg}`);
 }
 
+function dedupeStrings(values) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of values) {
+    const value = String(raw || "").trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
+}
+
+function toOriginImageUrl(rawUrl) {
+  const url = String(rawUrl || "").trim();
+  if (!url) return "";
+  return url.replace(/_thumb(\.[a-z0-9]+)(\?.*)?$/i, "_origin$1$2");
+}
+
+function extractImagePaths(rawImages) {
+  if (!rawImages) return [];
+  if (Array.isArray(rawImages)) {
+    return rawImages.map((img) => img?.path || img?.url || img?.img_path || img).filter(Boolean);
+  }
+  if (typeof rawImages === "object") {
+    return Object.values(rawImages).flatMap((value) => extractImagePaths(value));
+  }
+  return [];
+}
+
+export function collectPeterpanzImageUrls(item) {
+  return dedupeStrings([
+    ...extractImagePaths(item?.image_urls_origin),
+    ...extractImagePaths(item?.image_urls),
+    ...extractImagePaths(item?.images),
+    item?.info?.thumbnail,
+  ]
+    .filter(Boolean)
+    .map(toOriginImageUrl));
+}
+
+function collectJsonLdImageValues(node, out) {
+  if (!node) return;
+  if (Array.isArray(node)) {
+    for (const value of node) collectJsonLdImageValues(value, out);
+    return;
+  }
+  if (typeof node === "string") {
+    out.push(node);
+    return;
+  }
+  if (typeof node !== "object") return;
+
+  if (node.image) collectJsonLdImageValues(node.image, out);
+  if (node.thumbnailUrl) collectJsonLdImageValues(node.thumbnailUrl, out);
+  if (node.url && /img\.peterpanz\.com/i.test(String(node.url))) {
+    out.push(node.url);
+  }
+}
+
+export function extractPeterpanzDetailImageUrlsFromHtml(html) {
+  const source = String(html || "");
+  if (!source) return [];
+
+  const candidates = [];
+
+  for (const match of source.matchAll(/houseImages\s*=\s*(\[[\s\S]*?\]);/g)) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      for (const image of parsed) {
+        if (image?.deleted_at) continue;
+        candidates.push(image?.img_path || image?.path || image?.url);
+      }
+    } catch {
+      // ignore malformed inline data
+    }
+  }
+
+  for (const match of source.matchAll(/<script[^>]*type=['"]application\/ld\+json['"][^>]*>([\s\S]*?)<\/script>/gi)) {
+    const rawJson = String(match[1] || "").trim();
+    if (!rawJson) continue;
+    try {
+      const parsed = JSON.parse(rawJson);
+      collectJsonLdImageValues(parsed, candidates);
+    } catch {
+      // ignore malformed JSON-LD blocks
+    }
+  }
+
+  for (const match of source.matchAll(/https:\/\/img\.peterpanz\.com\/photo\/\d{8}\/\d+\/[^"'`\s<>]+/g)) {
+    candidates.push(match[0]);
+  }
+
+  return dedupeStrings(candidates.map(toOriginImageUrl).filter(Boolean));
+}
+
+export async function fetchPeterpanzDetailImageUrls(hidx, options = {}) {
+  const listingId = String(hidx || "").trim();
+  if (!listingId) return [];
+
+  const fetchImpl = typeof options.fetchImpl === "function" ? options.fetchImpl : fetch;
+  const resp = await fetchImpl(`https://www.peterpanz.com/house/${encodeURIComponent(listingId)}`, {
+    headers: { "User-Agent": API_HEADERS["User-Agent"], Accept: "text/html" },
+    redirect: "follow",
+    signal: options.signal ?? AbortSignal.timeout(12000),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`detail_http_${resp.status}`);
+  }
+
+  const html = await resp.text();
+  return extractPeterpanzDetailImageUrlsFromHtml(html);
+}
+
+async function enrichPeterpanzListingsWithDetailImages(items) {
+  let enrichedCount = 0;
+
+  for (const item of items) {
+    if (!item?.hidx) continue;
+    if (collectPeterpanzImageUrls(item).length > 0) continue;
+
+    try {
+      const detailImages = await fetchPeterpanzDetailImageUrls(item.hidx);
+      if (detailImages.length === 0) continue;
+      item.image_urls_origin = detailImages;
+      item.info = { ...(item.info || {}) };
+      if (!item.info.thumbnail) {
+        item.info.thumbnail = detailImages[0];
+      }
+      enrichedCount += 1;
+      await sleep(120);
+    } catch (error) {
+      vlog(`detail image fallback failed for ${item.hidx}: ${error.message}`);
+    }
+  }
+
+  return { enrichedCount };
+}
+
 /**
  * Build PeterPanz villa page URL with filter parameters.
  */
@@ -496,6 +635,14 @@ async function collectPeterpanz() {
     log(`After filter: ${filtered.length} items`);
     if (selected.length !== filtered.length) {
       log(`After sample cap: ${selected.length} items`);
+    }
+
+    const missingImageBefore = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
+    if (missingImageBefore > 0) {
+      log(`Image fallback: checking ${missingImageBefore} image-poor listings via detail pages`);
+      const enriched = await enrichPeterpanzListingsWithDetailImages(selected);
+      const missingImageAfter = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
+      log(`Image fallback: enriched ${enriched.enrichedCount}, remaining missing ${missingImageAfter}`);
     }
 
     // ---- Write raw JSONL ----

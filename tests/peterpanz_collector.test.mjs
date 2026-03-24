@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 
 import {
   buildGridProbePoints,
+  extractPeterpanzDetailImageUrlsFromHtml,
   extractHousesFromResponse,
+  fetchPeterpanzDetailImageUrls,
   filterPeterpanzListings,
 } from "../scripts/peterpanz_auto_collector.mjs";
 
@@ -103,6 +105,44 @@ describe("Peterpanz collector helpers", () => {
       point.lng > bbox.sw_lng &&
       point.lng < bbox.ne_lng,
     )).toBe(true);
+  });
+
+  it("extracts detail-page images from houseImages inline data and json-ld", async () => {
+    const html = `
+      <html>
+        <head>
+          <script type="application/ld+json">
+            {"@context":"https://schema.org","image":["https://img.peterpanz.com/photo/20260305/18972059/a_origin.jpg"]}
+          </script>
+        </head>
+        <body>
+          <script>
+            houseImages = [
+              {"img_path":"https:\\/\\/img.peterpanz.com\\/photo\\/20260305\\/18972059\\/a_origin.jpg","deleted_at":null},
+              {"img_path":"https:\\/\\/img.peterpanz.com\\/photo\\/20260305\\/18972059\\/b_thumb.jpg","deleted_at":null}
+            ];
+          </script>
+          <img src="https://img.peterpanz.com/photo/20240708/agency_profile/ignore-me.png" />
+        </body>
+      </html>
+    `;
+
+    expect(extractPeterpanzDetailImageUrlsFromHtml(html)).toEqual([
+      "https://img.peterpanz.com/photo/20260305/18972059/a_origin.jpg",
+      "https://img.peterpanz.com/photo/20260305/18972059/b_origin.jpg",
+    ]);
+
+    const urls = await fetchPeterpanzDetailImageUrls(18972059, {
+      fetchImpl: async () => ({
+        ok: true,
+        text: async () => html,
+      }),
+    });
+
+    expect(urls).toEqual([
+      "https://img.peterpanz.com/photo/20260305/18972059/a_origin.jpg",
+      "https://img.peterpanz.com/photo/20260305/18972059/b_origin.jpg",
+    ]);
   });
 
   it("stays import-safe even when the host process passes a foreign sigungu arg", () => {
