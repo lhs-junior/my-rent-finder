@@ -3664,3 +3664,8 @@ pre {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
 }
+
+/* Affordability badge */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.badge-feasible { background: #d1fae5; color: #065f46; }
+.badge-shortage { background: #fef3c7; color: #92400e; }
