@@ -1535,6 +1535,24 @@ export class NaverListingAdapter extends BaseListingAdapter {
       available_date: pick(item, ["useDate", "availableDate", "입주가능일"], null),
       lat: Number.isFinite(lat) ? lat : null,
       lng: Number.isFinite(lng) ? lng : null,
+      sale_price: (() => {
+        const raw = pick(item, ["dealPrice", "salePrice", "price"], null);
+        if (raw === null || raw === undefined) return null;
+        const n = parseInt(String(raw), 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      })(),
+      loan_amount: (() => {
+        const raw = pick(item, ["loanPrice", "loanAmount", "loan"], null);
+        if (raw === null || raw === undefined) return null;
+        const n = parseInt(String(raw), 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      })(),
+      building_year: (() => {
+        const raw = pick(item, ["buildYear", "useApproveYmd", "builtYear"], null);
+        if (!raw) return null;
+        const n = parseInt(String(raw).slice(0, 4), 10);
+        return Number.isFinite(n) && n > 1900 && n < 2100 ? n : null;
+      })(),
       image_urls: imageUrls.length > 0 ? imageUrls : fallbackImageUrls,
       raw_attrs: {
         atclNo: pick(item, ["atclNo"], null),

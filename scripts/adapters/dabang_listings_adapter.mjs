@@ -189,6 +189,9 @@ const DABANG_FIELD_HINTS = {
     "imgUrl",
     "img_url",
   ],
+  salePriceKeys: ["price", "salePrice", "dealPrice", "매매가"],
+  loanAmountKeys: ["loan", "loanAmount", "대출금"],
+  buildingYearKeys: ["buildYear", "builtYear", "built_year"],
   rawTextKeys: [
     "priceTitle",
     "price_title",

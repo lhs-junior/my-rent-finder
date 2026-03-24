@@ -19,6 +19,9 @@ const KBLAND_FIELD_HINTS = {
   latKeys: ["lat", "latitude"],
   lngKeys: ["lng", "longitude"],
   imageKeys: ["imageUrls", "image_urls"],
+  salePriceKeys: ["salePrice", "dealAmount", "price"],
+  loanAmountKeys: ["loanAmount", "loan"],
+  buildingYearKeys: ["useApproveYmd", "buildYear", "builtYear"],
   listHintPaths: ["payload_json"],
 };
 

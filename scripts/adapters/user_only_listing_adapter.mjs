@@ -1191,6 +1191,24 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
       building_name: pick(row, ["building", "buildingName", "complexName", "complex"], null),
       lat,
       lng,
+      sale_price: (() => {
+        const raw = pick(row, this.hints.salePriceKeys || [], null);
+        if (raw === null || raw === undefined) return null;
+        const n = parseInt(String(raw), 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      })(),
+      loan_amount: (() => {
+        const raw = pick(row, this.hints.loanAmountKeys || [], null);
+        if (raw === null || raw === undefined) return null;
+        const n = parseInt(String(raw), 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      })(),
+      building_year: (() => {
+        const raw = pick(row, this.hints.buildingYearKeys || [], null);
+        if (!raw) return null;
+        const n = parseInt(String(raw).slice(0, 4), 10);
+        return Number.isFinite(n) && n > 1900 && n < 2100 ? n : null;
+      })(),
       image_urls: imageUrls,
       raw_attrs: {
         title: pick(row, this.hints.titleKeys, null),

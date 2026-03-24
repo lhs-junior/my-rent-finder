@@ -341,6 +341,9 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
           "image_thumbnail",
           "photoUrl",
         ],
+        salePriceKeys: ["price", "salePrice", "dealPrice"],
+        loanAmountKeys: ["loan", "loanAmount", "loanPrice"],
+        buildingYearKeys: ["builtIn", "buildYear", "buildingYear"],
         latKeys: [
           "lat",
           "latitude",
