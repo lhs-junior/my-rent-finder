@@ -614,7 +614,11 @@ async function main() {
   console.log(`  데이터 품질: ${resultData.dataQuality.grade}`);
 }
 
-main().catch((e) => {
-  console.error("Fatal:", e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error("Fatal:", e);
+    process.exit(1);
+  })
+  .finally(() => {
+    process.exit(0);
+  });

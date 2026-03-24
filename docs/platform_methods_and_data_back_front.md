@@ -25,15 +25,15 @@
 | 네이버 부동산 | naver | `run_parallel_collect` + `naver_auto_collector` + `naver_normalize` | `STEALTH_AUTOMATION` | `scripts/naver_auto_collector.mjs` | Playwright stealth + 네트워크 응답 캡처 + 캡처 데이터 정규화 |
 | 직방 | zigbang | `run_parallel_collect` + `zigbang_auto_collector.mjs` | `STEALTH_AUTOMATION` | `scripts/zigbang_auto_collector.mjs` | Direct API fallback → Playwright 네트워크 인터셉트 → Playwright API 호출 → DOM 파싱 |
 | 다방 | dabang | `run_parallel_collect` + `dabang_auto_collector.mjs` | `STEALTH_AUTOMATION` | `scripts/dabang_auto_collector.mjs` | 페이지 API 인터셉트 + 페이지 기반 페이징 수집 |
-| 부동산114 | r114 | `run_parallel_collect` + `r114_auto_collector.mjs` | `STEALTH_AUTOMATION` | `scripts/r114_auto_collector.mjs` | 브라우저 리스트 이동 + POST API(`/_c=memul&_m=p10&_a=index.ajax`) + HTML 파싱 |
+| 당근 부동산 | daangn | `run_parallel_collect` + `daangn_auto_collector.mjs` | `STEALTH_AUTOMATION` | `scripts/daangn_auto_collector.mjs` | 지역별 location ID 기반 리스트 수집 + 상세 보강 |
 | 피터팬 | peterpanz | `run_parallel_collect` + `peterpanz_auto_collector.mjs` | `STEALTH_AUTOMATION` | `scripts/peterpanz_auto_collector.mjs` | 지도 조작 기반 API 인터셉트(`/houses/area/pc`) + 파라미터 보강 |
+| KB부동산 | kbland | `run_parallel_collect` + `kbland_auto_collector.mjs` + `kbland` adapter | `STEALTH_AUTOMATION` | `scripts/kbland_auto_collector.mjs` | Chrome CDP로 실제 `kbland.kr` 세션 연결 후 `propList/filter` + 상세/사진 API 보강 |
 
-### 3.2 수집기 보유 but 오케스트레이터 미연동
+### 3.2 조건부 실행 주의사항
 
-| 플랫폼 | 수집기 | 어댑터 | 상태 |
-|---|---|---|---|
-| 당근 부동산 | `daangn_auto_collector.mjs` | 미연동 | 실사용 경로에 미반영 |
-| KB부동산 | `kbland_auto_collector.mjs` | 미연동 | 실사용 경로에 미반영 |
+| 플랫폼 | 조건 | 비고 |
+|---|---|---|
+| KB부동산 | Chrome `--remote-debugging-port=9222` + `https://kbland.kr/map` 탭 준비 | 인증 헤더 재현 대신 실제 브라우저 세션 사용 |
 
 ### 3.3 제외/보류
 
