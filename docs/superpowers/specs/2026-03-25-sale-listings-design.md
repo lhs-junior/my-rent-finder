@@ -299,3 +299,136 @@ SETTINGS_PIN=<사용자 지정 PIN>
 ```
 
 > `MOLIT_API_KEY`는 v2(국토부 실거래가 API) 구현 시 추가.
+
+---
+
+## 완료 기준 (Ship Blockers)
+
+다음 항목이 모두 통과해야 배포 가능.
+
+| # | 항목 | 확인 방법 |
+|---|------|----------|
+| 1 | migration 008 적용 후 `normalized_listings`에 `sale_price` 컬럼 존재 | `\d normalized_listings` |
+| 2 | `user_settings` 테이블 생성 및 기본값 저장 가능 | `POST /api/settings` 호출 후 DB 확인 |
+| 3 | 네이버/KB 중 최소 1개 플랫폼에서 매매 매물 100건 이상 수집 | 수집 스크립트 1회 실행 |
+| 4 | `/api/affordability?salePrice=48000` → `feasible`, `shortage`, `monthlyPayment` 정상 반환 | curl 테스트 |
+| 5 | 매매 탭 UI에서 매물 카드 렌더링 + 배지 표시 | 브라우저 확인 |
+| 6 | PIN 없이 `POST /api/settings/read` 요청 시 401 반환 | curl 테스트 |
+| 7 | 월세 탭 기존 데이터 영향 없음 | 월세 탭 정상 표시 확인 |
+
+---
+
+## 배포 절차 (Runbook)
+
+### 최초 배포 순서
+
+```bash
+# 1. 환경변수 설정 (Vercel 대시보드 또는 .env.local)
+SETTINGS_PIN=<원하는 PIN>
+
+# 2. DB 마이그레이션 실행
+psql $DATABASE_URL -f db/migrations/008_add_sale_columns.sql
+
+# 3. 마이그레이션 검증
+psql $DATABASE_URL -c "\d normalized_listings" | grep sale_price
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM user_settings;"
+
+# 4. 초기 설정값 입력 (curl 또는 브라우저 UI)
+curl -X POST /api/settings \
+  -H "Content-Type: application/json" \
+  -d '{"pin":"<PIN>","key":"my_capital","value":"10000"}'
+
+# 5. 매매 수집 테스트 (1개 플랫폼, 1개 구)
+node scripts/run_parallel_collect.mjs \
+  --lease-type=매매 \
+  --platforms=naver \
+  --sigungu=노원구 \
+  --persist-to-db
+
+# 6. 수집 결과 확인
+psql $DATABASE_URL -c \
+  "SELECT COUNT(*) FROM normalized_listings WHERE lease_type='매매';"
+
+# 7. Vercel 배포
+vercel --prod
+```
+
+### 롤백 절차
+
+기능 비활성화만 필요한 경우 (DB 롤백 불필요):
+```bash
+# 매매 탭만 숨기기: frontend에서 탭 조건부 렌더링 제거 후 재배포
+# 수집 중단: platform_sampling_targets.json에서 매매 타겟 제거
+```
+
+DB 롤백이 필요한 경우:
+```sql
+-- 추가 컬럼 제거 (데이터 손실 주의)
+ALTER TABLE normalized_listings
+  DROP COLUMN IF EXISTS sale_price,
+  DROP COLUMN IF EXISTS loan_amount,
+  DROP COLUMN IF EXISTS building_year;
+
+DROP TABLE IF EXISTS user_settings;
+```
+
+---
+
+## 운영 체크리스트
+
+### 주간 체크 (매주 월요일)
+
+```bash
+# 1. 매매 매물 수집 현황
+psql $DATABASE_URL -c "
+  SELECT DATE(collected_at), COUNT(*)
+  FROM normalized_listings
+  WHERE lease_type = '매매'
+  GROUP BY 1 ORDER BY 1 DESC LIMIT 7;"
+
+# 2. 수집 실패 여부
+psql $DATABASE_URL -c "
+  SELECT platform_code, status, COUNT(*)
+  FROM collection_runs
+  WHERE started_at > NOW() - INTERVAL '7 days'
+  GROUP BY 1, 2 ORDER BY 1, 2;"
+```
+
+**기대값:**
+- 매매 매물: 주 1회 수집 시 플랫폼당 50건 이상
+- 수집 상태: DONE 비율 80% 이상
+
+### 데이터 신선도 기준
+
+매매 매물은 월세보다 변동이 느림. 주 1회 수집으로 충분.
+
+| 상태 | 기준 | 조치 |
+|------|------|------|
+| 정상 | 최신 수집 7일 이내 | 없음 |
+| 경고 | 최신 수집 14일 초과 | 수동 수집 실행 |
+| 위험 | 최신 수집 30일 초과 | 수집 스크립트 디버깅 |
+
+### 장애 대응
+
+**증상: 특정 플랫폼 수집 0건**
+```bash
+# 원인 확인
+psql $DATABASE_URL -c "
+  SELECT failure_code, extra
+  FROM collection_runs
+  WHERE platform_code = 'naver' AND status = 'FAILED'
+  ORDER BY started_at DESC LIMIT 5;"
+
+# 해당 플랫폼 제외하고 나머지만 수집
+node scripts/run_parallel_collect.mjs \
+  --lease-type=매매 \
+  --platforms=kbland,zigbang,dabang
+```
+
+**증상: `/api/affordability` 응답 오류**
+```bash
+# user_settings 존재 여부 확인
+psql $DATABASE_URL -c "SELECT * FROM user_settings;"
+
+# 설정 미입력 시 → 브라우저에서 PIN 입력 후 설정값 저장
+```
