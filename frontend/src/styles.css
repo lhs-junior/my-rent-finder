@@ -554,6 +554,46 @@ body {
 }
 .map-right-img img { width: 100%; height: 100%; object-fit: cover; }
 
+.map-right-gallery {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--primary-light);
+}
+.map-right-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.map-gallery-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,.45);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.map-gallery-btn--prev { left: 8px; }
+.map-gallery-btn--next { right: 8px; }
+.map-gallery-btn:hover { background: rgba(0,0,0,.7); }
+.map-gallery-count {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  background: rgba(0,0,0,.5);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
 .map-right-content { padding: 16px; }
 .map-right-platform {
   font-size: 0.72rem;

@@ -13,6 +13,7 @@ const DEFAULT_FILTERS = {
   minArea: "",
   maxArea: "",
   minFloor: "",
+  hasImage: "",
   limit: "40",
 };
 
@@ -71,6 +72,7 @@ function countAppliedFilters(filters) {
   if (toTrimmedText(filters.minArea)) count += 1;
   if (toTrimmedText(filters.maxArea)) count += 1;
   if (filters.minFloor) count += 1;
+  if (filters.hasImage) count += 1;
   if (toTrimmedText(filters.minRent) !== DEFAULT_FILTERS.minRent) count += 1;
   if (toTrimmedText(filters.maxRent) !== DEFAULT_FILTERS.maxRent) count += 1;
   if (toTrimmedText(filters.limit) !== DEFAULT_FILTERS.limit) count += 1;
@@ -106,6 +108,8 @@ function buildAppliedFilterChips(filters) {
     const option = FLOOR_FILTER_OPTIONS.find((candidate) => candidate.value === filters.minFloor);
     chips.push(option?.label || filters.minFloor);
   }
+  if (filters.hasImage === "true") chips.push("사진 있음");
+  else if (filters.hasImage === "false") chips.push("사진 없음");
   chips.push(`${filters.limit}건씩 표시`);
   return chips;
 }
@@ -146,6 +150,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     if (toTrimmedText(targetFilters.minArea)) params.set("min_area", targetFilters.minArea);
     if (toTrimmedText(targetFilters.maxArea)) params.set("max_area", targetFilters.maxArea);
     if (targetFilters.minFloor) params.set("min_floor", targetFilters.minFloor);
+    if (targetFilters.hasImage) params.set("has_image", targetFilters.hasImage);
     return params.toString();
   }, [page, runId, submittedFilters]);
 
@@ -453,6 +458,22 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
               ))}
             </select>
           </label>
+
+          <div className="search-field">
+            <span className="search-field-label">사진</span>
+            <div className="search-chip-group">
+              {[{ v: "", l: "전체" }, { v: "true", l: "사진 있음" }, { v: "false", l: "사진 없음" }].map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  className={`filter-chip${filters.hasImage === opt.v ? " filter-chip--active" : ""}`}
+                  onClick={() => updateFilter("hasImage", opt.v)}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <label className="search-field" htmlFor="search-limit">
             <span className="search-field-label">페이지당 노출</span>
