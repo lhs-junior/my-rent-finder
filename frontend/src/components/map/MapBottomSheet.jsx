@@ -21,6 +21,7 @@ export default function MapBottomSheet({
 
   const onTouchStart = (e) => { startY.current = e.touches[0].clientY; };
   const onTouchEnd = (e) => {
+    if (startY.current === null) return;
     const dy = startY.current - e.changedTouches[0].clientY;
     if (dy > 40) setStage(s => s === "peek" ? "half" : "full");
     else if (dy < -40) setStage(s => s === "full" ? "half" : "peek");
