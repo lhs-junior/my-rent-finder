@@ -1380,6 +1380,27 @@
       }
     },
     {
+      "platform": "naver",
+      "mode": "STEALTH_AUTOMATION",
+      "source_type": "stealth_seed_url",
+      "notes": "매매 매물 수집 — 아파트/빌라 포함",
+      "leaseType": "매매",
+      "query_hint": {
+        "sido": "서울시",
+        "sigungu": "노원구",
+        "sigunguList": [
+          "노원구",
+          "중랑구",
+          "동대문구",
+          "성북구"
+        ],
+        "leaseType": "매매",
+        "salePriceMax": 70000,
+        "minAreaM2": 40,
+        "propertyTypes": ["아파트", "빌라/연립", "단독/다가구"]
+      }
+    },
+    {
       "platform": "네모",
       "platform_code": "nemo",
       "source_id": "nemo_001_query_probe_20260216",

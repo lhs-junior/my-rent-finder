@@ -56,8 +56,9 @@ const DISTRICTS = {
 
 // KB부동산 propList/filter 물건종류 코드
 // 08=빌라(연립/다세대), 38=다가구주택, 09=단독주택, 34=원룸, 35=투룸
+const leaseTypeArg = getArg("--lease-type", "월세");
 const PROPERTY_TYPE_CODES = "08,38,09";
-const DEAL_TYPE_CODE = "3"; // 월세
+const DEAL_TYPE_CODE = leaseTypeArg === "매매" ? "1" : "3"; // 1=매매, 3=월세
 
 // ── 지도 페이지에서 클러스터 목록 가져오기 ──
 async function getClusters(page, district) {
@@ -256,8 +257,12 @@ function toRecord(item, district) {
 // ── 필터 적용 ──
 function applyFilters(records) {
   return records.filter((r) => {
-    // 월세만
-    if (r.매물거래구분명 && !r.매물거래구분명.includes("월세")) return false;
+    // 거래유형 필터
+    if (leaseTypeArg === "매매") {
+      if (r.매물거래구분명 && !r.매물거래구분명.includes("매매")) return false;
+    } else {
+      if (r.매물거래구분명 && !r.매물거래구분명.includes("월세")) return false;
+    }
     // 월세 범위
     if (r.월세가 != null && rentMax > 0 && r.월세가 > rentMax) return false;
     // 보증금 범위
@@ -331,7 +336,7 @@ function toNormalizedRecord(record, district) {
     source_ref: eid,
     source_url: `https://kbland.kr/p/${eid}`,
     title: `${record.건물명 || buildingType} ${record.읍면동명 || ""}`.trim(),
-    lease_type: "월세",
+    lease_type: leaseTypeArg === "매매" ? "매매" : "월세",
     rent_amount: record.월세가 ?? null,
     deposit_amount: record.월세보증금 ?? null,
     area_exclusive_m2: record.전용면적 ?? null,

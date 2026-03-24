@@ -455,7 +455,7 @@ async function captureNaverData() {
   // The Naver SPA makes XHR calls to /api/articles and /api/articles/clusters
   // without our search condition params. We intercept and inject them.
   const filterParams = {
-    tradeType: "B2",
+    tradeType: tradeType,
     rentPriceMin: "0",
     rentPriceMax: String(rentMax),
     priceMin: "0",
@@ -528,7 +528,7 @@ async function captureNaverData() {
   const urlParams = new URLSearchParams({
     cortarNo,
     realEstateType: realEstateTypes,
-    tradeType: "B2",
+    tradeType: tradeType,
     rentPriceMin: "0",
     rentPriceMax: String(rentMax),
     priceMin: "0",
