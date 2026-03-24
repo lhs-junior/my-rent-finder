@@ -67,22 +67,35 @@ async function getClusters(page, district) {
   // 지도 페이지로 이동
   const mapUrl = `https://kbland.kr/map?xy=${d.lat},${d.lng},15`;
   await page.goto(mapUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-  await page.waitForTimeout(6000);
 
-  // Vuex에서 클러스터 추출
-  const clusters = await page.evaluate(() => {
-    const vm = document.querySelector("#app")?.__vue__;
-    const list = vm?.$store?.state?.map?.markerMaemulList || [];
-    return list
-      .map((m) => ({
-        id: m.클러스터식별자,
-        count: m.매물개수,
-        lat: m.wgs84위도,
-        lng: m.wgs84경도,
-      }))
-      .filter((c) => c.id && c.count > 0)
-      .sort((a, b) => b.count - a.count);
-  });
+  // Vuex markerMaemulList가 채워질 때까지 폴링 (최대 20초)
+  const pollExtract = () =>
+    page.evaluate(() => {
+      const vm = document.querySelector("#app")?.__vue__;
+      const list = vm?.$store?.state?.map?.markerMaemulList || [];
+      return list
+        .map((m) => ({
+          id: m.클러스터식별자,
+          count: m.매물개수,
+          lat: m.wgs84위도,
+          lng: m.wgs84경도,
+        }))
+        .filter((c) => c.id && c.count > 0)
+        .sort((a, b) => b.count - a.count);
+    });
+
+  const MAX_WAIT_MS = 20000;
+  const POLL_INTERVAL_MS = 500;
+  const pollStart = Date.now();
+  let clusters = [];
+  while (Date.now() - pollStart < MAX_WAIT_MS) {
+    clusters = await pollExtract();
+    if (clusters.length > 0) break;
+    await page.waitForTimeout(POLL_INTERVAL_MS);
+  }
+  if (clusters.length === 0) {
+    console.warn(`     ⚠ ${MAX_WAIT_MS / 1000}초 대기 후에도 클러스터 없음 — 지도 로딩 실패 가능성`);
+  }
 
   return clusters;
 }
@@ -385,8 +398,6 @@ async function main() {
       waitUntil: "networkidle",
       timeout: 60000,
     });
-    // SPA Vuex 스토어 초기화 대기 (지도 렌더링 + API 바인딩)
-    await page.waitForTimeout(5000);
     console.log(`✓ kbland.kr 신규 탭 로드 완료: ${page.url().substring(0, 60)}`);
   } else {
     console.log(`✓ kbland.kr 기존 탭: ${page.url().substring(0, 60)}`);

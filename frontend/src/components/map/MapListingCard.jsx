@@ -4,6 +4,7 @@ import { toPlatformLabel, PLATFORM_COLORS } from "../../utils/format.js";
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
 const MONEY_SWAP_RENT_MIN = 500;
 const MONEY_SWAP_DEPOSIT_MAX = 200;
+const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 
 function toMoney(v) {
   if (v == null) return "-";
@@ -42,6 +43,14 @@ function normalizeDisplayMoney(item) {
   };
 }
 
+function platformBadgeStyle(platform) {
+  const normalized = String(platform || "").toLowerCase();
+  return {
+    background: PLATFORM_COLORS[platform] || "#6B7280",
+    color: DARK_TEXT_PLATFORMS.has(normalized) ? "#111110" : "#fff",
+  };
+}
+
 export default function MapListingCard({ marker, isSelected, onClick, isFavorite, onToggleFavorite }) {
   const m = marker;
   const details = [
@@ -52,34 +61,32 @@ export default function MapListingCard({ marker, isSelected, onClick, isFavorite
   const price = normalizeDisplayMoney(m);
 
   return (
-    <div
-      className={`map-card${isSelected ? " map-card--selected" : ""}`}
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onClick();
-        }
-      }}
-    >
-      <div className="map-card-top">
-        <span
-          className="map-card-platform"
-          style={{ background: PLATFORM_COLORS[m.platform_code] || "#6B7280" }}
-        >
-          {toPlatformLabel(m.platform_code)}
-        </span>
-        <span className="map-card-address">{m.address_text || "-"}</span>
-        {onToggleFavorite && (
+    <div className={`map-card${isSelected ? " map-card--selected" : ""}`}>
+      <button
+        type="button"
+        className="map-card-main"
+        aria-label={`${m.address_text || "매물"} 상세 보기`}
+        onClick={onClick}
+      >
+        <div className="map-card-top">
+          <span
+            className="map-card-platform"
+            style={platformBadgeStyle(m.platform_code)}
+          >
+            {toPlatformLabel(m.platform_code)}
+          </span>
+          <span className="map-card-address">{m.address_text || "-"}</span>
+        </div>
+        <div className="map-card-price">
+          보증금 {price.deposit != null ? `${toMoney(price.deposit)}` : "-"} / 월세 {price.rent != null ? `${price.rent}만` : "-"}
+        </div>
+        {details && <div className="map-card-detail">{details}</div>}
+      </button>
+      {onToggleFavorite && (
+        <div className="map-card-fav">
           <FavoriteButton active={isFavorite} onClick={onToggleFavorite} size="sm" />
-        )}
-      </div>
-      <div className="map-card-price">
-        보증금 {price.deposit != null ? `${toMoney(price.deposit)}` : "-"} / 월세 {price.rent != null ? `${price.rent}만` : "-"}
-      </div>
-      {details && <div className="map-card-detail">{details}</div>}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import {
   parseQueryInt,
   parseImageMap,
   resolveLatestBaseRunId,
+  extractImageUrlsFromPayload,
+  buildFallbackImageRowsFromPayload,
 } from "../api_helpers.mjs";
 
 const MONEY_ORIENTED_PLATFORMS = new Set(["dabang", "daangn"]);
@@ -228,7 +230,7 @@ export async function handleListings(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount, nl.area_exclusive_m2, nl.area_gross_m2,
                nl.address_text, nl.address_code, nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
                nl.quality_flags, nl.lat, nl.lng,
-               nl.created_at, rl.run_id,
+               nl.created_at, rl.run_id, rl.payload_json AS raw_payload_json,
                ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
@@ -275,6 +277,7 @@ export async function handleListings(req, res) {
         depositAmount: row.deposit_amount,
       });
       const listingId = toInt(row.listing_id, null);
+      const fallbackImageUrls = extractImageUrlsFromPayload(row.raw_payload_json);
       return {
         listing_id: listingId,
         platform_code: safeText(row.platform_code, ""),
@@ -297,8 +300,8 @@ export async function handleListings(req, res) {
         building_use: safeText(row.building_use, null),
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
-        image_count: Number(imageMap.get(listingId) || 0),
-        first_image_url: firstImageMap.get(listingId) || null,
+        image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
+        first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
         is_stale: (() => {
           try {
             const flags =
@@ -362,6 +365,9 @@ export async function handleListingDetail(req, res, id) {
       [id],
     );
 
+    const fallbackImages = imageRows.rows?.length ? [] : buildFallbackImageRowsFromPayload(row.payload_json);
+    const resolvedImages = imageRows.rows?.length ? imageRows.rows : fallbackImages;
+
     let priceHistory = [];
     try {
       const histResult = await client.query(
@@ -417,7 +423,7 @@ export async function handleListingDetail(req, res, id) {
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
         geocode_status: safeText(row.geocode_status, null),
-        images: imageRows.rows || [],
+        images: resolvedImages,
         quality_flags: (() => {
           try {
             return typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : row.quality_flags || [];
@@ -425,7 +431,9 @@ export async function handleListingDetail(req, res, id) {
             return [];
           }
         })(),
-        violations: (violationRows.rows || []).map((v) => ({
+        violations: (violationRows.rows || [])
+          .filter((v) => !(resolvedImages.length > 0 && safeText(v.violation_code, "") === "IMAGE_URL_INVALID"))
+          .map((v) => ({
           code: safeText(v.violation_code, ""),
           message: safeText(v.message, ""),
           severity: safeText(v.severity, "WARN"),
@@ -527,6 +535,22 @@ async function verifyKbland(externalId) {
 
 // ── 다방 verify ──
 
+export function isLikelyActiveDabangLocation(location, externalId) {
+  const expectedId = safeText(externalId, "");
+  const rawLocation = safeText(location, "");
+  if (!expectedId || !rawLocation) return false;
+
+  try {
+    const resolved = new URL(rawLocation, "https://www.dabangapp.com");
+    if (resolved.pathname.includes(`/room/${expectedId}`)) return true;
+    if (safeText(resolved.searchParams.get("detail_id"), "") === expectedId) return true;
+    if (safeText(resolved.searchParams.get("room_id"), "") === expectedId) return true;
+    return false;
+  } catch {
+    return rawLocation.includes(`/room/${expectedId}`) || rawLocation.includes(`detail_id=${expectedId}`);
+  }
+}
+
 async function verifyDabang(externalId) {
   try {
     const url = `https://www.dabangapp.com/room/${externalId}`;
@@ -539,7 +563,9 @@ async function verifyDabang(externalId) {
     if (resp.status === 410) return { alive: false, reason: "gone" };
     if (resp.status >= 300 && resp.status < 400) {
       const location = resp.headers.get("location") || "";
-      if (!location.includes(`/room/${externalId}`)) return { alive: false, reason: "redirect" };
+      if (!isLikelyActiveDabangLocation(location, externalId)) {
+        return { alive: false, reason: "redirect" };
+      }
       return { alive: true, reason: "active" };
     }
     if (resp.status === 200) {

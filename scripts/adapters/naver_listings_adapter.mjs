@@ -43,7 +43,12 @@ function collectNaverImageCandidates(raw) {
     if (!trimmed) return;
 
     try {
-      const parsed = new URL(trimmed.startsWith("//") ? `https:${trimmed}` : trimmed);
+      const absolute = trimmed.startsWith("//")
+        ? `https:${trimmed}`
+        : trimmed.startsWith("/")
+        ? `https://landthumb-phinf.pstatic.net${trimmed}`
+        : trimmed;
+      const parsed = new URL(absolute);
       const path = parsed.pathname.toLowerCase();
       if (!URL_IMAGE_RE.test(path)) return;
       if (CP_IMAGE_PATH_BAD_PATTERNS.test(path)) return;
@@ -346,8 +351,9 @@ const CP_IMAGE_FETCH_RETRIES = 2;
 const CP_IMAGE_FETCH_DELAY_MS = 250;
 const CP_IMAGE_SOURCE_LIMIT = 24;
 const CP_JSON_IMAGE_FIELD_HINTS = ["img", "image", "photo", "thumb", "file", "url", "path"];
+const CP_DYNAMIC_IMAGE_BLOCKED_ROOTS = ["karhanbang.com"];
 const CP_IMAGE_PATH_BAD_PATTERNS =
-  /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.|thmb_|\/static\/service\/|\/news\/\d{4}\/|\/estate\/\d{4}\/|mc_icon_|gnb_|_detail\.gif|qr_txt|\/new_year\/|searchicon|search_icon|icon_search|\/icon\/|\/icons\/)/i;
+  /(?:blank\.gif|\/ico_|logo|banner|offerings_|common\/|home(_on)?_|myhome|mc_btn|mmc_|noimg|facebook|btn_|favicon|\/map\/|category\.|sprite|placeholder|\.ico(?:\?|$)|\/memulPhoto\/thumb\/|head_on_\d|head_\d{2}\.|thmb_|\/static\/service\/|\/news\/\d{4}\/|\/estate\/\d{4}\/|mc_icon_|gnb_|_detail\.gif|qr_txt|\/new_year\/|searchicon|search_icon|icon_search|\/icon\/|\/icons\/|hanbanglog|icon_hanbang|\/images\/layout\/|\/images\/main\/|\/popup\/|\/bunyang\/)/i;
 const CP_IMAGE_SOURCE_HOST_HINTS = [
   "newimg.serve.co.kr",
   "img.serve.co.kr",
@@ -402,6 +408,9 @@ function isAllowedCpImageHost(hostname, pathname = "", cpArticleHostname = null)
     const rootDomain = String(cpArticleHostname)
       .toLowerCase()
       .replace(/^(?:www|img|image|photo|cdn|static|media)\./i, "");
+    if (CP_DYNAMIC_IMAGE_BLOCKED_ROOTS.includes(rootDomain)) {
+      return false;
+    }
     if (rootDomain && (host === rootDomain || host.endsWith(`.${rootDomain}`))) {
       return CP_IMAGE_EXTENSION_RE.test(normalizedPathname) && !CP_IMAGE_PATH_BAD_PATTERNS.test(normalizedPathname);
     }
@@ -1093,7 +1102,7 @@ function scoreListingCandidate(item) {
 
   const parsedRent = asNumber(pick(item, ["rentPrc", "rentPrice"], null));
   const parsedDeposit = asNumber(pick(item, ["deposit", "depositAmount", "priceMin"], null));
-  const parsedArea = asNumber(pick(item, ["area1", "spc1", "exclusiveArea"], null));
+  const parsedArea = asNumber(pick(item, ["area2", "spc2", "exclusiveArea"], null));
   const siteImageCount = asNumber(pick(item, ["siteImageCount"], null));
 
   if (parsedRent !== null || parsedDeposit !== null) score += 20;
@@ -1295,7 +1304,7 @@ function buildFallbackRef(item) {
   const addr = normalizeAddress(item);
   const rent = asNumber(pick(item, ["tradePrc", "rentPrc", "rent", "monthlyRent", "rentAmount"], null));
   const deposit = asNumber(pick(item, ["deposit", "보증금", "depositAmount", "depositPrc", "prcDeposit"], null));
-  const area = parseArea(pick(item, ["spc1", "spc2", "exclusiveArea", "supplyArea", "grossArea"]));
+  const area = parseArea(pick(item, ["area2", "spc2", "exclusiveArea", "area1", "spc1", "supplyArea", "grossArea"]));
   const room = parseRoom(pick(item, ["room", "roomCount", "roomCnt", "articleType", "roomType"], null));
   const key = `${addr || ""}|${rent || ""}|${deposit || ""}|${area.value || ""}|${room || ""}`;
 
@@ -1391,11 +1400,12 @@ export class NaverListingAdapter extends BaseListingAdapter {
     if (!addr) {
       addr = extractCortarAddress(rawRecord);
     }
+    // 네이버 API: area1=공급면적(gross), area2=전용면적(exclusive)
     const exclusive = parseArea(
-      pick(item, ["area1", "spc1", "exclusiveArea", "전용면적", "exclusiveAreaM2", "areaExcl"], null),
+      pick(item, ["area2", "spc2", "exclusiveArea", "전용면적", "exclusiveAreaM2", "areaExcl"], null),
     );
     const gross = parseArea(
-      pick(item, ["area2", "spc2", "grossArea", "supplyArea", "공급면적", "supplyAreaM2", "areaGross"], null),
+      pick(item, ["area1", "spc1", "grossArea", "supplyArea", "공급면적", "supplyAreaM2", "areaGross"], null),
     );
 
     const floorValue = parseFloorRaw(pick(item, ["flrInfo", "floorInfo", "floor", "floorInfoText", "floorText"], null));

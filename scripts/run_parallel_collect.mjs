@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { persistSummaryToDb } from "./lib/ops_db_persistence.mjs";
-import { getArg, getBool, getInt, getList, normalizeCap } from "./lib/cli_utils.mjs";
+import { buildFilterArgs, getArg, getBool, getInt, getList, normalizeCap } from "./lib/cli_utils.mjs";
 
 const args = process.argv.slice(2);
 
@@ -441,10 +441,43 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   asAdapterMaxArg(perSigunguCap * 2),
                   "--lease-type",
                   naverFilters.tradeType || "B2",
+                  ...(Number.isFinite(Number(naverFilters.rentMax))
+                    ? ["--rent-max", String(naverFilters.rentMax)]
+                    : []),
+                  ...(Number.isFinite(Number(naverFilters.depositMax))
+                    ? ["--deposit-max", String(naverFilters.depositMax)]
+                    : []),
+                  ...(Number.isFinite(Number(naverFilters.minAreaM2))
+                    ? ["--min-area", String(Math.floor(naverFilters.minAreaM2))]
+                    : []),
                 ],
                 { stream: false },
               );
               normalizedPath = path.join(workspace, `naver_normalized_${runId}_${safe}.json`);
+              const adapterResult = await runNode(
+                `naver_adapter:${sigungu}`,
+                scriptPaths.listingAdapters,
+                [
+                  "--platform",
+                  "naver",
+                  "--input",
+                  rawFile,
+                  "--out",
+                  normalizedPath,
+                  "--max-items",
+                  asAdapterMaxArg(perSigunguCap),
+                  ...(Number.isFinite(Number(naverFilters.rentMax))
+                    ? ["--rent-max", String(naverFilters.rentMax)]
+                    : []),
+                  ...(Number.isFinite(Number(naverFilters.depositMax))
+                    ? ["--deposit-max", String(naverFilters.depositMax)]
+                    : []),
+                  ...(Number.isFinite(Number(naverFilters.minAreaM2))
+                    ? ["--min-area", String(Math.floor(naverFilters.minAreaM2))]
+                    : []),
+                ],
+                { stream: false },
+              );
               return {
                 platform: "naver",
                 sigungu,
@@ -453,6 +486,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                 normalizedPath,
                 collectResult,
                 normalizeResult,
+                adapterResult,
                 targetCap: perSigunguCap,
                 success: true,
               };
@@ -518,15 +552,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const zbFilters = conditionData?.filters || {};
-            if (Number.isFinite(Number(zbFilters.rentMax))) {
-              zigbangArgs.push("--rent-max", String(zbFilters.rentMax));
-            }
-            if (Number.isFinite(Number(zbFilters.depositMax))) {
-              zigbangArgs.push("--deposit-max", String(zbFilters.depositMax));
-            }
-            if (Number.isFinite(Number(zbFilters.minAreaM2))) {
-              zigbangArgs.push("--min-area", String(Math.floor(zbFilters.minAreaM2)));
-            }
+            const zbFilterArgs = buildFilterArgs({
+              rentMax: zbFilters.rentMax,
+              depositMax: zbFilters.depositMax,
+              minAreaM2: zbFilters.minAreaM2,
+            });
+            zigbangArgs.push(...zbFilterArgs);
 
             const collectResult = await runNode(`zigbang_auto:${sigungu}`, scriptPaths.zigbangCollect, zigbangArgs, {
               stream: true,
@@ -548,6 +579,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...zbFilterArgs,
                 ],
                 { stream: false },
               );
@@ -615,15 +647,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const ppFilters = conditionData?.filters || {};
-            if (Number.isFinite(Number(overrideRentMax || ppFilters.rentMax))) {
-              ppArgs.push("--rent-max", String(overrideRentMax || ppFilters.rentMax));
-            }
-            if (Number.isFinite(Number(overrideDepositMax || ppFilters.depositMax))) {
-              ppArgs.push("--deposit-max", String(overrideDepositMax || ppFilters.depositMax));
-            }
-            if (Number.isFinite(Number(overrideMinArea || ppFilters.minAreaM2))) {
-              ppArgs.push("--min-area", String(Math.floor(Number(overrideMinArea || ppFilters.minAreaM2))));
-            }
+            const ppFilterArgs = buildFilterArgs({
+              rentMax: overrideRentMax || ppFilters.rentMax,
+              depositMax: overrideDepositMax || ppFilters.depositMax,
+              minAreaM2: overrideMinArea || ppFilters.minAreaM2,
+            });
+            ppArgs.push(...ppFilterArgs);
 
             const collectResult = await runNode(`peterpanz_auto:${sigungu}`, scriptPaths.peterpanzCollect, ppArgs, {
               stream: true,
@@ -645,6 +674,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...ppFilterArgs,
                 ],
                 { stream: false },
               );
@@ -714,15 +744,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const daangnFilters = conditionData?.filters || {};
-            if (Number.isFinite(Number(overrideRentMax || daangnFilters.rentMax))) {
-              daangnArgs.push("--rent-max", String(overrideRentMax || daangnFilters.rentMax));
-            }
-            if (Number.isFinite(Number(overrideDepositMax || daangnFilters.depositMax))) {
-              daangnArgs.push("--deposit-max", String(overrideDepositMax || daangnFilters.depositMax));
-            }
-            if (Number.isFinite(Number(overrideMinArea || daangnFilters.minAreaM2))) {
-              daangnArgs.push("--min-area", String(Math.floor(Number(overrideMinArea || daangnFilters.minAreaM2))));
-            }
+            const daangnFilterArgs = buildFilterArgs({
+              rentMax: overrideRentMax || daangnFilters.rentMax,
+              depositMax: overrideDepositMax || daangnFilters.depositMax,
+              minAreaM2: overrideMinArea || daangnFilters.minAreaM2,
+            });
+            daangnArgs.push(...daangnFilterArgs);
 
             const collectResult = await runNode(`daangn_auto:${sigungu}`, scriptPaths.daangnCollect, daangnArgs, {
               stream: true,
@@ -744,6 +771,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...daangnFilterArgs,
                 ],
                 { stream: false },
               );
@@ -811,15 +839,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const dabangFilters = conditionData?.filters || {};
-            if (Number.isFinite(Number(dabangFilters.rentMax))) {
-              dabangArgs.push("--rent-max", String(dabangFilters.rentMax));
-            }
-            if (Number.isFinite(Number(dabangFilters.depositMax))) {
-              dabangArgs.push("--deposit-max", String(dabangFilters.depositMax));
-            }
-            if (Number.isFinite(Number(dabangFilters.minAreaM2))) {
-              dabangArgs.push("--min-area", String(Math.floor(dabangFilters.minAreaM2)));
-            }
+            const dabangFilterArgs = buildFilterArgs({
+              rentMax: dabangFilters.rentMax,
+              depositMax: dabangFilters.depositMax,
+              minAreaM2: dabangFilters.minAreaM2,
+            });
+            dabangArgs.push(...dabangFilterArgs);
 
             const collectResult = await runNode(`dabang_auto:${sigungu}`, scriptPaths.dabangCollect, dabangArgs, {
               stream: true,
@@ -841,6 +866,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...dabangFilterArgs,
                 ],
                 { stream: false },
               );
@@ -908,15 +934,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const kblandFilters = conditionData?.filters || {};
-            if (Number.isFinite(Number(kblandFilters.rentMax))) {
-              kblandArgs.push("--rent-max", String(kblandFilters.rentMax));
-            }
-            if (Number.isFinite(Number(kblandFilters.depositMax))) {
-              kblandArgs.push("--deposit-max", String(kblandFilters.depositMax));
-            }
-            if (Number.isFinite(Number(kblandFilters.minAreaM2))) {
-              kblandArgs.push("--min-area", String(Math.floor(kblandFilters.minAreaM2)));
-            }
+            const kblandFilterArgs = buildFilterArgs({
+              rentMax: kblandFilters.rentMax,
+              depositMax: kblandFilters.depositMax,
+              minAreaM2: kblandFilters.minAreaM2,
+            });
+            kblandArgs.push(...kblandFilterArgs);
 
             const collectResult = await runNode(`kbland_auto:${sigungu}`, scriptPaths.kblandCollect, kblandArgs, {
               stream: true,
@@ -938,6 +961,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...kblandFilterArgs,
                 ],
                 { stream: false },
               );
@@ -1005,15 +1029,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             ];
 
             const r114Filters = conditionData?.filters || {};
-            if (Number.isFinite(Number(r114Filters.rentMax))) {
-              r114Args.push("--rent-max", String(r114Filters.rentMax));
-            }
-            if (Number.isFinite(Number(r114Filters.depositMax))) {
-              r114Args.push("--deposit-max", String(r114Filters.depositMax));
-            }
-            if (Number.isFinite(Number(r114Filters.minAreaM2))) {
-              r114Args.push("--min-area", String(Math.floor(r114Filters.minAreaM2)));
-            }
+            const r114FilterArgs = buildFilterArgs({
+              rentMax: r114Filters.rentMax,
+              depositMax: r114Filters.depositMax,
+              minAreaM2: r114Filters.minAreaM2,
+            });
+            r114Args.push(...r114FilterArgs);
 
             const collectResult = await runNode(`r114_auto:${sigungu}`, scriptPaths.r114Collect, r114Args, {
               stream: true,
@@ -1035,6 +1056,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   normalizedPath,
                   "--max-items",
                   asAdapterMaxArg(perSigunguCap),
+                  ...r114FilterArgs,
                 ],
                 { stream: false },
               );

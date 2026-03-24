@@ -1,5 +1,5 @@
 import { toInt, toNumber, withDbClient } from "../db_client.mjs";
-import { safeText, sendJson, platformNameFromCode, parseImageMap } from "../api_helpers.mjs";
+import { safeText, sendJson, platformNameFromCode, parseImageMap, extractImageUrlsFromPayload } from "../api_helpers.mjs";
 
 // ---------------------------------------------------------------------------
 // GET /api/favorites — list all favorites with listing details
@@ -13,9 +13,10 @@ export async function handleFavorites(req, res) {
              nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
              nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
              nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
-             nl.lat, nl.lng, nl.quality_flags, nl.created_at
+             nl.lat, nl.lng, nl.quality_flags, nl.created_at, rl.payload_json
       FROM user_favorites uf
       JOIN normalized_listings nl ON nl.listing_id = uf.listing_id
+      JOIN raw_listings rl ON rl.raw_id = nl.raw_id
       WHERE nl.deleted_at IS NULL
       ORDER BY uf.created_at DESC
     `);
@@ -47,6 +48,7 @@ export async function handleFavorites(req, res) {
 
     return rows.rows.map((row) => {
       const listingId = toInt(row.listing_id, null);
+      const fallbackImageUrls = extractImageUrlsFromPayload(row.payload_json);
       return {
         favorite_id: toInt(row.favorite_id, null),
         memo: safeText(row.memo, null),
@@ -71,8 +73,8 @@ export async function handleFavorites(req, res) {
         building_use: safeText(row.building_use, null),
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
-        image_count: Number(imageMap.get(listingId) || 0),
-        first_image_url: firstImageMap.get(listingId) || null,
+        image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
+        first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
         created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
       };
     });

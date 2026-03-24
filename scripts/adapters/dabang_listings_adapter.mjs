@@ -102,6 +102,20 @@ const DABANG_FIELD_HINTS = {
     "areaClaimed",
     "areaType",
   ],
+  latKeys: [
+    "lat",
+    "latitude",
+    "randomLocation.lat",
+    "random_location.lat",
+    "location.lat",
+  ],
+  lngKeys: [
+    "lng",
+    "longitude",
+    "randomLocation.lng",
+    "random_location.lng",
+    "location.lng",
+  ],
   roomCountKeys: [
     "roomTypeName",
     "room_count",

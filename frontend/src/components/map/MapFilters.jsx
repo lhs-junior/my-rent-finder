@@ -41,6 +41,7 @@ export default function MapFilters({ filters, onChange }) {
   return (
     <div className="map-filters">
       <select
+        aria-label="플랫폼 필터"
         value={local.platform_code}
         onChange={e => set("platform_code", e.target.value)}
       >
@@ -48,12 +49,14 @@ export default function MapFilters({ filters, onChange }) {
       </select>
       <div className="map-filter-pair">
         <input
+          aria-label="최소 월세"
           type="number" placeholder="최소 월세" value={local.min_rent}
           onChange={e => set("min_rent", e.target.value)}
           onKeyDown={handleKey}
         />
         <span className="filter-separator">~</span>
         <input
+          aria-label="최대 월세"
           type="number" placeholder="최대 월세" value={local.max_rent}
           onChange={e => set("max_rent", e.target.value)}
           onKeyDown={handleKey}
@@ -61,12 +64,14 @@ export default function MapFilters({ filters, onChange }) {
       </div>
       <div className="map-filter-pair">
         <input
+          aria-label="최소 보증금"
           type="number" placeholder="최소 보증금" value={local.min_deposit}
           onChange={e => set("min_deposit", e.target.value)}
           onKeyDown={handleKey}
         />
         <span className="filter-separator">~</span>
         <input
+          aria-label="최대 보증금"
           type="number" placeholder="최대 보증금" value={local.max_deposit}
           onChange={e => set("max_deposit", e.target.value)}
           onKeyDown={handleKey}
@@ -74,18 +79,21 @@ export default function MapFilters({ filters, onChange }) {
       </div>
       <div className="map-filter-pair">
         <input
+          aria-label="최소 면적"
           type="number" placeholder="최소 면적" value={local.min_area}
           onChange={e => set("min_area", e.target.value)}
           onKeyDown={handleKey}
         />
         <span className="filter-separator">~</span>
         <input
+          aria-label="최대 면적"
           type="number" placeholder="최대 면적" value={local.max_area}
           onChange={e => set("max_area", e.target.value)}
           onKeyDown={handleKey}
         />
       </div>
       <select
+        aria-label="층 필터"
         value={local.min_floor}
         onChange={e => set("min_floor", e.target.value)}
       >

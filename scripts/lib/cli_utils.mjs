@@ -124,3 +124,32 @@ export function normalizeCap(raw, fallback) {
   if (parsed === 0) return Number.POSITIVE_INFINITY;
   return Math.max(1, Math.floor(parsed));
 }
+
+function toFiniteArgNumber(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Build common numeric filter CLI args used by collectors/adapters.
+ * @param {Object} filters
+ * @param {*} filters.rentMax
+ * @param {*} filters.depositMax
+ * @param {*} filters.minAreaM2
+ * @returns {string[]} Flat argv segment
+ */
+export function buildFilterArgs(filters = {}) {
+  const args = [];
+
+  const rentMax = toFiniteArgNumber(filters.rentMax);
+  const depositMax = toFiniteArgNumber(filters.depositMax);
+  const minAreaM2 = toFiniteArgNumber(filters.minAreaM2);
+
+  if (rentMax !== null) args.push("--rent-max", String(rentMax));
+  if (depositMax !== null) args.push("--deposit-max", String(depositMax));
+  if (minAreaM2 !== null) args.push("--min-area", String(Math.floor(minAreaM2)));
+
+  return args;
+}
