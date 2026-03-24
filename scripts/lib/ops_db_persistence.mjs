@@ -1181,9 +1181,12 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
         source_ref,
         quality_flags,
         lat,
-        lng
+        lng,
+        sale_price,
+        loan_amount,
+        building_year
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36
       )
       ON CONFLICT (platform_code, external_id) DO UPDATE
       SET raw_id = EXCLUDED.raw_id,
@@ -1217,6 +1220,9 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
           quality_flags = EXCLUDED.quality_flags,
           lat = COALESCE(EXCLUDED.lat, normalized_listings.lat),
           lng = COALESCE(EXCLUDED.lng, normalized_listings.lng),
+          sale_price = EXCLUDED.sale_price,
+          loan_amount = EXCLUDED.loan_amount,
+          building_year = EXCLUDED.building_year,
           deleted_at = NULL,
           updated_at = NOW()
       RETURNING listing_id
@@ -1255,6 +1261,9 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
       JSON.stringify(qualityPayload),
       item?.lat != null && Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
       item?.lng != null && Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
+      toInt(item?.sale_price ?? item?.salePrice ?? null, null),
+      toInt(item?.loan_amount ?? item?.loanAmount ?? null, null),
+      toInt(item?.building_year ?? item?.buildingYear ?? null, null),
     ],
   );
 

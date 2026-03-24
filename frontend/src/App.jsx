@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, Component } from "react";
 import { useApiHealth } from "./hooks/useApi.js";
 import { useFavorites } from "./hooks/useFavorites.js";
+import { useProfile } from "./hooks/useProfile.js";
+import { PinLoginModal } from "./components/PinLoginModal.jsx";
 import { normalizeView } from "./utils/format.js";
 import OperationsDashboard from "./components/OperationsDashboard.jsx";
 import MatchingBoard from "./components/MatchingBoard.jsx";
@@ -136,8 +138,14 @@ export default function App() {
     return normalizeView(params.get("view"));
   });
   const health = useApiHealth(apiBase);
-  const { favoriteIds, isFavorite, toggleFavorite } = useFavorites(apiBase);
+  const { favoriteIds: sessionFavoriteIds, isFavorite: sessionIsFavorite, toggleFavorite: sessionToggleFavorite } = useFavorites(apiBase);
+  const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite } = useProfile(apiBase);
+  const [showPinLogin, setShowPinLogin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const favoriteIds = authenticated ? profileFavoriteIds : sessionFavoriteIds;
+  const isFavorite = authenticated ? profileIsFavorite : sessionIsFavorite;
+  const toggleFavorite = authenticated ? profileToggleFavorite : sessionToggleFavorite;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -231,6 +239,17 @@ export default function App() {
           🔧
         </button>
         {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+        <button
+          type="button"
+          className={`nav-tab ${authenticated ? "nav-tab--active" : ""}`}
+          onClick={() => setShowPinLogin(true)}
+          title={authenticated ? "내 정보 (로그인됨)" : "PIN 로그인"}
+        >
+          {authenticated ? "👤" : "🔑"}
+        </button>
+        {showPinLogin && !authenticated && (
+          <PinLoginModal onSignIn={async (p) => { await signIn(p); setShowPinLogin(false); }} error={profileError} />
+        )}
       </header>
 
       <main className={`app-content${activeView === "map" ? " app-content--fullwidth" : ""}`}>

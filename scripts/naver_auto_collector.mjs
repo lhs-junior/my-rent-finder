@@ -75,6 +75,7 @@ const rentMax = parseMoneyInput(getArg("--rent-max", "80"), 800000);
 const depositMax = parseMoneyInput(getArg("--deposit-max", "6000"), 60000000);
 const minArea = getIntArg("--min-area", 40);
 const minAreaSqm = minArea > 0 ? minArea : 40;
+const salePriceMax = getIntArg("--sale-price-max", 70000); // 만원 단위 그대로 사용
 const realEstateTypes = getArg("--real-estate-types", "DDDGG:JWJT:SGJT:VL:YR:DSD");
 const tradeType = normalizeTradeType(getArg("--trade-type", "B2"));
 const outputRaw = getArg("--output-raw", "scripts/naver_raw_samples.jsonl");
@@ -91,7 +92,11 @@ const filterProbeDelayMs = getIntArg("--filter-probe-delay-ms", 900);
 
 console.log(`🎯 Target: ${sigungu}`);
 console.log(`📊 Sample cap: ${sampleCap}`);
-console.log(`💰 Filters: 월세<=${Math.round(rentMax || 0)}만원, 보증금<=${Math.round(depositMax || 0)}만원, 면적>=${minAreaSqm}㎡`);
+console.log(
+  tradeType === "A1"
+    ? `💰 Filters: 매매가<=${Math.round(salePriceMax || 0)}만원, 면적>=${minAreaSqm}㎡`
+    : `💰 Filters: 월세<=${Math.round(rentMax || 0)}만원, 보증금<=${Math.round(depositMax || 0)}만원, 면적>=${minAreaSqm}㎡`
+);
 console.log(`🏘️  Trade/property: ${tradeType} / ${realEstateTypes}`);
 console.log(`🧪 Filter probe: ${filterProbe ? "ON" : "OFF"} / only: ${filterProbeOnly ? "ON" : "OFF"}`);
 console.log(`🕵️  Stealth mode: ENABLED`);
@@ -183,7 +188,9 @@ function extractMapStateFromUrl(rawUrl) {
 
 function buildArticleFilterProfile(overrides = {}) {
   const requestedRentMax = Number(overrides.rentMax ?? rentMax);
-  const requestedDepositMax = Number(overrides.depositMax ?? depositMax);
+  const resolvedTradeType = normalizeTradeType(overrides.tradeType || tradeType);
+  const defaultPriceMax = resolvedTradeType === "A1" ? salePriceMax : depositMax;
+  const requestedDepositMax = Number(overrides.priceMax ?? overrides.depositMax ?? defaultPriceMax);
   const requestedMinArea = Number(overrides.minAreaSqm ?? minAreaSqm);
   const requestedShowArticle = parseBooleanArg(
     `--show-article`,
@@ -454,16 +461,26 @@ async function captureNaverData() {
   // ── Route interception: inject filter params into the page's own API calls ──
   // The Naver SPA makes XHR calls to /api/articles and /api/articles/clusters
   // without our search condition params. We intercept and inject them.
-  const filterParams = {
-    tradeType: tradeType,
-    rentPriceMin: "0",
-    rentPriceMax: String(rentMax),
-    priceMin: "0",
-    priceMax: String(depositMax),
-    areaMin: String(minAreaSqm),
-    showArticle: showArticle ? "true" : "false",
-    realEstateType: realEstateTypes,
-  };
+  const filterParams =
+    tradeType === "A1"
+      ? {
+          tradeType: tradeType,
+          priceMin: "0",
+          priceMax: String(salePriceMax),
+          areaMin: String(minAreaSqm),
+          showArticle: showArticle ? "true" : "false",
+          realEstateType: realEstateTypes,
+        }
+      : {
+          tradeType: tradeType,
+          rentPriceMin: "0",
+          rentPriceMax: String(rentMax),
+          priceMin: "0",
+          priceMax: String(depositMax),
+          areaMin: String(minAreaSqm),
+          showArticle: showArticle ? "true" : "false",
+          realEstateType: realEstateTypes,
+        };
 
   await page.route("**/api/articles?**", (route) => {
     const req = route.request();
@@ -525,16 +542,27 @@ async function captureNaverData() {
   console.log("🌐 Navigating to Naver Real Estate...\n");
 
   // Include all filter params in the URL so the page's own API calls include them
-  const urlParams = new URLSearchParams({
-    cortarNo,
-    realEstateType: realEstateTypes,
-    tradeType: tradeType,
-    rentPriceMin: "0",
-    rentPriceMax: String(rentMax),
-    priceMin: "0",
-    priceMax: String(depositMax),
-    areaMin: String(minAreaSqm),
-  });
+  const urlParams = new URLSearchParams(
+    tradeType === "A1"
+      ? {
+          cortarNo,
+          realEstateType: realEstateTypes,
+          tradeType: tradeType,
+          priceMin: "0",
+          priceMax: String(salePriceMax),
+          areaMin: String(minAreaSqm),
+        }
+      : {
+          cortarNo,
+          realEstateType: realEstateTypes,
+          tradeType: tradeType,
+          rentPriceMin: "0",
+          rentPriceMax: String(rentMax),
+          priceMin: "0",
+          priceMax: String(depositMax),
+          areaMin: String(minAreaSqm),
+        }
+  );
   const regionDirectUrl = `https://new.land.naver.com/houses?${urlParams.toString()}`;
   let pageReadyForUi = false;
   let lastGotoError = null;
@@ -586,9 +614,10 @@ async function captureNaverData() {
     // Apply filters
     console.log("🎚️  Applying filters...\n");
 
-    // Trade type: 월세
+    // Trade type: 거래유형 선택 (매매 or 월세)
     await humanClick(page, 'button:has-text("거래")');
-    await humanClick(page, 'label:has-text("월세")');
+    const tradeLabel = tradeType === "A1" ? "매매" : "월세";
+    await humanClick(page, `label:has-text("${tradeLabel}")`);
 
     // Wait for map to load
     await randomDelay(2000, 3000);
@@ -608,37 +637,60 @@ async function captureNaverData() {
   let clickedCount = 0;
   const maxAttempts = Number.isFinite(sampleCap) ? sampleCap * 2 : 320; // Try more than needed
   let apiCollect = null;
-  const filterProbeSteps = [
-    { label: "step1: 기본", overrides: {} },
-    { label: "step2: 거래유형", overrides: { tradeType } },
-    {
-      label: "step3: 월세 <= 설정값",
-      overrides: { tradeType, rentMax },
-    },
-    {
-      label: "step4: 월세 <= / 보증금 <= 설정값",
-      overrides: { tradeType, rentMax, depositMax },
-    },
-    {
-      label: "step5: 월세 / 보증금 / 면적 설정값",
-      overrides: {
-        tradeType,
-        rentMax,
-        depositMax,
-        minAreaSqm,
-      },
-    },
-    {
-      label: "step6: 전체(거래유형 + 실거래유형)",
-      overrides: {
-        tradeType,
-        rentMax,
-        depositMax,
-        minAreaSqm,
-        realEstateType: realEstateTypes,
-      },
-    },
-  ];
+  const filterProbeSteps =
+    tradeType === "A1"
+      ? [
+          { label: "step1: 기본", overrides: {} },
+          { label: "step2: 거래유형(매매)", overrides: { tradeType } },
+          {
+            label: "step3: 매매가 <= 설정값",
+            overrides: { tradeType, priceMax: salePriceMax },
+          },
+          {
+            label: "step4: 매매가 / 면적 설정값",
+            overrides: { tradeType, priceMax: salePriceMax, minAreaSqm },
+          },
+          {
+            label: "step5: 전체(거래유형 + 실거래유형)",
+            overrides: {
+              tradeType,
+              priceMax: salePriceMax,
+              minAreaSqm,
+              realEstateType: realEstateTypes,
+            },
+          },
+        ]
+      : [
+          { label: "step1: 기본", overrides: {} },
+          { label: "step2: 거래유형", overrides: { tradeType } },
+          {
+            label: "step3: 월세 <= 설정값",
+            overrides: { tradeType, rentMax },
+          },
+          {
+            label: "step4: 월세 <= / 보증금 <= 설정값",
+            overrides: { tradeType, rentMax, depositMax },
+          },
+          {
+            label: "step5: 월세 / 보증금 / 면적 설정값",
+            overrides: {
+              tradeType,
+              rentMax,
+              depositMax,
+              minAreaSqm,
+            },
+          },
+          {
+            label: "step6: 전체(거래유형 + 실거래유형)",
+            overrides: {
+              tradeType,
+              rentMax,
+              depositMax,
+              minAreaSqm,
+              realEstateType: realEstateTypes,
+            },
+          },
+        ];
 
   const runFilterProbe = async () => {
     console.log("🧪 필터 단계별 조회 probe 시작\n");

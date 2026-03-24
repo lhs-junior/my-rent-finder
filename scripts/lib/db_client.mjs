@@ -126,6 +126,7 @@ export function normalizeLeaseType(raw) {
   if (/전세|jeonse/.test(v)) return "전세";
   if (/단기|day|short/.test(v)) return "단기";
   if (/월세|rent|wolse/.test(v)) return "월세";
+  if (/매매|sale|a1/.test(v)) return "매매";
   return "기타";
 }
 

@@ -1501,8 +1501,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
       address_text: addr || null,
       address_code: extractCortarCode(rawRecord),
       lease_type: leaseType,
-      rent_amount: rentAmount,
-      deposit_amount: depositAmount,
+      rent_amount: leaseType === "매매" ? null : rentAmount,
+      deposit_amount: leaseType === "매매" ? null : depositAmount,
       area_exclusive_m2: exclusive.value,
       area_exclusive_m2_min: exclusive.min,
       area_exclusive_m2_max: exclusive.max,
@@ -1537,9 +1537,13 @@ export class NaverListingAdapter extends BaseListingAdapter {
       lng: Number.isFinite(lng) ? lng : null,
       sale_price: (() => {
         const raw = pick(item, ["dealPrice", "salePrice", "price"], null);
-        if (raw === null || raw === undefined) return null;
-        const n = parseInt(String(raw), 10);
-        return Number.isFinite(n) && n > 0 ? n : null;
+        if (raw !== null && raw !== undefined) {
+          const n = parseInt(String(raw), 10);
+          if (Number.isFinite(n) && n > 0) return n;
+        }
+        // For 매매, the price lands in depositAmount via dealOrWarrantPrc
+        if (leaseType === "매매" && depositAmount !== null && depositAmount > 0) return depositAmount;
+        return null;
       })(),
       loan_amount: (() => {
         const raw = pick(item, ["loanPrice", "loanAmount", "loan"], null);
