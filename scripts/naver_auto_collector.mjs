@@ -610,19 +610,19 @@ async function captureNaverData() {
   let apiCollect = null;
   const filterProbeSteps = [
     { label: "step1: 기본", overrides: {} },
-    { label: "step2: 거래유형(B2)", overrides: { tradeType: "B2" } },
+    { label: "step2: 거래유형", overrides: { tradeType } },
     {
       label: "step3: 월세 <= 설정값",
-      overrides: { tradeType: "B2", rentMax },
+      overrides: { tradeType, rentMax },
     },
     {
       label: "step4: 월세 <= / 보증금 <= 설정값",
-      overrides: { tradeType: "B2", rentMax, depositMax },
+      overrides: { tradeType, rentMax, depositMax },
     },
     {
       label: "step5: 월세 / 보증금 / 면적 설정값",
       overrides: {
-        tradeType: "B2",
+        tradeType,
         rentMax,
         depositMax,
         minAreaSqm,
