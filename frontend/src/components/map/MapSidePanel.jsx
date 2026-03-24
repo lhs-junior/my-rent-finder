@@ -27,12 +27,14 @@ export default function MapSidePanel({
   const detailRequestRef = useRef(0);
   const detailControllerRef = useRef(null);
   const listRef = useRef(null);
+  const markersRef = useRef(markers);
+  markersRef.current = markers;
 
   /* Fetch detail only when detailId changes (not selectedId) */
   useEffect(() => {
     const normalizedId = detailId != null ? String(detailId) : null;
     const selectedMarker = normalizedId
-      ? markers.find((item) => String(item?.listing_id) === normalizedId)
+      ? markersRef.current.find((item) => String(item?.listing_id) === normalizedId)
       : null;
     const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "");
     const detailUrl = `${normalizedApiBase ? normalizedApiBase.replace(/\/$/, "") : ""}/api/listings/${encodeURIComponent(normalizedId || "")}`;
@@ -93,7 +95,6 @@ export default function MapSidePanel({
         detailControllerRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- markers is intentionally excluded to prevent refetch on geo update
   }, [detailId, apiBase]);
 
   useEffect(() => {

@@ -355,11 +355,11 @@ function parseDaangnAreaFromFloorSize(floorSize) {
   if (!floorSize) return null;
 
   if (typeof floorSize === "number" || typeof floorSize === "string") {
-    const parsed = parseDaangnAreaTextValue(floorSize);
-    if (parsed === null) return null;
+    const parsed = normalizeDaangnAreaValue(floorSize);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
     return {
-      value: parsed.value,
-      claimed: "estimated",
+      value: parsed,
+      claimed: "exclusive",
     };
   }
 
@@ -380,11 +380,11 @@ function parseDaangnAreaFromFloorSize(floorSize) {
   ];
 
   for (const candidate of candidates) {
-    const parsed = parseDaangnAreaTextValue(candidate, unitFromFloor);
-    if (parsed && parsed.value > 0) {
+    const parsed = normalizeDaangnAreaText(candidate, unitFromFloor);
+    if (Number.isFinite(parsed) && parsed > 0) {
       return {
-        value: parsed.value,
-        claimed: "estimated",
+        value: parsed,
+        claimed: "exclusive",
       };
     }
   }
@@ -838,6 +838,42 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
       }
     }
 
+    if (item.area_exclusive_m2 == null && payload?._detail?.area !== null && payload?._detail?.area !== undefined) {
+      const parsedFromDetailArea = normalizeDaangnAreaValue(payload._detail.area);
+      if (parsedFromDetailArea !== null && parsedFromDetailArea > 0) {
+        item.area_exclusive_m2 = parsedFromDetailArea;
+        if (isAreaClaimMissing()) item.area_claimed = "exclusive";
+      }
+    }
+
+    if (item.area_exclusive_m2 == null && payload?._detail?.areaPyeong !== null && payload?._detail?.areaPyeong !== undefined) {
+      const parsedFromDetailPyeong = parseDaangnAreaTextValue(payload._detail.areaPyeong, "exclusive");
+      if (parsedFromDetailPyeong && parsedFromDetailPyeong.value > 0) {
+        item.area_exclusive_m2 = parsedFromDetailPyeong.value;
+        if (isAreaClaimMissing()) item.area_claimed = parsedFromDetailPyeong.claimed;
+      }
+    }
+
+    if (item.area_exclusive_m2 == null && payload?._detail?.supplyArea !== null && payload?._detail?.supplyArea !== undefined) {
+      const parsedFromDetailSupply = parseDaangnAreaTextValue(payload._detail.supplyArea, "gross");
+      if (parsedFromDetailSupply) {
+        const parsedFromDetailSupplyValue = parsedFromDetailSupply.value;
+        if (isValidDaangnArea(parsedFromDetailSupplyValue)) {
+          normalizeDaangnGrossArea(item, parsedFromDetailSupplyValue);
+        }
+      }
+    }
+
+    if (item.area_exclusive_m2 == null && payload?._detail?.supplyAreaPyeong !== null && payload?._detail?.supplyAreaPyeong !== undefined) {
+      const parsedFromDetailSupplyPyeong = parseDaangnAreaTextValue(payload._detail.supplyAreaPyeong, "gross");
+      if (parsedFromDetailSupplyPyeong) {
+        const parsedFromDetailSupplyPyeongValue = parsedFromDetailSupplyPyeong.value;
+        if (isValidDaangnArea(parsedFromDetailSupplyPyeongValue)) {
+          normalizeDaangnGrossArea(item, parsedFromDetailSupplyPyeongValue);
+        }
+      }
+    }
+
     if (item.area_exclusive_m2 == null && payload?._parsed?.area?.value !== null && payload?._parsed?.area?.value !== undefined) {
       const parsedArea = normalizeDaangnAreaValue(payload._parsed.area);
       if (parsedArea !== null && parsedArea > 0) {
@@ -858,6 +894,14 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
       if (parsedFromListDataFloorSize && parsedFromListDataFloorSize.value > 0) {
         item.area_exclusive_m2 = parsedFromListDataFloorSize.value;
         if (isAreaClaimMissing()) item.area_claimed = parsedFromListDataFloorSize.claimed;
+      }
+    }
+
+    if (item.area_exclusive_m2 == null && payload?._detail?.floorSize !== null && payload?._detail?.floorSize !== undefined) {
+      const parsedFromDetailFloorSize = parseDaangnAreaFromFloorSize(payload._detail.floorSize);
+      if (parsedFromDetailFloorSize && parsedFromDetailFloorSize.value > 0) {
+        item.area_exclusive_m2 = parsedFromDetailFloorSize.value;
+        if (isAreaClaimMissing()) item.area_claimed = parsedFromDetailFloorSize.claimed;
       }
     }
 
@@ -883,6 +927,16 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
     }
     if (
       item.area_exclusive_m2 == null
+      && typeof payload?._detail?.areaText === "string"
+    ) {
+      const parsedFromDetailText = parseDaangnAreaFromText(payload._detail.areaText);
+      if (parsedFromDetailText && parsedFromDetailText.value > 0) {
+        item.area_exclusive_m2 = parsedFromDetailText.value;
+        if (isAreaClaimMissing()) item.area_claimed = parsedFromDetailText.claimed;
+      }
+    }
+    if (
+      item.area_exclusive_m2 == null
       && typeof payload?.description === "string"
     ) {
       const parsedFromDescription = parseDaangnAreaFromText(payload.description);
@@ -899,6 +953,26 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
       if (parsedFromListDescription && parsedFromListDescription.value > 0) {
         item.area_exclusive_m2 = parsedFromListDescription.value;
         if (isAreaClaimMissing()) item.area_claimed = parsedFromListDescription.claimed;
+      }
+    }
+    if (
+      item.area_exclusive_m2 == null
+      && typeof payload?._detail?.description === "string"
+    ) {
+      const parsedFromDetailDescription = parseDaangnAreaFromText(payload._detail.description);
+      if (parsedFromDetailDescription && parsedFromDetailDescription.value > 0) {
+        item.area_exclusive_m2 = parsedFromDetailDescription.value;
+        if (isAreaClaimMissing()) item.area_claimed = parsedFromDetailDescription.claimed;
+      }
+    }
+    if (
+      item.area_exclusive_m2 == null
+      && typeof payload?._detail?.content === "string"
+    ) {
+      const parsedFromDetailContent = parseDaangnAreaFromText(payload._detail.content);
+      if (parsedFromDetailContent && parsedFromDetailContent.value > 0) {
+        item.area_exclusive_m2 = parsedFromDetailContent.value;
+        if (isAreaClaimMissing()) item.area_claimed = parsedFromDetailContent.claimed;
       }
     }
     if (isAreaClaimMissing() && payload?._parsed?.area?.claimed) {

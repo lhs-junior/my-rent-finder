@@ -707,7 +707,12 @@ function collectImageUrls(node, options = {}) {
     try {
       const parsed = new URL(candidate);
       const path = parsed.pathname.toLowerCase();
-      if (!/(\\.jpg|\\.jpeg|\\.png|\\.webp|\\.gif|\\.avif|\\.bmp|\\.svg)(\\?|$)/.test(path)) return;
+      const hasKnownImageExt = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/.test(path);
+      const hostname = parsed.hostname.toLowerCase();
+      const isDabangCloudfrontImage =
+        hostname === "d1774jszgerdmk.cloudfront.net" &&
+        /^\/(?:\d+|original)\//.test(path);
+      if (!hasKnownImageExt && !isDabangCloudfrontImage) return;
       if (out.length >= limit) return;
       if (seen.has(candidate)) return;
       seen.add(candidate);

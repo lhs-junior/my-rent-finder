@@ -2,6 +2,35 @@
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
 
+function dedupeStrings(values) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of values) {
+    const value = String(raw || "").trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
+}
+
+function toOriginImageUrl(rawUrl) {
+  const url = String(rawUrl || "").trim();
+  if (!url) return "";
+  return url.replace(/_thumb(\.[a-z0-9]+)(\?.*)?$/i, "_origin$1$2");
+}
+
+function extractImagePaths(rawImages) {
+  if (!rawImages) return [];
+  if (Array.isArray(rawImages)) {
+    return rawImages.map((img) => img?.path || img?.url || img).filter(Boolean);
+  }
+  if (typeof rawImages === "object") {
+    return Object.values(rawImages).flatMap((value) => extractImagePaths(value));
+  }
+  return [];
+}
+
 export class PeterpanzListingAdapter extends BaseUserOnlyAdapter {
   constructor(options = {}) {
     super({
@@ -40,11 +69,14 @@ export class PeterpanzListingAdapter extends BaseUserOnlyAdapter {
       ? [addr.sido, addr.sigungu, addr.dong].filter(Boolean).join(" ") || addr.text
       : null;
 
-    const imageUrls = raw.images?.S
-      ? raw.images.S.map((img) => img.path).filter(Boolean)
-      : raw.info?.thumbnail
-        ? [raw.info.thumbnail]
-        : [];
+    const imageUrls = dedupeStrings([
+      ...extractImagePaths(raw.image_urls_origin),
+      ...extractImagePaths(raw.image_urls),
+      ...extractImagePaths(raw.images),
+      raw.info?.thumbnail,
+    ]
+      .filter(Boolean)
+      .map(toOriginImageUrl));
 
     const item = {
       platform_code: "peterpanz",

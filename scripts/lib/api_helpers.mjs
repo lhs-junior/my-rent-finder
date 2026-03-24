@@ -1,6 +1,10 @@
 import path from "node:path";
 import { toText, toNumber, toInt } from "./db_client.mjs";
 
+const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
+const DABANG_CLOUDFRONT_HOST = "d1774jszgerdmk.cloudfront.net";
+const DABANG_CLOUDFRONT_PATH_RE = /^\/(?:\d+|original)\//i;
+
 // ---------------------------------------------------------------------------
 // Safe coercion helpers (used by route handlers)
 // ---------------------------------------------------------------------------
@@ -213,6 +217,75 @@ export function parseImageMap(rows) {
     imageMap.set(listingId, toInt(row.image_count, 0));
   }
   return imageMap;
+}
+
+function isAllowedFallbackImageUrl(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    const protocol = parsed.protocol.toLowerCase();
+    if (protocol !== "http:" && protocol !== "https:") return false;
+    const hostname = parsed.hostname.toLowerCase();
+    const pathname = parsed.pathname || "";
+    if (IMAGE_EXT_RE.test(pathname)) return true;
+    return hostname === DABANG_CLOUDFRONT_HOST && DABANG_CLOUDFRONT_PATH_RE.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
+function normalizeFallbackImageUrl(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().replace(/&amp;/g, "&");
+  if (!normalized) return null;
+  const candidate = normalized.startsWith("//") ? `https:${normalized}` : normalized;
+  if (!/^https?:\/\//i.test(candidate)) return null;
+  return isAllowedFallbackImageUrl(candidate) ? candidate : null;
+}
+
+export function extractImageUrlsFromPayload(payload, { limit = 24 } = {}) {
+  const out = [];
+  const seen = new Set();
+  const seenNodes = new WeakSet();
+
+  const add = (value) => {
+    const normalized = normalizeFallbackImageUrl(value);
+    if (!normalized || seen.has(normalized) || out.length >= limit) return;
+    seen.add(normalized);
+    out.push(normalized);
+  };
+
+  const walk = (value, depth = 0) => {
+    if (value == null || out.length >= limit || depth > 6) return;
+    if (typeof value === "string") {
+      add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        walk(item, depth + 1);
+        if (out.length >= limit) return;
+      }
+      return;
+    }
+    if (typeof value !== "object") return;
+    if (seenNodes.has(value)) return;
+    seenNodes.add(value);
+    for (const child of Object.values(value)) {
+      walk(child, depth + 1);
+      if (out.length >= limit) return;
+    }
+  };
+
+  walk(payload);
+  return out;
+}
+
+export function buildFallbackImageRowsFromPayload(payload, { limit = 24 } = {}) {
+  return extractImageUrlsFromPayload(payload, { limit }).map((sourceUrl, index) => ({
+    source_url: sourceUrl,
+    status: "raw_payload",
+    is_primary: index === 0,
+  }));
 }
 
 export async function resolveLatestBaseRunId(client, runId) {

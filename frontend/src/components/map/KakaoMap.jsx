@@ -86,6 +86,7 @@ const PLATFORM_COLORS = {
   peterpanz: "#F97316",
   daangn: "#FBBF24",
 };
+const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 
 function toMoney(v) {
   if (v == null) return "-";
@@ -157,6 +158,10 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+function markerTextColor(platformCode) {
+  return DARK_TEXT_PLATFORMS.has(String(platformCode || "").toLowerCase()) ? "#111110" : "#fff";
+}
+
 function getMarkerInfoHtml(item) {
   const platformLabels = {
     naver: "네이버", zigbang: "직방", dabang: "다방",
@@ -164,6 +169,7 @@ function getMarkerInfoHtml(item) {
   };
   const platformName = platformLabels[item?.platform_code] || item?.platform_code || "매물";
   const platformColor = PLATFORM_COLORS[item?.platform_code] || "#6B7280";
+  const platformTextColor = markerTextColor(item?.platform_code);
 
   const price = normalizeDisplayMoney(item);
   const rent = price.rent != null ? `${price.rent}만` : "-";
@@ -181,7 +187,7 @@ function getMarkerInfoHtml(item) {
   const listingId = escapeHtml(String(item?.listing_id || ""));
   return `
     <div class="map-iw">
-      <div class="map-iw-platform" style="background-color: ${escapeHtml(platformColor)};">
+      <div class="map-iw-platform" style="background-color: ${escapeHtml(platformColor)}; color: ${escapeHtml(platformTextColor)};">
         ${escapeHtml(platformName)}
       </div>
       <div class="map-iw-price">보증금 ${escapeHtml(deposit)} / 월세 ${escapeHtml(rent)}</div>
@@ -232,6 +238,8 @@ const KakaoMap = forwardRef(function KakaoMap({
 
   const favoriteIdsRef = useRef(favoriteIds);
   favoriteIdsRef.current = favoriteIds;
+  const openInfoOverlayRef = useRef(null);
+  const focusListingInMapRef = useRef(null);
 
   const closeInfoWindow = () => {
     if (infoWindowRef.current) {
@@ -282,6 +290,7 @@ const KakaoMap = forwardRef(function KakaoMap({
     overlay.setMap(mapInstance.current);
     infoWindowRef.current = overlay;
   };
+  openInfoOverlayRef.current = openInfoOverlay;
 
   const requestMapRelayout = () => {
     if (!mapInstance.current) return;
@@ -363,6 +372,7 @@ const KakaoMap = forwardRef(function KakaoMap({
     }
     return true;
   };
+  focusListingInMapRef.current = focusListingInMap;
 
   useImperativeHandle(ref, () => ({
     panTo(lat, lng) {
@@ -508,7 +518,7 @@ const KakaoMap = forwardRef(function KakaoMap({
             requestMapRelayout();
             if (pendingFocusRef.current) {
               const { listingId, options: focusOptions } = pendingFocusRef.current;
-              if (focusListingInMap(listingId, focusOptions)) {
+              if (focusListingInMapRef.current?.(listingId, focusOptions)) {
                 pendingFocusRef.current = null;
               }
             }
@@ -558,7 +568,7 @@ const KakaoMap = forwardRef(function KakaoMap({
       }
       closeInfoWindow();
     };
-  }, []);
+  }, [center.lat, center.lng, zoom]);
 
   // Update markers
   useEffect(() => {
@@ -616,6 +626,7 @@ const KakaoMap = forwardRef(function KakaoMap({
       const offset = getSpreadOffset(clusterIndex, sameCount);
       const pos = new window.kakao.maps.LatLng(markerLat + offset.latOffset, markerLng + offset.lngOffset);
         const color = PLATFORM_COLORS[item.platform_code] || "#6B7280";
+        const textColor = markerTextColor(item.platform_code);
         const isSelected = String(item.listing_id) === String(selectedId);
         const markerPrice = normalizeDisplayMoney(item);
         const markerLabel = (() => {
@@ -634,7 +645,7 @@ const KakaoMap = forwardRef(function KakaoMap({
         if (isSelected) {
           content.style.cssText = `
             background: ${color};
-            color: #fff;
+            color: ${textColor};
             padding: 6px 12px;
             border-radius: 16px;
             font-size: 13px;
@@ -675,7 +686,7 @@ const KakaoMap = forwardRef(function KakaoMap({
             : `box-shadow: 0 2px 6px rgba(0,0,0,0.25);`;
           content.style.cssText = `
             background: ${color};
-            color: #fff;
+            color: ${textColor};
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 12px;
@@ -722,7 +733,7 @@ const KakaoMap = forwardRef(function KakaoMap({
           clickTimer = setTimeout(() => {
             clickTimer = null;
             /* CustomOverlay popup — no auto-pan, no map movement */
-            openInfoOverlay(pos, item);
+            openInfoOverlayRef.current?.(pos, item);
             /* Zoom in if zoomed out, like other real estate platforms */
             const curLevel = mapInstance.current?.getLevel?.();
             if (typeof curLevel === "number" && curLevel > 5) {
@@ -756,7 +767,7 @@ const KakaoMap = forwardRef(function KakaoMap({
     }
     if (pendingFocusRef.current) {
       const { listingId, options } = pendingFocusRef.current;
-      if (focusListingInMap(listingId, options)) {
+      if (focusListingInMapRef.current?.(listingId, options)) {
         pendingFocusRef.current = null;
       }
     }

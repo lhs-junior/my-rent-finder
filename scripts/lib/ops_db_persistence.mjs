@@ -26,7 +26,7 @@ const DAANGN_MIN_AREA_M2 = (() => {
 const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
 const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
 const IMAGE_PATH_BLACKLIST_RE =
-  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy)(?:$|[./?\/])/i;
+  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang/i;
 const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
 
 function isLikelyImageSource(rawUrl) {
@@ -238,44 +238,95 @@ function normalizeImageList(item) {
   return out;
 }
 
-function toCandidateText(value) {
-  if (Array.isArray(value)) {
-    for (const candidate of value) {
-      const parsed = toCandidateText(candidate);
-      if (parsed) return parsed;
-    }
-    return "";
-  }
-  return toText(value, "");
+function normalizeListingIdKey(value) {
+  const numeric = toInt(value, null);
+  if (numeric !== null) return String(numeric);
+  const text = toText(value, "");
+  return text || null;
 }
 
-function findIdFromObject(candidate, objectValue, maxDepth = 4) {
-  if (!objectValue || maxDepth <= 0) return "";
+export function filterAliveImageQueueEntries(imageQueue, aliveRows) {
+  if (!Array.isArray(imageQueue) || imageQueue.length === 0) return [];
+  const aliveSet = new Set(
+    (Array.isArray(aliveRows) ? aliveRows : [])
+      .map((row) => normalizeListingIdKey(row?.listing_id ?? row?.listingId ?? row))
+      .filter(Boolean),
+  );
+  if (!aliveSet.size) return [];
 
-  const direct = toCandidateText(objectValue[candidate]);
-  if (direct) return direct;
+  return imageQueue.filter((item) => aliveSet.has(normalizeListingIdKey(item?.listingId)));
+}
+
+export function consumeRawIdCleanupToken(cleanedRawIds, rawId) {
+  if (!cleanedRawIds) return true;
+  const key = normalizeListingIdKey(rawId);
+  if (!key) return true;
+  if (cleanedRawIds.has(key)) return false;
+  cleanedRawIds.add(key);
+  return true;
+}
+
+function collectCandidateTexts(value, out) {
+  if (value === null || value === undefined) return;
+  if (Array.isArray(value)) {
+    for (const candidate of value) {
+      collectCandidateTexts(candidate, out);
+    }
+    return;
+  }
+  const parsed = toText(value, "");
+  if (parsed) out.add(parsed);
+}
+
+function collectIdsFromObject(candidate, objectValue, out, maxDepth = 4) {
+  if (!objectValue || maxDepth <= 0) return;
+
+  if (typeof objectValue === "object" && !Array.isArray(objectValue) && candidate in objectValue) {
+    collectCandidateTexts(objectValue[candidate], out);
+  }
 
   if (Array.isArray(objectValue)) {
     for (const item of objectValue) {
-      const found = findIdFromObject(candidate, item, maxDepth - 1);
-      if (found) return found;
+      collectIdsFromObject(candidate, item, out, maxDepth - 1);
     }
-    return "";
+    return;
   }
 
   if (typeof objectValue !== "object") {
-    return "";
+    return;
   }
 
   for (const value of Object.values(objectValue)) {
-    const found = findIdFromObject(candidate, value, maxDepth - 1);
-    if (found) return found;
+    collectIdsFromObject(candidate, value, out, maxDepth - 1);
   }
-
-  return "";
 }
 
-function extractExternalIdCandidates(raw) {
+function extractIdCandidatesWithKeys(raw, keys) {
+  const sources = [
+    raw,
+    raw?.payload_json,
+    raw?.list_data,
+    raw?.payload_json?.list_data,
+    raw?.payload_json?.result,
+    raw?.payload_json?.result,
+    raw?.payload_json?.body,
+    raw?.payload_json?.items,
+    raw?.payload_json?.result?.items,
+    raw?._raw,
+  ];
+  const collected = new Set();
+
+  for (const source of sources) {
+    if (!source || typeof source !== "object") continue;
+    for (const candidate of keys) {
+      collectIdsFromObject(candidate, source, collected);
+    }
+  }
+
+  return Array.from(collected);
+}
+
+export function extractExternalIdCandidates(raw) {
   const candidates = [
     "id",
     "listing_id",
@@ -303,30 +354,30 @@ function extractExternalIdCandidates(raw) {
     "itemNo",
     "매물일련번호",
   ];
+  return extractIdCandidatesWithKeys(raw, candidates);
+}
 
-  const sources = [
-    raw,
-    raw?.payload_json,
-    raw?.list_data,
-    raw?.payload_json?.list_data,
-    raw?.payload_json?.result,
-    raw?.payload_json?.result,
-    raw?.payload_json?.body,
-    raw?.payload_json?.items,
-    raw?.payload_json?.result?.items,
-    raw?._raw,
+function extractListingIdCandidates(raw) {
+  const candidates = [
+    "id",
+    "listing_id",
+    "external_id",
+    "externalId",
+    "item_id",
+    "itemId",
+    "source_ref",
+    "sourceRef",
+    "uuid",
+    "_id",
+    "identifier",
+    "code",
+    "articleNo",
+    "article_no",
+    "atclNo",
+    "itemNo",
+    "매물일련번호",
   ];
-  const collected = new Set();
-
-  for (const source of sources) {
-    if (!source || typeof source !== "object") continue;
-    for (const candidate of candidates) {
-      const found = findIdFromObject(candidate, source);
-      if (found) collected.add(found);
-    }
-  }
-
-  return Array.from(collected);
+  return extractIdCandidatesWithKeys(raw, candidates);
 }
 
 function selectBestDaangnExternalId(candidates = []) {
@@ -432,6 +483,31 @@ function extractExternalId(raw, platformCode) {
   const normalizedFallback = normalizePlatformSourceRef(platform, fallbackSeed);
   if (!normalizedFallback) return null;
   return platform === "daangn" ? normalizedFallback : ensureFnv11(normalizedFallback) || null;
+}
+
+export function buildRawListingExternalId(rawLine, platformCode, hashHex) {
+  const platform = normalizePlatform(platformCode);
+  if (!platform) return null;
+
+  const normalizedCandidates = Array.from(
+    new Set(
+      extractListingIdCandidates(rawLine)
+        .map((candidate) => normalizePlatformSourceRef(platform, candidate))
+        .filter(Boolean),
+    ),
+  );
+
+  if (platform === "daangn") {
+    return selectBestDaangnExternalId(normalizedCandidates) || `raw:${hashHex}`;
+  }
+  if (normalizedCandidates.length === 1) {
+    return normalizedCandidates[0];
+  }
+  if (normalizedCandidates.length > 1) {
+    return `raw:${hashHex}`;
+  }
+
+  return extractExternalId(rawLine, platform) || `raw:${hashHex}`;
 }
 
 function extractRawStatus(raw) {
@@ -764,11 +840,10 @@ function normalizeRawPayload(raw) {
 async function upsertRawListing(client, rawLine, platformCode, runId) {
   const platform = normalizePlatform(platformCode);
   const sourceUrl = normalizePlatformSourceUrl(platform, toSafeSourceUrl(rawLine));
-  const externalId = extractExternalId(rawLine, platform);
-  if (!platform || !externalId || !sourceUrl) return null;
-
   const rawPayload = JSON.stringify(normalizeRawPayload(rawLine || {}));
   const hashHex = crypto.createHash("sha1").update(rawPayload).digest("hex");
+  const externalId = buildRawListingExternalId(rawLine, platform, hashHex);
+  if (!platform || !externalId || !sourceUrl) return null;
   const fingerprint = toText(rawLine?.fingerprint || rawLine?.idempotency_key || rawLine?.request_id, null);
   const parsedAt = extractParsedAt(rawLine);
   const result = await client.query(
@@ -880,7 +955,7 @@ async function resolveRawExternalIdByRawId(client, rawId) {
   return toText(result.rows?.[0]?.external_id, null);
 }
 
-async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue) {
+async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue, cleanedRawIds) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
@@ -1020,7 +1095,9 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
     await cleanupNormalizedRowsForSourceRef(client, platform, sourceRef);
   }
 
-  await cleanupNormalizedRowsForRawId(client, platform, rawId);
+  if (consumeRawIdCleanupToken(cleanedRawIds, rawId)) {
+    await cleanupNormalizedRowsForRawId(client, platform, rawId);
+  }
 
   const rentAmount = toNumber(item?.rent_amount ?? item?.rentAmount ?? item?.rent, null);
   const depositAmount = toNumber(item?.deposit_amount ?? item?.depositAmount ?? item?.deposit, null);
@@ -1140,6 +1217,7 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
           quality_flags = EXCLUDED.quality_flags,
           lat = COALESCE(EXCLUDED.lat, normalized_listings.lat),
           lng = COALESCE(EXCLUDED.lng, normalized_listings.lng),
+          deleted_at = NULL,
           updated_at = NOW()
       RETURNING listing_id
     `,
@@ -1370,6 +1448,7 @@ function selectPlatformBuckets(summary) {
 async function ingestPlatformResult(client, baseRunId, platform, platformRuns, rawIdByExternal, summary) {
   if (!platformRuns.length) return;
   const platformRunId = resolveBaseRunId(baseRunId, platform);
+  const cleanedRawIds = new Set();
   const status = inferStatusFromResults(platformRuns);
   const first = platformRuns[0] || {};
   const startedAt = safeDate(platformRuns.find((r) => r?.startedAt)?.startedAt || first.startedAt);
@@ -1440,6 +1519,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
         platformRunId,
         rawIdByExternal,
         imageQueue,
+        cleanedRawIds,
       );
       if (!listingId) continue;
       const rawExternal = toText(
@@ -1459,9 +1539,8 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
         `SELECT listing_id FROM normalized_listings WHERE listing_id = ANY($1::bigint[])`,
         [uniqueListingIds],
       );
-      const aliveSet = new Set(alive.rows.map((r) => r.listing_id));
       const before = imageQueue.length;
-      const filtered = imageQueue.filter((q) => aliveSet.has(q.listingId));
+      const filtered = filterAliveImageQueueEntries(imageQueue, alive.rows);
       if (filtered.length < before) {
         console.warn(`⚠️  imageQueue: filtered ${before - filtered.length}/${before} entries with stale listing_ids`);
       }

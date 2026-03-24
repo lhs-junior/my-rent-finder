@@ -898,7 +898,7 @@ function parseAreaFromDetail(detail) {
   if (fromFloorSize !== null && Number.isFinite(fromFloorSize)) {
     return {
       value: fromFloorSize,
-      claimed: "estimated",
+      claimed: "exclusive",
     };
   }
 
@@ -1086,7 +1086,7 @@ function parseArea(item) {
   if (fromSchema !== null && Number.isFinite(fromSchema)) {
     return {
       value: fromSchema,
-      claimed: "estimated",
+      claimed: "exclusive",
     };
   }
 
