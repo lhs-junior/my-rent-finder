@@ -17,6 +17,10 @@ export default function MapRightPanel({
   const [lightbox, setLightbox] = useState(false);
   const controllerRef = useRef(null);
 
+  // images는 useEffect보다 먼저 선언 (TDZ 방지)
+  // detail이 null이면 [] — useEffect 의존성 배열에서 images.length 참조 가능
+  const images = detail?.images || [];
+
   // ESC로 라이트박스 닫기
   useEffect(() => {
     if (!lightbox) return;
@@ -46,7 +50,6 @@ export default function MapRightPanel({
 
   const open = Boolean(detailId);
   const externalUrl = detail ? resolveExternalListingUrl(detail) : null;
-  const images = detail?.images || [];
   const curImg = images[imgIdx]?.source_url;
 
   return (
