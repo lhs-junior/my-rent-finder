@@ -151,6 +151,7 @@ export async function handleListings(req, res) {
   const minFloor = url.searchParams.has("min_floor") ? parseQueryInt(url.searchParams.get("min_floor"), null) : null;
   const limit = Math.max(1, parseQueryInt(url.searchParams.get("limit"), 50));
   const offset = Math.max(0, parseQueryInt(url.searchParams.get("offset"), 0));
+  const leaseType = safeText(url.searchParams.get("lease_type"), null);
 
   const listingRows = await withDbClient(async (client) => {
     const cond = ["1=1", "nl.deleted_at IS NULL"];
@@ -196,6 +197,10 @@ export async function handleListings(req, res) {
     } else if (hasImage === "false") {
       cond.push(`NOT EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
     }
+    if (leaseType) {
+      params.push(leaseType);
+      cond.push(`nl.lease_type = $${params.length}`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const DEDUP_RK = dedupRankExpression("nl");
@@ -232,6 +237,7 @@ export async function handleListings(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount, nl.area_exclusive_m2, nl.area_gross_m2,
                nl.address_text, nl.address_code, nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
                nl.quality_flags, nl.lat, nl.lng,
+               nl.sale_price, nl.loan_amount, nl.building_year,
                nl.created_at, rl.run_id, rl.payload_json AS raw_payload_json,
                ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
@@ -300,6 +306,9 @@ export async function handleListings(req, res) {
         total_floor: toInt(row.total_floor, null),
         direction: safeText(row.direction, null),
         building_use: safeText(row.building_use, null),
+        sale_price: toInt(row.sale_price, null),
+        loan_amount: toInt(row.loan_amount, null),
+        building_year: toInt(row.building_year, null),
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
         image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),

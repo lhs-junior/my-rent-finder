@@ -14,6 +14,8 @@ import { handleOps, handleCollectionRuns } from "../scripts/lib/api_routes/ops.m
 import { handleListings, handleListingDetail, handleListingsGeo, handleListingVerify } from "../scripts/lib/api_routes/listings.mjs";
 import { handleMatches, handleMatchGroup } from "../scripts/lib/api_routes/matches.mjs";
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "../scripts/lib/api_routes/favorites.mjs";
+import { handleSettings } from "../scripts/lib/api_routes/settings.mjs";
+import { handleAffordability } from "../scripts/lib/api_routes/affordability.mjs";
 
 function resolveRequestPath(req) {
   const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
@@ -132,6 +134,15 @@ export default async function handler(req, res) {
     if (pathname.startsWith("/api/match-groups/")) {
       const id = pathname.slice("/api/match-groups/".length);
       await handleMatchGroup(req, res, id);
+      return;
+    }
+    if (pathname === "/api/settings" || pathname === "/api/settings/read") {
+      await parseJsonBody(req);
+      await handleSettings(req, res);
+      return;
+    }
+    if (pathname === "/api/affordability") {
+      await handleAffordability(req, res);
       return;
     }
 
