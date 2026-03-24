@@ -3669,3 +3669,12 @@ pre {
 .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
 .badge-feasible { background: #d1fae5; color: #065f46; }
 .badge-shortage { background: #fef3c7; color: #92400e; }
+
+/* SettingsModal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 400px; width: 90%; }
+.modal-content h3 { margin-top: 0; }
+.setting-row { margin-bottom: 1rem; }
+.setting-row label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.875rem; }
+.setting-row input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+.error { color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem; }
