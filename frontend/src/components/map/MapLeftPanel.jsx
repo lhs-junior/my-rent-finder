@@ -117,7 +117,7 @@ export default function MapLeftPanel({
             <div className="map-left-card-tags">
               {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}
               {m.floor != null && <span>{m.floor}층</span>}
-              {m.room_count && <span>{m.room_count}룸</span>}
+              {!!m.room_count && <span>{m.room_count}룸</span>}
             </div>
           </div>
         ))}

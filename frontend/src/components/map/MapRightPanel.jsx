@@ -13,6 +13,7 @@ export default function MapRightPanel({
 }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [imgIdx, setImgIdx] = useState(0);
   const controllerRef = useRef(null);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function MapRightPanel({
     const base = (apiBase || "").replace(/\/$/, "");
     fetch(`${base}/api/listings/${encodeURIComponent(detailId)}`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (!ctrl.signal.aborted) setDetail(data?.listing || null); })
+      .then(data => { if (!ctrl.signal.aborted) { setDetail(data?.listing || null); setImgIdx(0); } })
       .catch(() => {})
       .finally(() => { if (!ctrl.signal.aborted) setLoading(false); });
     return () => ctrl.abort();
@@ -32,7 +33,8 @@ export default function MapRightPanel({
 
   const open = Boolean(detailId);
   const externalUrl = detail ? resolveExternalListingUrl(detail) : null;
-  const firstImg = detail?.images?.[0]?.source_url;
+  const images = detail?.images || [];
+  const curImg = images[imgIdx]?.source_url;
 
   return (
     <div className={`map-right-panel${open ? " map-right-panel--open" : ""}`}>
@@ -45,9 +47,16 @@ export default function MapRightPanel({
         {!loading && !detail && open && <div className="map-right-loading">정보 없음</div>}
         {detail && (
           <>
-            {firstImg && (
-              <div className="map-right-img">
-                <img src={normalizeImageUrl(firstImg)} alt="" loading="lazy" />
+            {images.length > 0 && (
+              <div className="map-right-gallery">
+                <img src={normalizeImageUrl(curImg)} alt="" loading="lazy" />
+                {images.length > 1 && (
+                  <>
+                    <button type="button" className="map-gallery-btn map-gallery-btn--prev" onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)} aria-label="이전">‹</button>
+                    <button type="button" className="map-gallery-btn map-gallery-btn--next" onClick={() => setImgIdx(i => (i + 1) % images.length)} aria-label="다음">›</button>
+                    <span className="map-gallery-count">{imgIdx + 1} / {images.length}</span>
+                  </>
+                )}
               </div>
             )}
             <div className="map-right-content">
@@ -60,7 +69,7 @@ export default function MapRightPanel({
               <div className="map-right-tags">
                 {detail.area_exclusive_m2 && <span>{toArea(detail.area_exclusive_m2)}</span>}
                 {detail.floor != null && <span>{detail.floor}층{detail.total_floor ? `/${detail.total_floor}층` : ""}</span>}
-                {detail.room_count && <span>{detail.room_count}룸</span>}
+                {!!detail.room_count && <span>{detail.room_count}룸</span>}
                 {detail.building_use && <span>{detail.building_use}</span>}
               </div>
               {detail.title && <div className="map-right-desc">{detail.title}</div>}
