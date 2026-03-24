@@ -28,14 +28,22 @@ export async function handleSettings(req, res) {
   const body = req._parsedBody || {};
 
   // POST /api/settings/read — 설정 조회
-  if (req.method === "POST" && req.url?.includes("/read")) {
+  const parsedUrl = new URL(req.url || "", "http://localhost");
+  const pathname = parsedUrl.pathname;
+  if (req.method === "POST" && pathname === "/api/settings/read") {
     if (!validatePin(body.pin, serverPin)) {
       sendJson(res, 401, { error: "Unauthorized" });
       return;
     }
-    const rows = await withDbClient((client) =>
-      client.query("SELECT key, value FROM user_settings ORDER BY key")
-    );
+    let rows;
+    try {
+      rows = await withDbClient((client) =>
+        client.query("SELECT key, value FROM user_settings ORDER BY key")
+      );
+    } catch (e) {
+      sendJson(res, 500, { error: "Database query failed" });
+      return;
+    }
     const settings = Object.fromEntries(rows.rows.map((r) => [r.key, r.value]));
     sendJson(res, 200, { settings });
     return;
@@ -54,14 +62,19 @@ export async function handleSettings(req, res) {
       sendJson(res, 400, { error: e.message });
       return;
     }
-    await withDbClient((client) =>
-      client.query(
-        `INSERT INTO user_settings (key, value, updated_at)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
-        [parsed.key, parsed.value]
-      )
-    );
+    try {
+      await withDbClient((client) =>
+        client.query(
+          `INSERT INTO user_settings (key, value, updated_at)
+           VALUES ($1, $2, NOW())
+           ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
+          [parsed.key, parsed.value]
+        )
+      );
+    } catch (e) {
+      sendJson(res, 500, { error: "Database query failed" });
+      return;
+    }
     sendJson(res, 200, { ok: true });
     return;
   }
