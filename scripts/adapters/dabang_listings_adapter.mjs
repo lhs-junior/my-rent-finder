@@ -88,6 +88,8 @@ const DABANG_FIELD_HINTS = {
     "exclusiveArea",
     "전용면적",
     "roomArea",
+    "room_size",
+    "provision_size",
   ],
   areaGrossKeys: [
     "area_gross_m2",
@@ -117,18 +119,20 @@ const DABANG_FIELD_HINTS = {
     "location.lng",
   ],
   roomCountKeys: [
+    "room_type_str",
+    "room_type_main_str",
     "roomTypeName",
     "room_count",
     "roomCount",
     "roomCnt",
     "rooms",
-    "room_type",
   ],
   bathroomCountKeys: [
     "bathroom_count",
     "bathroomCount",
     "bathroom",
     "bath_count",
+    "bath_num",
   ],
   floorKeys: [
     "floor",
@@ -136,6 +140,7 @@ const DABANG_FIELD_HINTS = {
     "floor_text",
     "roomDesc",
     "floorInfo",
+    "room_floor_str",
   ],
   totalFloorKeys: [
     "total_floor",
@@ -143,6 +148,7 @@ const DABANG_FIELD_HINTS = {
     "floors",
     "floors_total",
     "totalFloorCount",
+    "building_floor_str",
   ],
   directionKeys: [
     "direction",
@@ -151,6 +157,7 @@ const DABANG_FIELD_HINTS = {
     "facing_text",
     "house_facing",
     "houseFacing",
+    "direction_str",
   ],
   buildingUseKeys: [
     "buildingUse",
@@ -331,6 +338,29 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
     ];
   }
 
+  normalizeFromRawRecord(rawRecord) {
+    const payload =
+      rawRecord?.payload_json ??
+      rawRecord?.payload ??
+      rawRecord?.data ??
+      rawRecord ??
+      {};
+
+    // 다방 payload_json은 단일 매물 — collectCandidates 탐색 없이 바로 처리
+    const normalized = this.normalizeListingRow(payload, rawRecord);
+    if (!normalized) return [];
+
+    if (!normalized.source_ref) {
+      const ref = payload?.id || payload?.seq;
+      if (ref) {
+        normalized.source_ref = String(ref);
+        normalized.external_id = String(ref);
+      }
+    }
+
+    return [normalized];
+  }
+
   normalizeListingRow(row, rawRecord) {
     const mergedRow = enrichDabangRow(row, rawRecord);
     const normalized = super.normalizeListingRow(mergedRow, rawRecord);
@@ -354,6 +384,28 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
         normalized.area_exclusive_m2_min = areaFromDesc;
         normalized.area_exclusive_m2_max = areaFromDesc;
         normalized.area_claimed = "exclusive";
+      }
+    }
+
+    // 다방 building_floor_str에서 total_floor 추출 (e.g. "3층")
+    if (normalized.total_floor == null) {
+      const bfs = mergedRow?.building_floor_str || mergedRow?.total_floor_str;
+      if (bfs) {
+        const m = /(\d+)/.exec(String(bfs));
+        if (m) normalized.total_floor = Number(m[1]);
+      }
+    }
+
+    // 다방 image_list: [{id, prefix_url}, ...] → URL 조합 (base adapter가 객체 배열을 제대로 못 풀어서 덮어쓰기)
+    if (Array.isArray(mergedRow?.image_list)) {
+      const urls = [];
+      for (const img of mergedRow.image_list) {
+        if (img && img.prefix_url && img.id) {
+          urls.push(img.prefix_url + img.id);
+        }
+      }
+      if (urls.length > 0) {
+        normalized.image_urls = urls.slice(0, 12);
       }
     }
 
