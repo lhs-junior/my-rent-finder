@@ -16,6 +16,7 @@ import {
   toText,
   withDbClient,
 } from "./db_client.mjs";
+import { recordPriceChanges } from "./price_tracker.mjs";
 
 const DAANGN_MIN_AREA_M2 = (() => {
   const rawMinArea = process.env.DAANGN_MIN_AREA_M2 ?? process.env.MIN_AREA_M2;
@@ -1455,9 +1456,10 @@ function selectPlatformBuckets(summary) {
 }
 
 async function ingestPlatformResult(client, baseRunId, platform, platformRuns, rawIdByExternal, summary) {
-  if (!platformRuns.length) return;
+  if (!platformRuns.length) return { priceChanged: 0 };
   const platformRunId = resolveBaseRunId(baseRunId, platform);
   const cleanedRawIds = new Set();
+  let platformPriceChanged = 0;
   const status = inferStatusFromResults(platformRuns);
   const first = platformRuns[0] || {};
   const startedAt = safeDate(platformRuns.find((r) => r?.startedAt)?.startedAt || first.startedAt);
@@ -1520,6 +1522,33 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
     const normalizedPath = toText(result?.normalizedPath, null) || toText(result?.output, null);
     if (!normalizedPath || !fs.existsSync(normalizedPath)) continue;
     const normalizedItems = await extractNormalizedItems(normalizedPath);
+
+    // Batch pre-fetch current prices (before upsert overwrites them)
+    const externalIds = normalizedItems
+      .map(item => {
+        const extId = toText(item?.external_id || item?.externalId || item?.source_ref || item?.sourceRef, null);
+        return normalizePlatformSourceRef(platform, extId);
+      })
+      .filter(Boolean);
+
+    const priceSnapshot = new Map(); // externalId -> { listing_id, rent_amount, deposit_amount }
+    if (externalIds.length > 0) {
+      const snap = await client.query(
+        `SELECT listing_id, external_id, rent_amount, deposit_amount
+         FROM normalized_listings
+         WHERE platform_code = $1 AND external_id = ANY($2::text[])`,
+        [platform, externalIds]
+      );
+      for (const row of snap.rows) {
+        priceSnapshot.set(row.external_id, {
+          listing_id: row.listing_id,
+          rent_amount: row.rent_amount,
+          deposit_amount: row.deposit_amount,
+        });
+      }
+    }
+    const priceChangedItems = [];
+
     for (const item of normalizedItems) {
       const listingId = await upsertNormalizedListing(
         client,
@@ -1537,6 +1566,35 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       );
       const rawId = rawIdByExternal.get(rawExternal);
       await persistContractViolations(client, platform, rawId, listingId, item).catch(() => {});
+
+      // Price change detection
+      const extId = normalizePlatformSourceRef(
+        platform,
+        toText(item?.external_id || item?.externalId || item?.source_ref || item?.sourceRef, null)
+      );
+      const snap = extId ? priceSnapshot.get(extId) : null;
+      if (snap) {
+        const newRent = item?.rent_amount != null ? parseFloat(item.rent_amount) : null;
+        const newDeposit = item?.deposit_amount != null ? parseFloat(item.deposit_amount) : null;
+        const rentChanged = snap.rent_amount !== null && newRent !== null
+          && Math.abs(snap.rent_amount - newRent) > 0.01;
+        const depositChanged = snap.deposit_amount !== null && newDeposit !== null
+          && Math.abs(snap.deposit_amount - newDeposit) > 0.01;
+        if (rentChanged || depositChanged) {
+          priceChangedItems.push({
+            listing_id: listingId,
+            rent_amount: newRent,
+            deposit_amount: newDeposit,
+            old_rent: snap.rent_amount,
+            old_deposit: snap.deposit_amount,
+          });
+        }
+      }
+    }
+
+    if (priceChangedItems.length > 0) {
+      const priceTrackResult = await recordPriceChanges(client, priceChangedItems, platformRunId);
+      platformPriceChanged += priceTrackResult.changed;
     }
   }
 
@@ -1556,6 +1614,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       await upsertImageQueue(client, filtered);
     }
   }
+  return { priceChanged: platformPriceChanged };
 }
 
 async function runPersistSummary(client, summaryPath) {
@@ -1843,6 +1902,7 @@ export async function persistSummaryToDb(summaryPath, options = {}) {
     rawCount: 0,
     normalizedCount: 0,
     collectionRuns: [],
+    priceChangedCount: 0,
   };
 
   await withDbClient(async (client) => {
@@ -1850,10 +1910,11 @@ export async function persistSummaryToDb(summaryPath, options = {}) {
     for (const bucket of platformBuckets) {
       await upsertPlatformCode(client, bucket.platform);
       const rawIdByExternal = new Map();
-      await ingestPlatformResult(client, runId, bucket.platform, bucket.results, rawIdByExternal, {
+      const ingestResult = await ingestPlatformResult(client, runId, bucket.platform, bucket.results, rawIdByExternal, {
         ...summary,
         runId,
       });
+      result.priceChangedCount += ingestResult?.priceChanged ?? 0;
 
       const platformRunId = resolveBaseRunId(runId, bucket.platform);
       const countRow = await client.query(

@@ -1306,6 +1306,9 @@ let dbPersist = null;
 if (persistToDb) {
   try {
     dbPersist = await persistSummaryToDb(summaryPath, { runId });
+    if (dbPersist?.priceChangedCount > 0) {
+      console.log(`[PRICE_TRACK] ${dbPersist.priceChangedCount} price change(s) recorded`);
+    }
   } catch (error) {
     console.error(`DB persistence required but failed: ${error?.message || error}`);
     throw error;
