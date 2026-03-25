@@ -27,6 +27,16 @@ export default function MapLeftPanel({
       {/* 필터 */}
       <div className="map-left-filters">
         <select
+          aria-label="거래 유형"
+          value={filters.lease_type || ""}
+          onChange={e => set("lease_type", e.target.value)}
+        >
+          <option value="">전체</option>
+          <option value="월세">월세</option>
+          <option value="전세">전세</option>
+          <option value="매매">매매</option>
+        </select>
+        <select
           aria-label="플랫폼"
           value={filters.platform_code || ""}
           onChange={e => set("platform_code", e.target.value)}
@@ -118,6 +128,9 @@ export default function MapLeftPanel({
               {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}
               {m.floor != null && <span>{m.floor}층</span>}
               {!!m.room_count && <span>{m.room_count}룸</span>}
+              {m.lease_type && m.lease_type !== "월세" && (
+                <span className="map-left-card-tag--lease">{m.lease_type}</span>
+              )}
             </div>
           </div>
         ))}

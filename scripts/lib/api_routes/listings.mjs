@@ -191,6 +191,9 @@ export async function handleListings(req, res) {
       params.push(minFloor);
       cond.push(`(nl.floor IS NULL OR nl.floor = 0 OR nl.floor >= $${params.length})`);
     }
+    const minSalePrice = url.searchParams.has("min_sale_price") ? parseQueryInt(url.searchParams.get("min_sale_price"), null) : null;
+    const maxSalePrice = url.searchParams.has("max_sale_price") ? parseQueryInt(url.searchParams.get("max_sale_price"), null) : null;
+    const buildingUse = safeText(url.searchParams.get("building_use"), null);
     const hasImage = safeText(url.searchParams.get("has_image"), null);
     if (hasImage === "true") {
       cond.push(`EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
@@ -200,6 +203,18 @@ export async function handleListings(req, res) {
     if (leaseType) {
       params.push(leaseType);
       cond.push(`nl.lease_type = $${params.length}`);
+    }
+    if (minSalePrice !== null) {
+      params.push(minSalePrice);
+      cond.push(`nl.sale_price IS NOT NULL AND nl.sale_price >= $${params.length}`);
+    }
+    if (maxSalePrice !== null) {
+      params.push(maxSalePrice);
+      cond.push(`nl.sale_price IS NOT NULL AND nl.sale_price <= $${params.length}`);
+    }
+    if (buildingUse) {
+      params.push(`%${buildingUse}%`);
+      cond.push(`nl.building_use ILIKE $${params.length}`);
     }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
@@ -429,6 +444,9 @@ export async function handleListingDetail(req, res, id) {
         agent_phone: safeText(row.agent_phone, null),
         listed_at: safeText(row.listed_at, null),
         available_date: safeText(row.available_date, null),
+        sale_price: toInt(row.sale_price, null),
+        loan_amount: toInt(row.loan_amount, null),
+        building_year: toInt(row.building_year, null),
         source_ref: safeText(row.source_ref || row.external_id || sourceRefFromRaw, ""),
         run_id: safeText(row.run_id, ""),
         lat: toNumber(row.lat, null),
@@ -844,6 +862,11 @@ export async function handleListingsGeo(req, res) {
     } else if (hasImage === "false") {
       cond.push(`NOT EXISTS (SELECT 1 FROM listing_images li WHERE li.listing_id = nl.listing_id)`);
     }
+    const leaseType = safeText(url.searchParams.get("lease_type"), null);
+    if (leaseType) {
+      params.push(leaseType);
+      cond.push(`nl.lease_type = $${params.length}`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const GEO_DEDUP_RK = dedupRankExpression("nl");
@@ -854,6 +877,7 @@ export async function handleListingsGeo(req, res) {
       SELECT * FROM (
         SELECT nl.listing_id, nl.lat, nl.lng, nl.platform_code,
                nl.lease_type, nl.title,
+               nl.sale_price,
                nl.rent_amount, nl.deposit_amount,
                COALESCE(nl.area_exclusive_m2, nl.area_gross_m2) AS area_m2,
                nl.address_text, nl.room_count, nl.floor, nl.building_use,
@@ -893,6 +917,8 @@ export async function handleListingsGeo(req, res) {
           lat: toNumber(row.lat, null),
           lng: toNumber(row.lng, null),
           platform_code: safeText(row.platform_code, ""),
+          lease_type: safeText(row.lease_type, null),
+          sale_price: toNumber(row.sale_price, null),
           rent_amount: normalizedMoney.rent_amount,
           deposit_amount: normalizedMoney.deposit_amount,
           area_m2: toNumber(row.area_m2, null),

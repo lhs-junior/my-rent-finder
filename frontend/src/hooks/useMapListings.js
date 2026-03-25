@@ -39,6 +39,7 @@ export function useMapListings(apiBase) {
       if (filters.max_area) params.set("max_area", filters.max_area);
       if (filters.min_floor) params.set("min_floor", filters.min_floor);
       if (filters.has_image !== "" && filters.has_image != null) params.set("has_image", filters.has_image);
+      if (filters.lease_type) params.set("lease_type", filters.lease_type);
 
       const res = await fetch(`${apiBase}/api/listings/geo?${params}`, {
         signal: controller.signal,
