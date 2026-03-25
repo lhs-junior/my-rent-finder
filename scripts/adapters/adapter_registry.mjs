@@ -39,7 +39,7 @@ export const ADAPTER_REGISTRY = {
     collectionMode: "STEALTH_AUTOMATION",
     adapterFactory: () => new R114ListingAdapter(),
     readiness: "BLOCKED",
-    notes: "임시 제외(수집/정규화 데이터 품질 저하로 인한 비활성화). 원인 확인 후 재활성화 예정.",
+    notes: "비활성화 유지. 원인: HTML 클래스명 regex 파싱(tit_a, tag_comm2 등) 취약 — 구조화 API 없음. deposit/rent/address 정규화 실패율 높음. 재활성화 조건: r114 구조화 API 엔드포인트 발견 또는 HTML 파싱 완전 재작성 필요. 노력 수준: HIGH.",
   },
   daangn: {
     platformCode: "daangn",
