@@ -505,7 +505,7 @@ async function collectDabang() {
 
       for (let i = 0; i < filtered.length; i++) {
         const item = filtered[i];
-        const detailUrl = `https://www.dabangapp.com/api/v5/room/${item.id}`;
+        const detailUrl = `https://www.dabangapp.com/api/3/new-room/detail?room_id=${item.id}&api_version=3.0.1&call_type=web&version=1`;
 
         vlog(`  [${i + 1}/${filtered.length}] id:${item.id} ...`);
 
@@ -516,10 +516,6 @@ async function collectDabang() {
                 const res = await fetch(url, {
                   headers: {
                     "accept": "application/json, text/plain, */*",
-                    "d-api-version": "5.0.0",
-                    "d-app-version": "1",
-                    "d-call-type": "web",
-                    "csrf": "token",
                   },
                   credentials: "include",
                 });
@@ -534,13 +530,19 @@ async function collectDabang() {
             `detail ${item.id}`,
           );
 
-          if (result.ok && result.data) {
-            // Merge detail data into the list item
-            item._detail = result.data;
+          if (result.ok && result.data?.room) {
+            // Flatten room object with accurate coordinates (location = [lng, lat])
+            const room = result.data.room;
+            item._detail = {
+              ...room,
+              lat: room.location?.[1],
+              lng: room.location?.[0],
+              image_list: result.data.image_list,
+            };
             detailSuccessCount++;
-            vlog(`    OK`);
+            vlog(`    OK lat=${item._detail.lat} lng=${item._detail.lng}`);
           } else {
-            vlog(`    Failed: ${result.status || result.error || "unknown"}`);
+            vlog(`    Failed: ${result.ok ? "no room field" : result.status || result.error || "unknown"}`);
           }
         } catch (err) {
           vlog(`    Error: ${err.message}`);
