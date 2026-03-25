@@ -15,7 +15,7 @@ on:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - name: Checkout code
@@ -50,9 +50,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           node scripts/check_listing_status.mjs \
-            --platform kbland \
-            --batch-size 500 \
-            --delay-ms 200
+            --platform all \
+            --batch-size 200 \
+            --delay-ms 300
 
       - name: Upload collection results
         if: always()
