@@ -87,6 +87,9 @@ scripts/adapters_all_output.json
 scripts/qa/*_report*.json
 scripts/qa/*_fidelity_*.json
 
+# Probe/debug scripts and raw sample data
+scripts/*.jsonl
+
 # Keep fixtures and reference data
 !scripts/*_raw_samples.jsonl
 !scripts/*_sniffed_data*.json
