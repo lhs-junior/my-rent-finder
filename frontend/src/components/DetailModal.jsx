@@ -65,6 +65,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
   const [imgIdx, setImgIdx] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const [cachedDetail, setCachedDetail] = useState(null);
   const [verifyStatus, setVerifyStatus] = useState({ checking: false, alive: null });
 
@@ -83,7 +84,10 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   useEffect(() => {
     if (!displayDetail && !loading) return;
     const handleKey = (e) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") {
+        if (lightbox) { setLightbox(false); return; }
+        onClose(); return;
+      }
       if (hasImages) {
         if (e.key === "ArrowLeft") setImgIdx((prev) => Math.max(0, prev - 1));
         if (e.key === "ArrowRight") setImgIdx((prev) => Math.min(imageCount - 1, prev + 1));
@@ -95,7 +99,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
     };
-  }, [displayDetail, loading, onClose, hasImages, imageCount]);
+  }, [displayDetail, loading, onClose, hasImages, imageCount, lightbox]);
 
   useEffect(() => { setImgIdx(0); }, [displayDetail?.listing_id]);
 
@@ -140,6 +144,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   const goNext = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx((prev) => Math.min(imageCount - 1, prev + 1)); };
 
   return (
+    <>
     <div className="mdl-overlay" ref={overlayRef} onClick={handleOverlayClick}>
       <div className="mdl-panel">
         {/* Top bar with fav + close */}
@@ -170,15 +175,15 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
               <div className="mdl-gallery">
                 <div className="mdl-gallery-scroll" ref={galleryRef}>
                   {displayDetail.images.map((img, idx) => (
-                    <a
+                    <button
                       key={idx}
-                      href={img.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      type="button"
                       className="mdl-gallery-item"
+                      onClick={() => { setImgIdx(idx); setLightbox(true); }}
+                      aria-label={`매물 이미지 ${idx + 1} 크게 보기`}
                     >
                       <img src={normalizeImageUrl(img.source_url)} alt={`매물 이미지 ${idx + 1}`} loading="lazy" />
-                    </a>
+                    </button>
                   ))}
                 </div>
                 {imageCount > 1 && (
@@ -220,20 +225,45 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
             </div>
 
             <div className="mdl-metrics">
-              <div className="mdl-metric">
-                <span className="mdl-metric-label">월세</span>
-                <span className="mdl-metric-value">{toMoney(displayDetail.rent_amount)}</span>
-              </div>
-              <div className="mdl-metric-sep" />
-              <div className="mdl-metric">
-                <span className="mdl-metric-label">보증금</span>
-                <span className="mdl-metric-value">{toMoney(displayDetail.deposit_amount)}</span>
-              </div>
-              <div className="mdl-metric-sep" />
-              <div className="mdl-metric">
-                <span className="mdl-metric-label">전용면적</span>
-                <span className="mdl-metric-value">{toArea(displayDetail.area_exclusive_m2 || displayDetail.area_gross_m2)}</span>
-              </div>
+              {displayDetail.lease_type === "매매" ? (
+                <>
+                  <div className="mdl-metric">
+                    <span className="mdl-metric-label">매매가</span>
+                    <span className="mdl-metric-value">{displayDetail.sale_price != null ? (displayDetail.sale_price >= 10000 ? `${(displayDetail.sale_price / 10000).toFixed(1)}억` : `${displayDetail.sale_price.toLocaleString()}만`) : "-"}</span>
+                  </div>
+                  {displayDetail.loan_amount != null && (
+                    <>
+                      <div className="mdl-metric-sep" />
+                      <div className="mdl-metric">
+                        <span className="mdl-metric-label">융자금</span>
+                        <span className="mdl-metric-value">{displayDetail.loan_amount >= 10000 ? `${(displayDetail.loan_amount / 10000).toFixed(1)}억` : `${displayDetail.loan_amount.toLocaleString()}만`}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="mdl-metric-sep" />
+                  <div className="mdl-metric">
+                    <span className="mdl-metric-label">전용면적</span>
+                    <span className="mdl-metric-value">{toArea(displayDetail.area_exclusive_m2 || displayDetail.area_gross_m2)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mdl-metric">
+                    <span className="mdl-metric-label">월세</span>
+                    <span className="mdl-metric-value">{toMoney(displayDetail.rent_amount)}</span>
+                  </div>
+                  <div className="mdl-metric-sep" />
+                  <div className="mdl-metric">
+                    <span className="mdl-metric-label">보증금</span>
+                    <span className="mdl-metric-value">{toMoney(displayDetail.deposit_amount)}</span>
+                  </div>
+                  <div className="mdl-metric-sep" />
+                  <div className="mdl-metric">
+                    <span className="mdl-metric-label">전용면적</span>
+                    <span className="mdl-metric-value">{toArea(displayDetail.area_exclusive_m2 || displayDetail.area_gross_m2)}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="mdl-section">
@@ -273,6 +303,12 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                     <span className="mdl-info-value">
                       {displayDetail.agent_name}{displayDetail.agent_phone ? ` (${displayDetail.agent_phone})` : ""}
                     </span>
+                  </div>
+                )}
+                {displayDetail.building_year != null && (
+                  <div className="mdl-info-cell">
+                    <span className="mdl-info-label">건축연도</span>
+                    <span className="mdl-info-value">{displayDetail.building_year}년</span>
                   </div>
                 )}
                 {displayDetail.available_date && (
@@ -359,5 +395,35 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
         )}
       </div>
     </div>
+
+    {lightbox && hasImages && (
+      <div className="map-lightbox" onClick={() => setLightbox(false)}>
+        <img
+          className="map-lightbox-img"
+          src={normalizeImageUrl(displayDetail.images[imgIdx].source_url)}
+          alt={`매물 이미지 ${imgIdx + 1}`}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <button className="map-lightbox-close" onClick={() => setLightbox(false)} aria-label="닫기">✕</button>
+        {imageCount > 1 && (
+          <>
+            <button
+              className="map-lightbox-btn map-lightbox-btn--prev"
+              onClick={(e) => { e.stopPropagation(); setImgIdx((prev) => Math.max(0, prev - 1)); }}
+              disabled={imgIdx === 0}
+              aria-label="이전 이미지"
+            >‹</button>
+            <button
+              className="map-lightbox-btn map-lightbox-btn--next"
+              onClick={(e) => { e.stopPropagation(); setImgIdx((prev) => Math.min(imageCount - 1, prev + 1)); }}
+              disabled={imgIdx === imageCount - 1}
+              aria-label="다음 이미지"
+            >›</button>
+          </>
+        )}
+        <span className="map-lightbox-count">{imgIdx + 1} / {imageCount}</span>
+      </div>
+    )}
+    </>
   );
 }

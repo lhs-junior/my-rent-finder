@@ -535,6 +535,7 @@ async function collectDabang() {
             const room = result.data.room;
             item._detail = {
               ...room,
+              id: item.id, // preserve MongoDB ObjectId (room.seq is numeric, would break source_ref)
               lat: room.location?.[1],
               lng: room.location?.[0],
               image_list: result.data.image_list,

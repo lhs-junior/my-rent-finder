@@ -258,7 +258,7 @@ export default function App() {
         {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
         {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} /></MapErrorBoundary>}
         {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} />}
-        {activeView === "sale" && <SaleListingsView apiBase={apiBase} />}
+        {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>
     </div>
   );

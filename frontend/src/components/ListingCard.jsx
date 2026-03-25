@@ -77,6 +77,7 @@ export default function ListingCard({
     item.room_count ? `${item.room_count}룸` : null,
     item.floor != null ? `${item.floor}층` : null,
     item.building_use || null,
+    item.lease_type === "매매" && item.building_year ? `${item.building_year}년` : null,
   ].filter(Boolean);
   const signals = summarizeSignals(item);
 
@@ -116,8 +117,14 @@ export default function ListingCard({
             </span>
           </div>
           <div className="listing-card-body">
-            <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
-            <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+            {item.lease_type === "매매" ? (
+              <div className="listing-card-rent">{item.sale_price != null ? displayMoney(item.sale_price) : "가격 미정"}</div>
+            ) : (
+              <>
+                <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
+                <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+              </>
+            )}
             <div className="listing-card-address">{item.address_text || "-"}</div>
             {tags.length > 0 && (
               <div className="listing-card-meta">
@@ -175,8 +182,14 @@ export default function ListingCard({
               {isLoadingDetail && <span className="listing-card-action-hint">상세 불러오는 중...</span>}
             </div>
           )}
-          <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
-          <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+          {item.lease_type === "매매" ? (
+            <div className="listing-card-rent">{item.sale_price != null ? displayMoney(item.sale_price) : "가격 미정"}</div>
+          ) : (
+            <>
+              <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
+              <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+            </>
+          )}
           {searchVariant && item.title ? (
             <div className="listing-card-title">{item.title}</div>
           ) : null}

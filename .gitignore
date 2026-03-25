@@ -33,6 +33,15 @@ data/images/
 *.png
 *.log
 
+# Debug/probe scripts and raw sample outputs
+scripts/_*
+scripts/*_sniffed_data*.json
+scripts/*_adapter_output*.json
+scripts/*_capture_results.json
+scripts/*_fidelity_*.json
+scripts/platform_fidelity_gate_*.json
+scripts/*.jsonl
+
 # QA artifacts at root
 qa_*.mjs
 qa_*.json

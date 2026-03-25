@@ -27,13 +27,13 @@
 
   /* 반경 */
   --radius: 6px;
-  --radius-lg: 8px;
+  --radius-lg: 12px;
   --radius-pill: 999px;
 
   /* 그림자 */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 * {
@@ -647,6 +647,7 @@ body {
   line-height: 1;
 }
 .map-lightbox-btn:hover { background: rgba(255,255,255,.3); }
+.map-lightbox-btn:disabled { opacity: 0.3; cursor: default; }
 .map-lightbox-btn--prev { left: 16px; }
 .map-lightbox-btn--next { right: 16px; }
 .map-lightbox-count {
@@ -2452,6 +2453,14 @@ pre {
   justify-content: center;
   max-height: 320px;
   overflow: hidden;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+.mdl-gallery-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .mdl-gallery-item img {
@@ -3178,9 +3187,9 @@ pre {
 }
 
 .listing-card:hover {
-  border-color: #c7c4be;
+  border-color: #b8b5af;
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .listing-card:focus-within {
@@ -3272,15 +3281,16 @@ pre {
 
 .listing-card-badge {
   position: absolute;
-  bottom: 7px;
-  left: 7px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.65rem;
+  bottom: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.66rem;
   font-weight: 700;
   line-height: 1.4;
-  letter-spacing: 0.02em;
-  opacity: 0.92;
+  letter-spacing: 0.03em;
+  opacity: 0.95;
+  backdrop-filter: blur(4px);
 }
 
 /* ── Fav button ──────────────────────────────────────────────────────────── */
@@ -3290,6 +3300,14 @@ pre {
   position: absolute;
   top: 6px;
   right: 6px;
+  z-index: 2;
+}
+
+/* Base fav wrapper (search variant) */
+.listing-card-fav {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   z-index: 2;
 }
 
@@ -3384,6 +3402,16 @@ pre {
 
 /* ── Stale signal ────────────────────────────────────────────────────────── */
 
+.listing-card-signal {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-soft);
+  font-size: 0.69rem;
+  font-weight: 500;
+}
+
 .listing-card-signal--warn {
   display: inline-block;
   padding: 1px 7px;
@@ -3409,6 +3437,41 @@ pre {
 .listing-card-loading-hint {
   color: var(--accent);
   font-size: 0.69rem;
+}
+
+/* ── Status row + action row (search variant) ────────────────────────────── */
+
+.listing-card-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 18px;
+}
+
+.listing-card-status-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.listing-card-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.listing-card-action-hint {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.listing-card-action-arrow {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 /* ── Compact variant (지도 사이드패널) ───────────────────────────────────── */
@@ -3666,9 +3729,26 @@ pre {
 }
 
 /* Affordability badge */
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-.badge-feasible { background: #d1fae5; color: #065f46; }
-.badge-shortage { background: #fef3c7; color: #92400e; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.badge-feasible {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.badge-shortage {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
 
 /* SettingsModal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -3678,3 +3758,142 @@ pre {
 .setting-row label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.875rem; }
 .setting-row input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
 .error { color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem; }
+
+/* ── SaleListingsView ──────────────────────────────────────────────────────── */
+
+.listing-search {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.listing-search-filters {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.listing-search-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+
+.listing-search-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .listing-search-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .listing-search-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.filter-input {
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  min-width: 120px;
+  flex: 1;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px rgba(28,25,23,0.08);
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-select {
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px rgba(28,25,23,0.08);
+}
+
+.filter-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.filter-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Sale card: card + affordability badge fused visually */
+.sale-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  background: var(--panel);
+}
+
+.sale-card-wrapper:hover {
+  border-color: #b8b5af;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.sale-card-wrapper > .listing-card {
+  border: none;
+  border-radius: 0;
+}
+
+.sale-card-wrapper > .listing-card:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.sale-card-afford {
+  background: var(--panel-raised);
+  border-top: 1px solid var(--line-soft);
+  padding: 6px 12px 8px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+}
