@@ -366,6 +366,19 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
           "direction_text",
           "roomDirection",
         ],
+        roomCountKeys: [
+          "roomType",
+          "room_type",
+          "roomCount",
+          "roomCnt",
+          "rooms",
+        ],
+        bathroomCountKeys: [
+          "bathroomCount",
+          "bathroomCnt",
+          "bathroom_count",
+          "bathroom",
+        ],
         buildingUseKeys: [
           "house_type",
           "houseType",
@@ -474,9 +487,16 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
     }
 
     if (!item.room_count) {
-      const roomTypeNum = normalizeZigbangFloor(raw.room_type);
-      if (roomTypeNum != null) {
-        item.room_count = roomTypeNum;
+      const roomTypeStr = raw.room_type || raw.roomType;
+      if (roomTypeStr) {
+        const s = String(roomTypeStr).trim();
+        if (/원룸/.test(s)) item.room_count = 1;
+        else if (/투룸/.test(s)) item.room_count = 2;
+        else if (/쓰리룸|3룸/.test(s)) item.room_count = 3;
+        else {
+          const m = /([1-9])\s*룸/.exec(s);
+          if (m) item.room_count = Number(m[1]);
+        }
       }
     }
 

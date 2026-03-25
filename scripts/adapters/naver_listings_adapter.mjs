@@ -1516,6 +1516,14 @@ export class NaverListingAdapter extends BaseListingAdapter {
             pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title"], null) ||
               normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
           ),
+      bathroom_count: (() => {
+        const raw = pick(item, ["bathroomCount", "bathroomCnt", "bathroom_count", "bathroom", "bathCnt"], null);
+        if (raw !== null && raw !== undefined) {
+          const n = Number(raw);
+          return Number.isFinite(n) && n > 0 ? n : null;
+        }
+        return null;
+      })(),
       direction: normalizeDirection(
         pick(item, ["facing", "direction", "directionText", "houseDirection", "houseDir", "dir"], null),
       ),
