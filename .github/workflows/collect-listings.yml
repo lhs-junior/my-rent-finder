@@ -13,9 +13,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  collect:
+  collect-dabang:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
 
     steps:
       - name: Checkout code
@@ -33,19 +33,85 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium
 
-      - name: Run collectors and persist to DB
+      - name: Run Dabang collector and persist to DB
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
         run: |
           node scripts/run_parallel_collect.mjs \
             --persist-to-db \
-            --platforms daangn,dabang,zigbang,peterpanz \
+            --platforms dabang \
             --max-adapter-items 200 \
             --qa-strict false
 
-      - name: Check expired KB listings
+      - name: Upload Dabang collection results
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dabang-results-${{ github.run_number }}
+          path: |
+            scripts/*_capture_results.json
+            scripts/*_adapter_output.json
+          retention-days: 7
+
+  collect-others:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run other collectors and persist to DB
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+        run: |
+          node scripts/run_parallel_collect.mjs \
+            --persist-to-db \
+            --platforms daangn,zigbang,peterpanz \
+            --max-adapter-items 200 \
+            --qa-strict false
+
+      - name: Upload other collection results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: others-results-${{ github.run_number }}
+          path: |
+            scripts/*_capture_results.json
+            scripts/*_adapter_output.json
+          retention-days: 7
+
+  check-expired:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [collect-dabang, collect-others]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check expired listings
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -53,13 +119,3 @@ jobs:
             --platform all \
             --batch-size 200 \
             --delay-ms 300
-
-      - name: Upload collection results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: collection-results-${{ github.run_number }}
-          path: |
-            scripts/*_capture_results.json
-            scripts/*_adapter_output.json
-          retention-days: 7
