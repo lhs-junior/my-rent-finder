@@ -4,7 +4,7 @@ import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
-export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) {
+export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,7 +16,14 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`${normalizedApiBase}/api/favorites`)
+    const fetchFavorites = authenticated && pin
+      ? fetch(`${normalizedApiBase}/api/profile/favorites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin }),
+        })
+      : fetch(`${normalizedApiBase}/api/favorites`);
+    fetchFavorites
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
@@ -24,7 +31,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite }) 
       .then((data) => setItems(data.items || []))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [normalizedApiBase, favoriteIds.size]);
+  }, [normalizedApiBase, favoriteIds.size, authenticated, pin]);
 
   const loadDetail = useCallback(async (listingId) => {
     if (!listingId) return;

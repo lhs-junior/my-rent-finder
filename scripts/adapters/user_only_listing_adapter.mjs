@@ -204,6 +204,18 @@ const DEFAULT_FIELD_HINTS = {
     "summary",
     "info",
   ],
+  descriptionKeys: [
+    "memo",
+    "description",
+    "description_text",
+    "desc",
+    "detail",
+    "detailText",
+    "detail_text",
+    "content",
+    "comment",
+    "articleText",
+  ],
   listHintPaths: [
     "items",
     "itemList",
@@ -1208,6 +1220,14 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
         if (!raw) return null;
         const n = parseInt(String(raw).slice(0, 4), 10);
         return Number.isFinite(n) && n > 1900 && n < 2100 ? n : null;
+      })(),
+      description_text: (() => {
+        const raw = pick(row, this.hints.descriptionKeys, null);
+        if (!raw || typeof raw !== "string") return null;
+        const trimmed = raw.trim();
+        // 가격 텍스트나 너무 짧은 값은 제외
+        if (trimmed.length < 10 || /^\d+[\s/]*\d*$/.test(trimmed)) return null;
+        return trimmed;
       })(),
       image_urls: imageUrls,
       raw_attrs: {

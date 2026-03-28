@@ -111,8 +111,11 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
         {loading && <div className="map-loading-bar" />}
       </div>
 
-      {/* 데스크탑: 우측 상세 패널 */}
-      <div className={`map-3panel-right${detailId ? " map-3panel-right--open" : ""}`}>
+      {/* 데스크탑: 우측 패널 / 모바일: 풀스크린 모달 */}
+      <div
+        className={`map-3panel-right${detailId ? " map-3panel-right--open" : ""}`}
+        onClick={(e) => { if (e.target === e.currentTarget) handleCloseDetail(); }}
+      >
         <MapRightPanel
           detailId={detailId}
           apiBase={apiBase}
@@ -128,6 +131,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
         totalInBounds={totalInBounds}
         loading={loading}
         selectedId={selectedId}
+        detailOpen={Boolean(detailId)}
         onCardClick={handleCardClick}
       />
     </div>

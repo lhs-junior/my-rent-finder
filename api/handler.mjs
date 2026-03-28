@@ -16,7 +16,7 @@ import { handleMatches, handleMatchGroup } from "../scripts/lib/api_routes/match
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "../scripts/lib/api_routes/favorites.mjs";
 import { handleSettings } from "../scripts/lib/api_routes/settings.mjs";
 import { handleAffordability } from "../scripts/lib/api_routes/affordability.mjs";
-import { handleProfileRead, handleProfileSettings, handleProfileFavoriteToggle } from "../scripts/lib/api_routes/profile.mjs";
+import { handleProfileRead, handleProfileSettings, handleProfileFavorites, handleProfileFavoriteToggle } from "../scripts/lib/api_routes/profile.mjs";
 
 function resolveRequestPath(req) {
   const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
@@ -154,6 +154,11 @@ export default async function handler(req, res) {
     if (pathname === "/api/profile/settings") {
       await parseJsonBody(req);
       await handleProfileSettings(req, res);
+      return;
+    }
+    if (pathname === "/api/profile/favorites") {
+      await parseJsonBody(req);
+      await handleProfileFavorites(req, res);
       return;
     }
     if (pathname === "/api/profile/favorites/toggle") {

@@ -68,5 +68,14 @@ export function useProfile(apiBase = "") {
 
   const isFavorite = useCallback((listingId) => favoriteIds.has(listingId), [favoriteIds]);
 
-  return { pin, authenticated, settings, favoriteIds, error, signIn, saveSetting, toggleFavorite, isFavorite };
+  const signOut = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setPin("");
+    setAuthenticated(false);
+    setSettings({});
+    setFavoriteIds(new Set());
+    setError("");
+  }, []);
+
+  return { pin, authenticated, settings, favoriteIds, error, signIn, signOut, saveSetting, toggleFavorite, isFavorite };
 }

@@ -1,11 +1,11 @@
 // frontend/src/components/PinLoginModal.jsx
 import { useState } from "react";
 
-export function PinLoginModal({ onSignIn, error }) {
+export function PinLoginModal({ onSignIn, onClose, error }) {
   const [pin, setPin] = useState("");
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose?.()}>
       <div className="modal-content">
         <h3>PIN으로 시작하기</h3>
         <p style={{ fontSize: "0.875rem", color: "#666", marginTop: 0 }}>

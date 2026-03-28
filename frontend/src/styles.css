@@ -770,6 +770,51 @@ body {
   .map-3panel-left { display: none; }
   .map-3panel-right { display: none; }
   .map-bottom-sheet { display: flex; }
+
+  /* 모바일: 상세 패널을 풀스크린 모달로 표시 */
+  .map-3panel-right.map-3panel-right--open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    width: 100% !important;
+    background: rgba(8, 18, 48, 0.55);
+    overflow: hidden;
+    animation: mdl-fade-in 0.2s ease-out;
+  }
+  .map-3panel-right--open .map-right-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+    animation: mdl-slide-up 0.28s ease-out;
+    box-shadow: 0 -8px 32px rgba(0,0,0,.2);
+  }
+  .map-3panel-right--open .map-right-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--panel);
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+  }
+  .map-3panel-right--open .map-right-close {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  .map-3panel-right--open .map-right-gallery {
+    aspect-ratio: 4/3;
+  }
+
+  /* 상세 모달 열릴 때 하단 시트 숨기기 */
+  .map-bottom-sheet--hidden {
+    display: none !important;
+  }
 }
 
 @media (max-width: 1100px) {
@@ -2629,6 +2674,15 @@ pre {
   letter-spacing: 0.04em;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line-soft);
+}
+
+.mdl-description-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 /* Info grid */

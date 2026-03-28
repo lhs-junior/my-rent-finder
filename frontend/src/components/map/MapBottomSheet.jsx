@@ -8,6 +8,7 @@ export default function MapBottomSheet({
   totalInBounds,
   loading,
   selectedId,
+  detailOpen,
   onCardClick,
 }) {
   const [stage, setStage] = useState("peek");
@@ -32,7 +33,7 @@ export default function MapBottomSheet({
 
   return (
     <div
-      className="map-bottom-sheet"
+      className={`map-bottom-sheet${detailOpen ? " map-bottom-sheet--hidden" : ""}`}
       style={{ height: getHeight() }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

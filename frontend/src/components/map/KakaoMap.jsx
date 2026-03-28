@@ -726,9 +726,19 @@ const KakaoMap = forwardRef(function KakaoMap({
           yAnchor: 1.3,
         });
 
-        /* Single click = select + InfoWindow tooltip only (no modal) */
+        /* Mobile: single tap opens detail directly; Desktop: single click = tooltip, dblclick = detail */
+        const isMobile = () => window.innerWidth <= 767;
         let clickTimer = null;
         content.addEventListener("click", () => {
+          if (isMobile()) {
+            /* 모바일: 즉시 상세 열기 */
+            onMarkerClickRef.current?.(item);
+            const curLevel = mapInstance.current?.getLevel?.();
+            if (typeof curLevel === "number" && curLevel > 5) {
+              applyMapLevel(5);
+            }
+            return;
+          }
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
           clickTimer = setTimeout(() => {
             clickTimer = null;
@@ -743,7 +753,7 @@ const KakaoMap = forwardRef(function KakaoMap({
           }, 250);
         });
 
-        /* Double click = open detail modal */
+        /* Double click = open detail modal (desktop only) */
         content.addEventListener("dblclick", (e) => {
           e.preventDefault();
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }

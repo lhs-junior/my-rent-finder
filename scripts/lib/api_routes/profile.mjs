@@ -1,6 +1,6 @@
 // scripts/lib/api_routes/profile.mjs
-import { withDbClient } from "../db_client.mjs";
-import { sendJson } from "../api_helpers.mjs";
+import { withDbClient, toInt, toNumber } from "../db_client.mjs";
+import { sendJson, safeText, platformNameFromCode, parseImageMap, extractImageUrlsFromPayload } from "../api_helpers.mjs";
 import { hashPin } from "../pin_hash.mjs";
 
 const ALLOWED_SETTINGS_KEYS = new Set([
@@ -64,6 +64,90 @@ export async function handleProfileSettings(req, res) {
       )
     );
     sendJson(res, 200, { ok: true });
+  } catch (e) {
+    sendJson(res, 500, { error: "DB error" });
+  }
+}
+
+// POST /api/profile/favorites — PIN 찜 목록 상세 조회
+export async function handleProfileFavorites(req, res) {
+  const body = req._parsedBody || {};
+  const pinHash = getPinHash(body);
+  if (!pinHash) { sendJson(res, 401, { error: "PIN required" }); return; }
+
+  try {
+    const result = await withDbClient(async (client) => {
+      const rows = await client.query(`
+        SELECT pf.added_at AS favorited_at,
+               nl.listing_id, nl.platform_code, nl.source_url, nl.external_id,
+               nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
+               nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
+               nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
+               nl.lat, nl.lng, nl.quality_flags, nl.created_at, rl.payload_json
+        FROM pin_favorites pf
+        JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
+        JOIN raw_listings rl ON rl.raw_id = nl.raw_id
+        WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+        ORDER BY pf.added_at DESC
+      `, [pinHash]);
+
+      const listingIds = rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
+      const imageRows = listingIds.length
+        ? await client.query(
+            `SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`,
+            [listingIds],
+          )
+        : { rows: [] };
+      const imageMap = parseImageMap(imageRows.rows || []);
+
+      const firstImageRows = listingIds.length
+        ? await client.query(
+            `SELECT DISTINCT ON (listing_id) listing_id, source_url
+             FROM listing_images
+             WHERE listing_id = ANY($1) AND source_url IS NOT NULL AND source_url != ''
+             ORDER BY listing_id, is_primary DESC, image_id ASC`,
+            [listingIds],
+          )
+        : { rows: [] };
+      const firstImageMap = new Map();
+      for (const row of firstImageRows.rows || []) {
+        const lid = toInt(row.listing_id, null);
+        if (lid !== null) firstImageMap.set(lid, row.source_url);
+      }
+
+      return rows.rows.map((row) => {
+        const listingId = toInt(row.listing_id, null);
+        const fallbackImageUrls = extractImageUrlsFromPayload(row.payload_json);
+        return {
+          favorited_at: row.favorited_at ? new Date(row.favorited_at).toISOString() : null,
+          listing_id: listingId,
+          platform_code: safeText(row.platform_code, ""),
+          platform: platformNameFromCode(safeText(row.platform_code, "")),
+          source_url: safeText(row.source_url, ""),
+          external_id: safeText(row.external_id, ""),
+          title: safeText(row.title, ""),
+          lease_type: safeText(row.lease_type, "기타"),
+          rent_amount: toNumber(row.rent_amount, null),
+          deposit_amount: toNumber(row.deposit_amount, null),
+          area_exclusive_m2: toNumber(row.area_exclusive_m2, null),
+          area_gross_m2: toNumber(row.area_gross_m2, null),
+          address_text: safeText(row.address_text, ""),
+          address_code: safeText(row.address_code, ""),
+          room_count: toInt(row.room_count, null),
+          floor: toInt(row.floor, null),
+          total_floor: toInt(row.total_floor, null),
+          direction: safeText(row.direction, null),
+          building_use: safeText(row.building_use, null),
+          lat: toNumber(row.lat, null),
+          lng: toNumber(row.lng, null),
+          image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
+          first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
+          created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+        };
+      });
+    });
+
+    sendJson(res, 200, { items: result, total: result.length });
   } catch (e) {
     sendJson(res, 500, { error: "DB error" });
   }

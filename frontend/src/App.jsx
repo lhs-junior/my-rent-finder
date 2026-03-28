@@ -139,7 +139,7 @@ export default function App() {
   });
   const health = useApiHealth(apiBase);
   const { favoriteIds: sessionFavoriteIds, isFavorite: sessionIsFavorite, toggleFavorite: sessionToggleFavorite } = useFavorites(apiBase);
-  const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite } = useProfile(apiBase);
+  const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, signOut, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite } = useProfile(apiBase);
   const [showPinLogin, setShowPinLogin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -242,13 +242,21 @@ export default function App() {
         <button
           type="button"
           className={`nav-tab ${authenticated ? "nav-tab--active" : ""}`}
-          onClick={() => setShowPinLogin(true)}
-          title={authenticated ? "내 정보 (로그인됨)" : "PIN 로그인"}
+          onClick={() => {
+            if (authenticated) {
+              if (window.confirm("PIN 로그아웃 하시겠습니까?")) {
+                signOut();
+              }
+            } else {
+              setShowPinLogin(true);
+            }
+          }}
+          title={authenticated ? "PIN 로그아웃" : "PIN 로그인"}
         >
           {authenticated ? "👤" : "🔑"}
         </button>
         {showPinLogin && !authenticated && (
-          <PinLoginModal onSignIn={async (p) => { await signIn(p); setShowPinLogin(false); }} error={profileError} />
+          <PinLoginModal onSignIn={async (p) => { await signIn(p); setShowPinLogin(false); }} onClose={() => setShowPinLogin(false)} error={profileError} />
         )}
       </header>
 
@@ -257,7 +265,7 @@ export default function App() {
         {activeView === "matches" && <MatchingBoard apiBase={apiBase} runId={runId} />}
         {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
         {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} /></MapErrorBoundary>}
-        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} />}
+        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>
     </div>

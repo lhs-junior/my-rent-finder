@@ -320,6 +320,13 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
               </div>
             </div>
 
+            {displayDetail.description_text && (
+              <div className="mdl-section">
+                <h3 className="mdl-section-title">상세 설명</h3>
+                <p className="mdl-description-text">{displayDetail.description_text}</p>
+              </div>
+            )}
+
             <div className="mdl-section">
               <h3 className="mdl-section-title">품질 검사</h3>
               <QualityFlags flags={displayDetail.quality_flags} />
