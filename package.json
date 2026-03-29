@@ -16,6 +16,8 @@
     "collect:parallel:db": "node scripts/run_parallel_collect.mjs --normalize --sample-cap=100 --persist-to-db",
     "collect:parallel:db:full": "node scripts/collect_ops_pipeline.mjs",
     "collect:kbland:db": "node scripts/run_parallel_collect.mjs --platforms kbland --sample-cap=0 --persist-to-db",
+    "collect:harness": "node scripts/harness_runner.mjs",
+    "collect:harness:full": "node scripts/harness_runner.mjs --sample-cap=0",
     "qa:platform-fidelity": "node scripts/qa/qa_platform_data_fidelity.mjs",
     "qa:platform-fidelity:gate": "node scripts/qa/qa_platform_fidelity_gate.mjs",
     "db:migrate": "node scripts/db_migrate.mjs",
