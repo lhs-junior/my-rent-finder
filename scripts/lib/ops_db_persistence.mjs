@@ -29,6 +29,7 @@ const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|qua
 const IMAGE_PATH_BLACKLIST_RE =
   /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang/i;
 const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
+const IMAGE_CDN_HOST_RE = /cloudfront\.net|dabangimg|d1774jszgerdmk/i;
 
 function isLikelyImageSource(rawUrl) {
   try {
@@ -42,6 +43,7 @@ function isLikelyImageSource(rawUrl) {
     if (IMAGE_EXT_RE.test(path)) return true;
     if (IMAGE_QUERY_HINT_RE.test(queryHint)) return true;
     if (IMAGE_HINT_PATH_RE.test(path)) return true;
+    if (IMAGE_CDN_HOST_RE.test(parsed.hostname)) return true;
     return false;
   } catch {
     return false;
