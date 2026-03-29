@@ -105,9 +105,10 @@ async function checkDabangListing(externalId) {
   if (res.status === 410) return { status: "expired", resultCode: "gone" };
   if (res.status >= 300 && res.status < 400) {
     const location = res.headers.get("location") || "";
-    // Redirect to main page or search = listing removed
-    if (!location.includes(`/room/${externalId}`)) return { status: "expired", resultCode: "redirect" };
-    return { status: "active" };
+    // 다방은 /room/{id} → /map/house?...&detail_id={id} 로 리다이렉트함 (활성 매물)
+    if (location.includes(externalId)) return { status: "active" };
+    // externalId가 없는 리다이렉트 = 매물 삭제됨
+    return { status: "expired", resultCode: "redirect" };
   }
   if (res.status === 200) {
     const html = await res.text();
