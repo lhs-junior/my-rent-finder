@@ -14,6 +14,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
     const fetchFavorites = authenticated && pin
@@ -21,16 +22,18 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pin }),
+          signal: controller.signal,
         })
-      : fetch(`${normalizedApiBase}/api/favorites`);
+      : fetch(`${normalizedApiBase}/api/favorites`, { signal: controller.signal });
     fetchFavorites
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
       })
       .then((data) => setItems(data.items || []))
-      .catch((err) => setError(err.message))
+      .catch((err) => { if (err.name !== "AbortError") setError(err.message); })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [normalizedApiBase, favoriteIds.size, authenticated, pin]);
 
   const loadDetail = useCallback(async (listingId) => {
