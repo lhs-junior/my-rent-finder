@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "node:fs";
 import {
   ADAPTER_VALIDATION_CODES,
   ADAPTER_WARNING_LEVEL,
@@ -32,6 +33,30 @@ const CORTAR_TO_ADDRESS = {
   1114000000: "서울특별시 중구",
   1111000000: "서울특별시 종로구",
 };
+
+// Bug 1 fix: 5-digit prefixes of target Seoul districts for validation
+const TARGET_DISTRICT_PREFIXES = new Set(
+  Object.keys(CORTAR_TO_ADDRESS).map((code) => String(code).substring(0, 5)),
+);
+
+function isTargetSeoulDistrict(cortarNo) {
+  const s = String(cortarNo || "");
+  if (s.length !== 10) return false;
+  return TARGET_DISTRICT_PREFIXES.has(s.substring(0, 5));
+}
+
+// Bug 2 fix: lazy-load dong-level cortarNo → address map
+let _dongMapCache = null;
+function loadDongMap() {
+  if (_dongMapCache !== null) return _dongMapCache;
+  try {
+    const mapPath = new URL("../naver_dong_codes.json", import.meta.url);
+    _dongMapCache = JSON.parse(readFileSync(mapPath, "utf8"));
+  } catch {
+    _dongMapCache = {};
+  }
+  return _dongMapCache;
+}
 
 function collectNaverImageCandidates(raw) {
   const urls = [];
@@ -98,6 +123,7 @@ function collectNaverImageCandidates(raw) {
   };
 
   const candidates = [
+    raw._enrichedPhotos,
     raw.articlePhotos,
     raw.photos,
     raw.images,
@@ -127,7 +153,10 @@ function extractCortarAddress(rawRecord) {
     const parsed = new URL(url);
     const cortarNo = parsed.searchParams.get("cortarNo");
     if (!cortarNo) return null;
-    // Exact match first
+    // Dong-level map first (includes 동 name)
+    const dongMap = loadDongMap();
+    if (dongMap[cortarNo]) return dongMap[cortarNo];
+    // Exact gu-level match
     if (CORTAR_TO_ADDRESS[cortarNo]) return CORTAR_TO_ADDRESS[cortarNo];
     // Prefix match: 동-level cortarNo (e.g. "1135010500") → district (e.g. "1135000000")
     const prefix = cortarNo.substring(0, 5);
@@ -1226,6 +1255,15 @@ function collectImageUrls(item, options = {}) {
 }
 
 function normalizeAddress(item) {
+  // Priority 1: enriched address from article detail API (has 동 name)
+  const enriched = normalizeText(item?._enrichedAddress || "");
+  if (enriched) return enriched;
+
+  // Priority 2: dong-level address from cortarNo mapping
+  const dongAddr = normalizeText(item?._dongAddress || "");
+  if (dongAddr) return dongAddr;
+
+  // Priority 3: direct address fields from raw data
   const cand = normalizeText(
     pick(item, [
       "address",
@@ -1382,6 +1420,12 @@ export class NaverListingAdapter extends BaseListingAdapter {
   }
 
   async normalizeOne(item, rawRecord) {
+    // Bug 1 fix: reject listings from non-target districts
+    const cortarCode = extractCortarCode(rawRecord);
+    if (cortarCode && !isTargetSeoulDistrict(cortarCode)) {
+      return null;
+    }
+
     const sourceRef =
       pick(item, ["atclNo", "articleNo", "articleId", "complexNo", "complexNoCd", "itemNo", "id"]) ||
       buildFallbackRef(item);
@@ -1464,7 +1508,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
 
     const imageUrls = collectNaverImageCandidates(item);
     let fallbackImageUrls = [];
-    if (imageUrls.length === 0 && this.imageFallbackEnabled) {
+    // Bug 3 fix: always try CP fallback for more images (not just when 0)
+    if (imageUrls.length < this.imageLimit && this.imageFallbackEnabled) {
       const cpUrlCandidates = [
         item.cpPcArticleUrl,
         item.cpMobileArticleUrl,
@@ -1565,7 +1610,15 @@ export class NaverListingAdapter extends BaseListingAdapter {
         const n = parseInt(String(raw).slice(0, 4), 10);
         return Number.isFinite(n) && n > 1900 && n < 2100 ? n : null;
       })(),
-      image_urls: imageUrls.length > 0 ? imageUrls : fallbackImageUrls,
+      image_urls: (() => {
+        // Merge primary + fallback images, deduplicated
+        const merged = [...imageUrls];
+        const seen = new Set(merged);
+        for (const url of fallbackImageUrls) {
+          if (!seen.has(url)) { merged.push(url); seen.add(url); }
+        }
+        return merged.slice(0, this.imageLimit);
+      })(),
       raw_attrs: {
         atclNo: pick(item, ["atclNo"], null),
         articleNo: pick(item, ["articleNo", "articleId", "id"], null),

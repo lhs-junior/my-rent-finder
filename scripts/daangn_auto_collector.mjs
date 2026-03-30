@@ -232,8 +232,24 @@ function parsePropertyType(name) {
   if (/아파트/.test(name)) return "아파트";
   if (/상가/.test(name)) return "상가";
   if (/사무실/.test(name)) return "사무실";
+  if (/공장/.test(name)) return "공장";
+  if (/창고/.test(name)) return "창고";
+  if (/토지|대지|임야/.test(name)) return "토지";
+  if (/주차/.test(name)) return "주차장";
+  if (/매장|점포/.test(name)) return "매장";
+  if (/작업실|작업장/.test(name)) return "작업실";
+  if (/^건물[\s/]/.test(name)) return "건물";
   return "기타";
 }
+
+// ── 비주거 매물 타입 (수집 제외) ──
+const NON_RESIDENTIAL_PROPERTY_TYPES = new Set([
+  "상가", "사무실", "공장", "창고", "토지", "주차장", "매장", "작업실", "건물",
+]);
+
+// ── 비주거 키워드 (name에서 직접 검출) ──
+// 당근 title 형식: "카테고리 가격 - 설명"
+const NON_RESIDENTIAL_NAME_RE = /공장|창고|사무실|상가(?!주택)|매장|점포|토지|대지|임야|주차|작업실|작업장|^건물[\s/]|근린생활|업무\s*시설|숙박|모텔|호텔|펜션|식당|카페|치킨|편의점|세차|노래방|당구|피씨방|PC방/;
 
 function toNumber(value) {
   if (value === null || value === undefined) return null;
@@ -1449,6 +1465,12 @@ async function collectDistrict(districtName, locationId) {
     const floor = parseFloor(item);
 
     const propertyType = parsePropertyType(item.name || "");
+
+    // 비주거 매물 제외
+    if (NON_RESIDENTIAL_PROPERTY_TYPES.has(propertyType) || NON_RESIDENTIAL_NAME_RE.test(item.name || "")) {
+      if (verbose) console.log(`    [SKIP] 비주거: ${item.name?.slice(0, 60)}`);
+      continue;
+    }
 
     filtered.push({
       ...item,

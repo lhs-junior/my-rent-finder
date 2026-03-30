@@ -506,6 +506,15 @@ async function captureNaverData() {
     route.continue({ url: originalUrl.toString() });
   });
 
+  // Capture auth headers from SPA's own successful API requests
+  let capturedSpaHeaders = null;
+  page.on("request", (request) => {
+    const url = request.url();
+    if (url.includes("new.land.naver.com/api/articles") && !url.includes("clusters") && !url.includes("interest")) {
+      capturedSpaHeaders = request.headers();
+    }
+  });
+
   // Intercept ALL JSON responses
   page.on("response", async (response) => {
     const url = response.url();
@@ -778,11 +787,98 @@ async function captureNaverData() {
     console.log("⚠️  API 수집이 비어있거나 실패했습니다. 클릭 캡처 위주로 진행합니다.");
   }
 
-  const finalState = extractMapStateFromUrl(page.url());
+  // ── Enrichment: dong mapping + article detail (photos & address) ──
 
-  console.log(`\n📊 Captured ${capturedResponses.length} responses\n`);
+  // Build API headers from captured SPA request headers
+  const apiHeaders = capturedSpaHeaders
+    ? { ...capturedSpaHeaders }
+    : {
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Referer": "https://new.land.naver.com/",
+      };
+  if (verbose && capturedSpaHeaders) {
+    console.log("  🔑 Using captured SPA auth headers for enrichment");
+  }
 
+  // Bug 2 fix: fetch dong-level cortarNo → address mapping
+  console.log("\n📍 Fetching dong-level address mapping...");
+  const dongMap = {};
+  for (const [guName, guCode] of Object.entries(districtCodes)) {
+    dongMap[guCode] = `서울특별시 ${guName}`;
+  }
+
+  // Strategy 1: extract dong data from passively captured cortar responses
+  // The cortar API returns cortarNo/cortarName/divisionName in the response itself (not cortarList)
+  for (const resp of capturedResponses) {
+    const url = resp.request_url || "";
+    if (!url.includes("/api/cortars")) continue;
+    const p = resp.payload_json;
+    if (!p || !p.cortarNo || !p.cortarName) continue;
+    const code = String(p.cortarNo);
+    if (p.cortarType === "sec" && p.divisionName) {
+      // sec = 동 level
+      dongMap[code] = `서울특별시 ${p.divisionName} ${p.cortarName}`;
+    }
+  }
+
+  // Strategy 2: collect unique dong-level cortarNos from article/cluster URLs and fetch each
+  const dongCortarNos = new Set();
+  for (const resp of capturedResponses) {
+    const url = resp.request_url || "";
+    if (!url.includes("/api/articles")) continue;
+    try {
+      const cn = new URL(url).searchParams.get("cortarNo");
+      if (cn && cn.length === 10 && !cn.endsWith("00000") && !dongMap[cn]) {
+        dongCortarNos.add(cn);
+      }
+    } catch {}
+  }
+  for (const dongCode of dongCortarNos) {
+    try {
+      const result = await page.evaluate(async ({ url, headers }) => {
+        try {
+          const res = await fetch(url, { headers, credentials: "include" });
+          if (!res.ok) return null;
+          return res.json();
+        } catch { return null; }
+      }, { url: `https://new.land.naver.com/api/cortars?cortarNo=${dongCode}`, headers: apiHeaders });
+      if (result?.cortarNo && result?.cortarName && result?.divisionName) {
+        dongMap[result.cortarNo] = `서울특별시 ${result.divisionName} ${result.cortarName}`;
+      }
+      await randomDelay(200, 400);
+    } catch {}
+  }
+
+  fs.writeFileSync("scripts/naver_dong_codes.json", JSON.stringify(dongMap, null, 2));
+  console.log(`  ✅ Mapped ${Object.keys(dongMap).length} dong codes`);
+
+  // Attach _dongAddress to articles from request URL cortarNo
+  for (const resp of capturedResponses) {
+    const articles = resp.payload_json?.articleList || [];
+    let requestCortarNo = null;
+    try {
+      requestCortarNo = new URL(resp.request_url).searchParams.get("cortarNo");
+    } catch {}
+    if (requestCortarNo && dongMap[requestCortarNo]) {
+      for (const art of articles) {
+        if (!art._dongAddress) {
+          art._dongAddress = dongMap[requestCortarNo];
+        }
+      }
+    }
+  }
+
+  // Rewrite raw file with enriched data
   rawStream.end();
+  const enrichedStream = fs.createWriteStream(outputRaw, { flags: "w" });
+  for (const record of capturedResponses) {
+    enrichedStream.write(JSON.stringify(record) + "\n");
+  }
+  enrichedStream.end();
+  console.log(`\n📊 Captured ${capturedResponses.length} responses (enriched)\n`);
+
+  const finalState = extractMapStateFromUrl(page.url());
 
   console.log("🔒 Closing browser...\n");
   await browser.close();

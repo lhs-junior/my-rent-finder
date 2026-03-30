@@ -227,7 +227,11 @@ function isAllowedFallbackImageUrl(rawUrl) {
     const hostname = parsed.hostname.toLowerCase();
     const pathname = parsed.pathname || "";
     if (IMAGE_EXT_RE.test(pathname)) return true;
-    return hostname === DABANG_CLOUDFRONT_HOST && DABANG_CLOUDFRONT_PATH_RE.test(pathname);
+    if (hostname !== DABANG_CLOUDFRONT_HOST) return false;
+    if (!DABANG_CLOUDFRONT_PATH_RE.test(pathname)) return false;
+    // Reject bare prefix URLs like /1024/ with no actual image ID after the size segment
+    const segments = pathname.split("/").filter(Boolean);
+    return segments.length >= 2;
   } catch {
     return false;
   }

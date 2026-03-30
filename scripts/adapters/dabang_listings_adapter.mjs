@@ -167,6 +167,7 @@ const DABANG_FIELD_HINTS = {
     "roomTypeName",
     "house_type",
     "houseType",
+    "building_use_types_str",
   ],
   sourceUrlKeys: [
     "source_url",
@@ -365,6 +366,10 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
     const mergedRow = enrichDabangRow(row, rawRecord);
     const normalized = super.normalizeListingRow(mergedRow, rawRecord);
     if (!normalized) return null;
+
+    if (!normalized.title) {
+      normalized.title = mergedRow?.title || mergedRow?.roomTitle || null;
+    }
 
     const priceText = pickPriceText(mergedRow, rawRecord);
     if (priceText) {

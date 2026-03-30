@@ -609,7 +609,7 @@ function parseFloor(raw) {
   const b2 = /b(\d+)/i.exec(s);
   if (b2) return { floor: -Math.max(1, Number(b2[1] || 1)), total_floor: null };
 
-  if (/(옥탑|옥상|최상층|고층|저층)/.test(s)) {
+  if (/(옥탑|옥상|최상층|고층|저층|중층)/.test(s)) {
     return { floor: null, total_floor: null };
   }
 

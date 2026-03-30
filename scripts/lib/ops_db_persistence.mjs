@@ -43,7 +43,10 @@ function isLikelyImageSource(rawUrl) {
     if (IMAGE_EXT_RE.test(path)) return true;
     if (IMAGE_QUERY_HINT_RE.test(queryHint)) return true;
     if (IMAGE_HINT_PATH_RE.test(path)) return true;
-    if (IMAGE_CDN_HOST_RE.test(parsed.hostname)) return true;
+    if (IMAGE_CDN_HOST_RE.test(parsed.hostname)) {
+      const segments = (parsed.pathname || "").split("/").filter(Boolean);
+      return segments.length >= 2;
+    }
     return false;
   } catch {
     return false;
@@ -491,6 +494,18 @@ function extractExternalId(raw, platformCode) {
 export function buildRawListingExternalId(rawLine, platformCode, hashHex) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
+
+  // 다방: top-level `id` is the canonical MongoDB ObjectId (24-char hex).
+  // Recursive extraction picks up nested `id` fields from image_list/safeties,
+  // producing multiple candidates and falling back to raw:${hash}. Avoid that.
+  if (platform === "dabang") {
+    const topLevelId = toText(rawLine?.id || rawLine?.payload_json?.id, "");
+    if (/^[0-9a-f]{24}$/i.test(topLevelId)) {
+      return topLevelId;
+    }
+    const seq = toText(rawLine?.seq || rawLine?.payload_json?.seq, "");
+    if (seq) return seq;
+  }
 
   const normalizedCandidates = Array.from(
     new Set(
