@@ -292,6 +292,36 @@ npm run ops:full:stack
 | `npm run front:build`    | 프론트엔드 프로덕션 빌드     |
 | `npm run ops:full:stack` | DB + 파이프라인 + API 올인원 |
 
+### 매물 배점 & 찜 자동 저장
+
+수집된 매물을 자동으로 점수 매기고 PIN별 찜 목록에 저장합니다.
+
+```bash
+# S급(9점↑) → PIN 1004, A급(6~8점) → PIN 1005
+node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005
+
+# S급만 저장
+node scripts/score_and_pin_favorites.mjs --pin-s=1004
+
+# 저장 안 하고 점수 분포만 확인 (dry run)
+node scripts/score_and_pin_favorites.mjs --pin-s=1004 --dry-run
+
+# S급 기준 10점, A급 기준 7점으로 조정
+node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005 --threshold-s=10 --threshold-a=7
+```
+
+**배점 기준** (최대 13점):
+
+| 항목       | 배점  | 기준                                                  |
+| ---------- | ----- | ----------------------------------------------------- |
+| 층수       | 0~3점 | 3층↑=3, 2층=2, 1층/모름=1, **반지하=탈락**            |
+| 사진       | 0~3점 | 5장↑=3, 3~4장=2, 1~2장=1, **0장=탈락**               |
+| 가성비     | 0~3점 | 구평균 80%↓=3, 100%↓=2, 120%↓=1, **150%↑=탈락**      |
+| 방향       | 0~2점 | 남향/남동=2, 동/남서=1                                |
+| 건물유형   | 0~2점 | 빌라/연립/투룸↑=2, 단독/다가구=1                      |
+
+탈락 조건(반지하, 사진 없음, 가격 이상치)에 해당하는 매물은 점수와 무관하게 제외됩니다.
+
 ### QA / 개발
 
 | 명령어                              | 설명                        |
