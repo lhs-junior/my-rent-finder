@@ -35,14 +35,8 @@ const DEFAULT_RULES = {
   },
 };
 
-const inputPath = getArg(args, '--input', 'scripts/match_sample_input.json');
-const outPath = getArg(args, '--out', null);
-const rulesArg = getArg(args, '--rules', null);
-
-const inputRaw = fs.readFileSync(inputPath, 'utf8');
-const input = JSON.parse(inputRaw);
-const listings = Array.isArray(input.listings) ? input.listings : [];
-const rules = rulesArg ? { ...DEFAULT_RULES, ...JSON.parse(rulesArg) } : DEFAULT_RULES;
+// Default rules used by scoring functions; CLI can override via --rules
+let rules = DEFAULT_RULES;
 
 function n(v) {
   const num = Number(v);
@@ -447,6 +441,15 @@ export {
 // Only run CLI when executed directly
 const isDirectRun = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
 if (isDirectRun) {
+  const inputPath = getArg(args, '--input', 'scripts/match_sample_input.json');
+  const outPath = getArg(args, '--out', null);
+  const rulesArg = getArg(args, '--rules', null);
+
+  const inputRaw = fs.readFileSync(inputPath, 'utf8');
+  const input = JSON.parse(inputRaw);
+  const listings = Array.isArray(input.listings) ? input.listings : [];
+  const rules = rulesArg ? { ...DEFAULT_RULES, ...JSON.parse(rulesArg) } : DEFAULT_RULES;
+
   const result = (() => {
     const { pairs, normalized } = buildCandidates(listings);
     const autoMatch = pairs.filter((p) => p.status === 'AUTO_MATCH').length;
