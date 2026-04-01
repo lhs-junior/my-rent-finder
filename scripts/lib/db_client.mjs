@@ -241,11 +241,15 @@ export function createClient() {
 
 export async function withDbClient(handler) {
   const client = createClient();
+  // Prevent unhandled 'error' event from crashing the process
+  client.on("error", (err) => {
+    console.error(`[db] connection error: ${err.message}`);
+  });
   await client.connect();
   try {
     return await handler(client);
   } finally {
-    await client.end();
+    await client.end().catch(() => {});
   }
 }
 

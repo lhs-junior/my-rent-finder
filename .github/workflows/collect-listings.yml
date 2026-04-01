@@ -115,7 +115,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          node scripts/check_listing_status.mjs \
-            --platform all \
-            --batch-size 200 \
-            --delay-ms 300
+          for p in kbland zigbang dabang peterpanz daangn naver; do
+            node scripts/check_listing_status.mjs \
+              --platform "$p" \
+              --batch-size 80 \
+              --delay-ms 300 || true
+          done

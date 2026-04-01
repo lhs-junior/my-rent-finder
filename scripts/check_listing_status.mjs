@@ -29,6 +29,7 @@ const dryRun = hasFlag("--dry-run");
 const verbose = hasFlag("--verbose");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const MAX_CONSECUTIVE_TIMEOUTS = 8; // 연속 타임아웃 8회 → 해당 플랫폼 중단
 
 const COMMON_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -43,7 +44,7 @@ const KB_HEADERS = {
 
 async function checkKbListing(externalId) {
   const url = `https://api.kbland.kr/land-property/property/dtailInfo?${encodeURIComponent("매물일련번호")}=${externalId}`;
-  const res = await fetch(url, { headers: KB_HEADERS, signal: AbortSignal.timeout(10000) });
+  const res = await fetch(url, { headers: KB_HEADERS, signal: AbortSignal.timeout(5000) });
   if (!res.ok) return { status: "error", httpStatus: res.status };
 
   const json = await res.json();
@@ -74,7 +75,7 @@ async function checkZigbangListing(externalId) {
     method: "POST",
     headers: { "User-Agent": COMMON_UA, "Content-Type": "application/json" },
     body: JSON.stringify({ domain: "zigbang", item_ids: [numId] }),
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(5000),
   });
   if (!res.ok) return { status: "error", httpStatus: res.status };
 
@@ -98,7 +99,7 @@ async function checkDabangListing(externalId) {
       Accept: "text/html",
     },
     redirect: "manual",
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(5000),
   });
 
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
@@ -131,7 +132,7 @@ async function checkPeterpanzListing(externalId) {
       Accept: "text/html",
     },
     redirect: "manual",
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(5000),
   });
 
   // 200 = page exists = active
@@ -161,7 +162,7 @@ async function checkNaverListing(externalId) {
       "Accept-Language": "ko-KR,ko;q=0.9",
     },
     redirect: "manual",
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(5000),
   });
 
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
@@ -206,7 +207,7 @@ async function checkDaangnListing(externalId, _row) {
   const res = await fetch(url, {
     headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
     redirect: "follow",
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(5000),
   });
 
   // 410 Gone — 당근이 거래완료/삭제 매물에 사용하는 표준 응답
@@ -248,9 +249,80 @@ const CHECKERS = {
   daangn: checkDaangnListing,
 };
 
+// DB 기반 만료: HTTP 체크가 불가능한 플랫폼 (서버 IP 차단 등)
+const DB_ONLY_PLATFORMS = new Set(["naver"]);
+const EXPIRE_DAYS_WITH_STALE = 30; // STALE_SUSPECT + 30일 경과 → 만료
+const EXPIRE_DAYS_ABSOLUTE = 60;   // 무조건 만료
+
+async function checkPlatformByDb(platformCode, client) {
+  console.log(`\n[status-check] ── ${platformCode} (DB 기반) ──`);
+
+  // Hybrid: updated_at 기준 나이 + STALE_SUSPECT 플래그 결합
+  const { rows: expiredRows } = await client.query(
+    `SELECT listing_id, external_id, title, updated_at, quality_flags
+     FROM normalized_listings
+     WHERE platform_code = $1 AND deleted_at IS NULL
+       AND (
+         updated_at < NOW() - INTERVAL '${EXPIRE_DAYS_ABSOLUTE} days'
+         OR (
+           updated_at < NOW() - INTERVAL '${EXPIRE_DAYS_WITH_STALE} days'
+           AND quality_flags::text LIKE '%STALE_SUSPECT%'
+         )
+       )
+     ORDER BY updated_at ASC
+     LIMIT $2`,
+    [platformCode, batchSize],
+  );
+
+  console.log(`[status-check] 만료 대상: ${expiredRows.length}건`);
+
+  if (expiredRows.length === 0) {
+    // 전체 활성 건수 조회
+    const { rows: [{ count }] } = await client.query(
+      `SELECT COUNT(*)::int as count FROM normalized_listings WHERE platform_code = $1 AND deleted_at IS NULL`,
+      [platformCode],
+    );
+    console.log(`[status-check] 활성 매물: ${count}건, 만료 대상 없음`);
+    return { platform: platformCode, checked: count, active: count, expired: 0, errors: 0 };
+  }
+
+  for (const row of expiredRows) {
+    const daysSince = Math.floor((Date.now() - new Date(row.updated_at).getTime()) / 86400000);
+    const isStale = (row.quality_flags || []).includes?.("STALE_SUSPECT") ||
+                    String(row.quality_flags).includes("STALE_SUSPECT");
+    const reason = daysSince >= EXPIRE_DAYS_ABSOLUTE ? `${daysSince}일 경과` : `${daysSince}일+STALE`;
+    console.log(`  ✗ ${row.external_id} — 만료 (${reason}) (${row.title || "제목없음"})`);
+  }
+
+  if (!dryRun) {
+    const ids = expiredRows.map((r) => r.listing_id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(",");
+    const result = await client.query(
+      `UPDATE normalized_listings SET deleted_at = NOW() WHERE listing_id IN (${placeholders})`,
+      ids,
+    );
+    console.log(`[status-check] DB 업데이트: ${result.rowCount}건 soft-delete 완료`);
+  } else {
+    console.log(`[status-check] DRY RUN: ${expiredRows.length}건 soft-delete 예정`);
+  }
+
+  // 남은 활성 건수
+  const { rows: [{ count: activeCount }] } = await client.query(
+    `SELECT COUNT(*)::int as count FROM normalized_listings WHERE platform_code = $1 AND deleted_at IS NULL`,
+    [platformCode],
+  );
+
+  return { platform: platformCode, checked: expiredRows.length + activeCount, active: activeCount, expired: expiredRows.length, errors: 0 };
+}
+
 // ── 단일 플랫폼 체크 ──
 
 async function checkPlatform(platformCode, client) {
+  // DB 기반 만료 플랫폼은 HTTP 체크 대신 DB 판정
+  if (DB_ONLY_PLATFORMS.has(platformCode)) {
+    return checkPlatformByDb(platformCode, client);
+  }
+
   const checker = CHECKERS[platformCode];
   if (!checker) {
     console.log(`[status-check] 지원하지 않는 플랫폼: ${platformCode}, 건너뜀`);
@@ -280,9 +352,18 @@ async function checkPlatform(platformCode, client) {
   let errors = 0;
   const expiredIds = [];
 
+  let consecutiveTimeouts = 0;
+
   for (const row of rows) {
+    if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
+      console.log(`  ⚠ 연속 타임아웃 ${consecutiveTimeouts}회 — ${platformCode} 체크 중단`);
+      errors += rows.length - (active + expired + errors);
+      break;
+    }
+
     try {
       const result = await checker(row.external_id, row);
+      consecutiveTimeouts = 0; // 성공 시 리셋
 
       if (result.status === "expired") {
         expired++;
@@ -297,6 +378,11 @@ async function checkPlatform(platformCode, client) {
       }
     } catch (e) {
       errors++;
+      if (e.name === "TimeoutError" || /timeout|aborted/i.test(e.message)) {
+        consecutiveTimeouts++;
+      } else {
+        consecutiveTimeouts = 0;
+      }
       console.log(`  ! ${row.external_id} — 오류: ${e.message}`);
     }
 
