@@ -3073,6 +3073,7 @@ pre {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  overflow-y: auto;
 }
 
 .fav-header {

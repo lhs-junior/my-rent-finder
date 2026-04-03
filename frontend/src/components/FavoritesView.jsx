@@ -88,9 +88,9 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
       )}
 
       <div className="listing-grid">
-        {items.map((item) => (
+        {items.filter((item) => item.listing_id != null).map((item, idx) => (
           <ListingCard
-            key={item.listing_id}
+            key={item.listing_id ?? `fav-${idx}`}
             item={item}
             onClick={() => loadDetail(item.listing_id)}
             isFavorite={isFavorite(item.listing_id)}
