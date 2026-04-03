@@ -297,17 +297,17 @@ npm run ops:full:stack
 수집된 매물을 자동으로 점수 매기고 PIN별 찜 목록에 저장합니다.
 
 ```bash
-# S급(9점↑) → PIN 1004, A급(6~8점) → PIN 1005
-node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005
+# SS급(11점↑) → PIN 1004, S급(9~10점) → PIN 1005, A급(6~8점) → PIN 1006
+node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --pin-a=1006
 
-# S급만 저장
-node scripts/score_and_pin_favorites.mjs --pin-s=1004
+# SS급만 저장
+node scripts/score_and_pin_favorites.mjs --pin-ss=1004
 
 # 저장 안 하고 점수 분포만 확인 (dry run)
-node scripts/score_and_pin_favorites.mjs --pin-s=1004 --dry-run
+node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --dry-run
 
-# S급 기준 10점, A급 기준 7점으로 조정
-node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005 --threshold-s=10 --threshold-a=7
+# 기준 커스텀: SS=12점↑, S=10점↑, A=7점↑
+node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --threshold-ss=12 --threshold-s=10 --threshold-a=7
 ```
 
 **배점 기준** (최대 13점):

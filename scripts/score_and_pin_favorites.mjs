@@ -4,10 +4,10 @@
 // 매물을 배점 기준으로 점수 매기고 PIN별 찜 목록에 저장
 //
 // 사용법:
-//   node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005
-//   node scripts/score_and_pin_favorites.mjs --pin-s=1004              # S급만
-//   node scripts/score_and_pin_favorites.mjs --pin-s=1004 --dry-run    # 저장 안 하고 집계만
-//   node scripts/score_and_pin_favorites.mjs --pin-s=1004 --threshold-s=10 --threshold-a=7
+//   node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --pin-a=1006
+//   node scripts/score_and_pin_favorites.mjs --pin-ss=1004             # SS급만
+//   node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --dry-run   # 저장 안 하고 집계만
+//   node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --threshold-ss=12 --threshold-s=9 --threshold-a=6
 
 import { withDbClient } from "./lib/db_client.mjs";
 import { hashPin } from "./lib/pin_hash.mjs";
@@ -23,8 +23,10 @@ function parseArgs() {
       }),
   );
   return {
+    pinSS: args["pin-ss"] || null,
     pinS: args["pin-s"] || null,
     pinA: args["pin-a"] || null,
+    thresholdSS: Number(args["threshold-ss"]) || 11,
     thresholdS: Number(args["threshold-s"]) || 9,
     thresholdA: Number(args["threshold-a"]) || 6,
     dryRun: args["dry-run"] === "true",
@@ -105,17 +107,19 @@ ORDER BY total_score DESC, listing_id
 async function main() {
   const opts = parseArgs();
 
-  if (!opts.pinS && !opts.pinA) {
-    console.error("오류: --pin-s 또는 --pin-a 중 하나 이상 지정 필요");
-    console.error("예시: node scripts/score_and_pin_favorites.mjs --pin-s=1004 --pin-a=1005");
+  if (!opts.pinSS && !opts.pinS && !opts.pinA) {
+    console.error("오류: --pin-ss, --pin-s, --pin-a 중 하나 이상 지정 필요");
+    console.error("예시: node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --pin-a=1006");
     process.exit(1);
   }
 
+  const pinHashSS = opts.pinSS ? hashPin(opts.pinSS) : null;
   const pinHashS = opts.pinS ? hashPin(opts.pinS) : null;
   const pinHashA = opts.pinA ? hashPin(opts.pinA) : null;
 
   console.log("── 매물 배점 시작 ──");
-  console.log(`  S급 기준: ${opts.thresholdS}점 이상${opts.pinS ? ` → PIN ${opts.pinS}` : " (건너뜀)"}`);
+  console.log(`  SS급 기준: ${opts.thresholdSS}점 이상${opts.pinSS ? ` → PIN ${opts.pinSS}` : " (건너뜀)"}`);
+  console.log(`  S급 기준: ${opts.thresholdS}~${opts.thresholdSS - 1}점${opts.pinS ? ` → PIN ${opts.pinS}` : " (건너뜀)"}`);
   console.log(`  A급 기준: ${opts.thresholdA}~${opts.thresholdS - 1}점${opts.pinA ? ` → PIN ${opts.pinA}` : " (건너뜀)"}`);
   if (opts.dryRun) console.log("  [DRY RUN] 저장하지 않고 집계만 수행");
 
@@ -123,7 +127,8 @@ async function main() {
     // 1) 점수 계산
     const { rows } = await client.query(SCORE_QUERY);
 
-    const sGrade = rows.filter((r) => r.total_score >= opts.thresholdS);
+    const ssGrade = rows.filter((r) => r.total_score >= opts.thresholdSS);
+    const sGrade = rows.filter((r) => r.total_score >= opts.thresholdS && r.total_score < opts.thresholdSS);
     const aGrade = rows.filter((r) => r.total_score >= opts.thresholdA && r.total_score < opts.thresholdS);
 
     // 점수 분포
@@ -138,15 +143,28 @@ async function main() {
       console.log(`  ${String(score).padStart(2)}점: ${String(dist[score]).padStart(4)}개 ${bar}`);
     }
 
-    console.log(`\n  S급 (${opts.thresholdS}점↑): ${sGrade.length}개`);
+    console.log(`\n  SS급 (${opts.thresholdSS}점↑): ${ssGrade.length}개`);
+    console.log(`  S급 (${opts.thresholdS}~${opts.thresholdSS - 1}점): ${sGrade.length}개`);
     console.log(`  A급 (${opts.thresholdA}~${opts.thresholdS - 1}점): ${aGrade.length}개`);
-    console.log(`  B급 (${opts.thresholdA}점↓): ${rows.length - sGrade.length - aGrade.length}개 (저장 안 함)`);
+    console.log(`  B급 (${opts.thresholdA}점↓): ${rows.length - ssGrade.length - sGrade.length - aGrade.length}개 (저장 안 함)`);
 
-    if (opts.dryRun) return { sCount: sGrade.length, aCount: aGrade.length, saved: false };
+    if (opts.dryRun) return { ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
 
     // 2) 저장
+    let ssInserted = 0;
     let sInserted = 0;
     let aInserted = 0;
+
+    if (pinHashSS && ssGrade.length > 0) {
+      const ids = ssGrade.map((r) => r.listing_id);
+      const res = await client.query(
+        `INSERT INTO pin_favorites (pin_hash, listing_id)
+         SELECT $1, UNNEST($2::int[])
+         ON CONFLICT DO NOTHING`,
+        [pinHashSS, ids],
+      );
+      ssInserted = res.rowCount;
+    }
 
     if (pinHashS && sGrade.length > 0) {
       const ids = sGrade.map((r) => r.listing_id);
@@ -170,11 +188,12 @@ async function main() {
       aInserted = res.rowCount;
     }
 
-    return { sCount: sInserted, aCount: aInserted, saved: true };
+    return { ssCount: ssInserted, sCount: sInserted, aCount: aInserted, saved: true };
   });
 
   if (result.saved) {
     console.log(`\n── 저장 완료 ──`);
+    if (pinHashSS) console.log(`  PIN ${opts.pinSS} (SS급): ${result.ssCount}개 추가`);
     if (pinHashS) console.log(`  PIN ${opts.pinS} (S급): ${result.sCount}개 추가`);
     if (pinHashA) console.log(`  PIN ${opts.pinA} (A급): ${result.aCount}개 추가`);
   }

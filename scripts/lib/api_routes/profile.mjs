@@ -28,7 +28,10 @@ export async function handleProfileRead(req, res) {
         [pinHash]
       );
       const f = await client.query(
-        "SELECT listing_id FROM pin_favorites WHERE pin_hash = $1 ORDER BY added_at DESC",
+        `SELECT pf.listing_id FROM pin_favorites pf
+         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
+         WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+         ORDER BY pf.added_at DESC`,
         [pinHash]
       );
       return [p.rows, f.rows];
