@@ -448,6 +448,50 @@ body {
 }
 .map-filter-reset:hover { background: var(--primary-light); }
 
+.map-favorites-only-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.map-favorites-only-btn:hover { background: var(--primary-light); }
+.map-favorites-only-btn--active {
+  background: #ff4d4d;
+  color: #fff;
+  border-color: #ff4d4d;
+}
+
+/* 지도 등급 필터 */
+.map-grade-filter {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0 0;
+}
+.map-grade-btn {
+  flex: 1;
+  padding: 4px 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.map-grade-btn--all { color: var(--text-muted); }
+.map-grade-btn--SS  { color: #b8860b; }
+.map-grade-btn--S   { color: #1d6fa4; }
+.map-grade-btn--A   { color: #2e7d32; }
+.map-grade-btn--active.map-grade-btn--all { background: var(--primary); color: #fff; border-color: var(--primary); }
+.map-grade-btn--active.map-grade-btn--SS  { background: #f5a623; color: #fff; border-color: #f5a623; }
+.map-grade-btn--active.map-grade-btn--S   { background: #1d6fa4; color: #fff; border-color: #1d6fa4; }
+.map-grade-btn--active.map-grade-btn--A   { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+
 .map-left-count {
   padding: 8px 12px 4px;
   font-size: 0.75rem;
@@ -3095,6 +3139,51 @@ pre {
   padding: 2px 10px;
   border-radius: 20px;
 }
+
+/* 찜 등급 필터 */
+.fav-grade-filter {
+  display: flex;
+  gap: 6px;
+  padding: 8px 0 4px;
+}
+.fav-grade-btn {
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.fav-grade-btn--all { color: var(--text-muted); }
+.fav-grade-btn--SS { color: #b8860b; }
+.fav-grade-btn--S  { color: #1d6fa4; }
+.fav-grade-btn--A  { color: #2e7d32; }
+.fav-grade-btn--active.fav-grade-btn--all { background: var(--primary); color: #fff; border-color: var(--primary); }
+.fav-grade-btn--active.fav-grade-btn--SS  { background: #f5a623; color: #fff; border-color: #f5a623; }
+.fav-grade-btn--active.fav-grade-btn--S   { background: #1d6fa4; color: #fff; border-color: #1d6fa4; }
+.fav-grade-btn--active.fav-grade-btn--A   { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+
+/* 찜 카드 래퍼 + 등급 배지 */
+.fav-card-wrapper {
+  position: relative;
+}
+.fav-grade-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+.fav-grade-badge--SS { background: #f5a623; color: #fff; }
+.fav-grade-badge--S  { background: #1d6fa4; color: #fff; }
+.fav-grade-badge--A  { background: #2e7d32; color: #fff; }
 
 .fav-loading {
   padding: 40px;

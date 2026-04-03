@@ -93,13 +93,37 @@ export default function MapLeftPanel({
             ))}
           </div>
         </div>
-        <button
-          type="button"
-          className="map-filter-reset"
-          onClick={() => onFilterChange({})}
-        >
-          초기화
-        </button>
+        <div className="map-left-filter-row2">
+          <button
+            type="button"
+            className={`map-favorites-only-btn${filters.only_favorites ? " map-favorites-only-btn--active" : ""}`}
+            aria-pressed={!!filters.only_favorites}
+            onClick={() => onFilterChange({ ...filters, only_favorites: !filters.only_favorites, grade: "" })}
+          >
+            ♥ 찜만 보기
+          </button>
+          <button
+            type="button"
+            className="map-filter-reset"
+            onClick={() => onFilterChange({})}
+          >
+            초기화
+          </button>
+        </div>
+        {filters.only_favorites && (
+          <div className="map-grade-filter">
+            {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
+              <button
+                key={opt.v}
+                type="button"
+                className={`map-grade-btn map-grade-btn--${opt.v || "all"}${(filters.grade || "") === opt.v ? " map-grade-btn--active" : ""}`}
+                onClick={() => onFilterChange({ ...filters, grade: opt.v })}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 목록 */}

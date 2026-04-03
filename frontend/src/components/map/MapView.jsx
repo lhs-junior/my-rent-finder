@@ -15,9 +15,20 @@ function toFiniteCoordinate(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
+export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavoriteGrade }) {
   const { markers, totalInBounds, loading, error, fetchMarkers } = useMapListings(apiBase);
   const [filters, setFilters] = useState({});
+
+  const displayedMarkers = (() => {
+    let result = markers;
+    if (filters.only_favorites) {
+      result = result.filter(m => isFavorite && isFavorite(m.listing_id));
+    }
+    if (filters.grade && getFavoriteGrade) {
+      result = result.filter(m => getFavoriteGrade(m.listing_id) === filters.grade);
+    }
+    return result;
+  })();
   const [selectedId, setSelectedId] = useState(null);
   const [detailId, setDetailId] = useState(null);
   const [heatmapOn, setHeatmapOn] = useState(false);
@@ -46,7 +57,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
   const handleCardClick = useCallback((listingOrId) => {
     const item = typeof listingOrId === "object" && listingOrId != null
       ? listingOrId
-      : markers.find(m => String(m.listing_id) === String(listingOrId)) || null;
+      : displayedMarkers.find(m => String(m.listing_id) === String(listingOrId)) || null;
     const id = item?.listing_id != null ? String(item.listing_id) : listingOrId != null ? String(listingOrId) : null;
     if (!id || !item) return;
     setSelectedId(id);
@@ -57,7 +68,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
     if (lat != null && lng != null) {
       mapRef.current?.focusAt?.({ lat, lng, zoom: MAP_CARD_FOCUS_ZOOM });
     }
-  }, [markers]);
+  }, [displayedMarkers]);
 
   const handleCloseDetail = useCallback(() => {
     setDetailId(null);
@@ -67,11 +78,11 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
 
   useEffect(() => {
     if (!selectedId) return;
-    if (!markers.some(m => String(m.listing_id) === selectedId)) {
+    if (!displayedMarkers.some(m => String(m.listing_id) === selectedId)) {
       setSelectedId(null);
       mapRef.current?.clearSelection?.();
     }
-  }, [markers, selectedId]);
+  }, [displayedMarkers, selectedId]);
 
   return (
     <div className="map-view-3panel">
@@ -80,8 +91,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
         <MapLeftPanel
           filters={filters}
           onFilterChange={handleFilterChange}
-          markers={markers}
-          totalInBounds={totalInBounds}
+          markers={displayedMarkers}
+          totalInBounds={filters.only_favorites ? displayedMarkers.length : totalInBounds}
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}
@@ -94,7 +105,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
           ref={mapRef}
           center={INITIAL_CENTER}
           zoom={INITIAL_ZOOM}
-          markers={markers}
+          markers={displayedMarkers}
           selectedId={selectedId}
           favoriteIds={isFavorite}
           heatmapOn={heatmapOn}
@@ -127,7 +138,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite }) {
 
       {/* 모바일: 하단 시트 */}
       <MapBottomSheet
-        markers={markers}
+        markers={displayedMarkers}
         totalInBounds={totalInBounds}
         loading={loading}
         selectedId={selectedId}

@@ -7,6 +7,7 @@ export function useProfile(apiBase = "") {
   const [pin, setPin] = useState(() => localStorage.getItem(STORAGE_KEY) || "");
   const [settings, setSettings] = useState({});
   const [favoriteIds, setFavoriteIds] = useState(new Set());
+  const [favoriteGrades, setFavoriteGrades] = useState({});
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,6 +23,7 @@ export function useProfile(apiBase = "") {
       const data = await res.json();
       setSettings(data.settings || {});
       setFavoriteIds(new Set(data.favoriteIds || []));
+      setFavoriteGrades(data.favoriteGrades || {});
       setAuthenticated(true);
       setError("");
       localStorage.setItem(STORAGE_KEY, pinValue);
@@ -68,14 +70,17 @@ export function useProfile(apiBase = "") {
 
   const isFavorite = useCallback((listingId) => favoriteIds.has(listingId), [favoriteIds]);
 
+  const getFavoriteGrade = useCallback((listingId) => favoriteGrades[listingId] || null, [favoriteGrades]);
+
   const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setPin("");
     setAuthenticated(false);
     setSettings({});
     setFavoriteIds(new Set());
+    setFavoriteGrades({});
     setError("");
   }, []);
 
-  return { pin, authenticated, settings, favoriteIds, error, signIn, signOut, saveSetting, toggleFavorite, isFavorite };
+  return { pin, authenticated, settings, favoriteIds, favoriteGrades, error, signIn, signOut, saveSetting, toggleFavorite, isFavorite, getFavoriteGrade };
 }

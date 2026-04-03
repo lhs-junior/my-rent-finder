@@ -28,7 +28,7 @@ export async function handleProfileRead(req, res) {
         [pinHash]
       );
       const f = await client.query(
-        `SELECT pf.listing_id FROM pin_favorites pf
+        `SELECT pf.listing_id, pf.grade FROM pin_favorites pf
          JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
          WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
          ORDER BY pf.added_at DESC`,
@@ -39,7 +39,10 @@ export async function handleProfileRead(req, res) {
 
     const settings = profileRows[0] || {};
     const favoriteIds = favRows.map((r) => r.listing_id);
-    sendJson(res, 200, { settings, favoriteIds });
+    const favoriteGrades = Object.fromEntries(
+      favRows.filter((r) => r.grade).map((r) => [r.listing_id, r.grade])
+    );
+    sendJson(res, 200, { settings, favoriteIds, favoriteGrades });
   } catch (e) {
     sendJson(res, 500, { error: "DB error" });
   }
@@ -81,7 +84,7 @@ export async function handleProfileFavorites(req, res) {
   try {
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
-        SELECT pf.added_at AS favorited_at,
+        SELECT pf.added_at AS favorited_at, pf.grade,
                nl.listing_id, nl.platform_code, nl.source_url, nl.external_id,
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
@@ -124,6 +127,7 @@ export async function handleProfileFavorites(req, res) {
         const fallbackImageUrls = extractImageUrlsFromPayload(row.payload_json);
         return {
           favorited_at: row.favorited_at ? new Date(row.favorited_at).toISOString() : null,
+          grade: row.grade || null,
           listing_id: listingId,
           platform_code: safeText(row.platform_code, ""),
           platform: platformNameFromCode(safeText(row.platform_code, "")),

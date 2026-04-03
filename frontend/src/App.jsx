@@ -139,7 +139,7 @@ export default function App() {
   });
   const health = useApiHealth(apiBase);
   const { favoriteIds: sessionFavoriteIds, isFavorite: sessionIsFavorite, toggleFavorite: sessionToggleFavorite } = useFavorites(apiBase);
-  const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, signOut, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite } = useProfile(apiBase);
+  const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, signOut, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite, getFavoriteGrade } = useProfile(apiBase);
   const [showPinLogin, setShowPinLogin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -264,8 +264,8 @@ export default function App() {
         {activeView === "ops" && <OperationsDashboard apiBase={apiBase} runId={runId} />}
         {activeView === "matches" && <MatchingBoard apiBase={apiBase} runId={runId} />}
         {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
-        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} /></MapErrorBoundary>}
-        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} />}
+        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} /></MapErrorBoundary>}
+        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>
     </div>

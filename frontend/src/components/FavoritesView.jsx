@@ -4,12 +4,13 @@ import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
-export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin }) {
+export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin, getFavoriteGrade }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [gradeFilter, setGradeFilter] = useState("");
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -57,6 +58,11 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
 
   const isFavorite = useCallback((id) => favoriteIds.has(id), [favoriteIds]);
 
+  const hasGrades = getFavoriteGrade && items.some(item => item.grade);
+  const filteredItems = gradeFilter
+    ? items.filter(item => (item.grade || getFavoriteGrade?.(item.listing_id)) === gradeFilter)
+    : items;
+
   if (loading && items.length === 0) {
     return <div className="fav-view"><div className="fav-loading">불러오는 중...</div></div>;
   }
@@ -67,8 +73,22 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
     <div className="fav-view">
       <div className="fav-header">
         <h2>즐겨찾기</h2>
-        <span className="fav-count">{items.length}건</span>
+        <span className="fav-count">{filteredItems.length}건</span>
       </div>
+      {hasGrades && (
+        <div className="fav-grade-filter">
+          {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`fav-grade-btn fav-grade-btn--${opt.v || "all"}${gradeFilter === opt.v ? " fav-grade-btn--active" : ""}`}
+              onClick={() => setGradeFilter(opt.v)}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      )}
 
       {error && <div className="error-box">{error}</div>}
 
@@ -88,15 +108,20 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
       )}
 
       <div className="listing-grid">
-        {items.filter((item) => item.listing_id != null).map((item, idx) => (
-          <ListingCard
-            key={item.listing_id ?? `fav-${idx}`}
-            item={item}
-            onClick={() => loadDetail(item.listing_id)}
-            isFavorite={isFavorite(item.listing_id)}
-            onToggleFavorite={() => toggleFavorite(item.listing_id)}
-          />
-        ))}
+        {filteredItems.filter((item) => item.listing_id != null).map((item, idx) => {
+          const grade = item.grade || getFavoriteGrade?.(item.listing_id) || null;
+          return (
+            <div key={item.listing_id ?? `fav-${idx}`} className="fav-card-wrapper">
+              {grade && <span className={`fav-grade-badge fav-grade-badge--${grade}`}>{grade}</span>}
+              <ListingCard
+                item={item}
+                onClick={() => loadDetail(item.listing_id)}
+                isFavorite={isFavorite(item.listing_id)}
+                onToggleFavorite={() => toggleFavorite(item.listing_id)}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {modalOpen && (

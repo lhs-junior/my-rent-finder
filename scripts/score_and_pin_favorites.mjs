@@ -26,7 +26,7 @@ function parseArgs() {
     pinSS: args["pin-ss"] || null,
     pinS: args["pin-s"] || null,
     pinA: args["pin-a"] || null,
-    thresholdSS: Number(args["threshold-ss"]) || 11,
+    thresholdSS: Number(args["threshold-ss"]) || 10,
     thresholdS: Number(args["threshold-s"]) || 9,
     thresholdA: Number(args["threshold-a"]) || 6,
     dryRun: args["dry-run"] === "true",
@@ -93,6 +93,7 @@ scored AS (
   LEFT JOIN district_avg d ON SPLIT_PART(n.address_text, ' ', 2) = d.district
   LEFT JOIN img_count img ON img.listing_id = n.listing_id
   WHERE n.lease_type = '월세' AND n.deleted_at IS NULL
+    AND (n.building_use IS NULL OR n.building_use NOT IN ('사무실','오피스텔','상가','공장','창고','토지','주차장','매장','작업실','건물','기타'))
 )
 SELECT
   listing_id,
@@ -158,9 +159,9 @@ async function main() {
     if (pinHashSS && ssGrade.length > 0) {
       const ids = ssGrade.map((r) => r.listing_id);
       const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id)
-         SELECT $1, UNNEST($2::int[])
-         ON CONFLICT DO NOTHING`,
+        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
+         SELECT $1, UNNEST($2::int[]), 'SS'
+         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'SS'`,
         [pinHashSS, ids],
       );
       ssInserted = res.rowCount;
@@ -169,9 +170,9 @@ async function main() {
     if (pinHashS && sGrade.length > 0) {
       const ids = sGrade.map((r) => r.listing_id);
       const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id)
-         SELECT $1, UNNEST($2::int[])
-         ON CONFLICT DO NOTHING`,
+        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
+         SELECT $1, UNNEST($2::int[]), 'S'
+         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'S'`,
         [pinHashS, ids],
       );
       sInserted = res.rowCount;
@@ -180,9 +181,9 @@ async function main() {
     if (pinHashA && aGrade.length > 0) {
       const ids = aGrade.map((r) => r.listing_id);
       const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id)
-         SELECT $1, UNNEST($2::int[])
-         ON CONFLICT DO NOTHING`,
+        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
+         SELECT $1, UNNEST($2::int[]), 'A'
+         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'A'`,
         [pinHashA, ids],
       );
       aInserted = res.rowCount;
