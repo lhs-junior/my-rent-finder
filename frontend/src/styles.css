@@ -3185,6 +3185,28 @@ pre {
 .fav-grade-badge--S  { background: #1d6fa4; color: #fff; }
 .fav-grade-badge--A  { background: #2e7d32; color: #fff; }
 
+/* 종료된 찜 매물 */
+.fav-card-wrapper--expired {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.fav-card-wrapper--expired .fav-expired-badge {
+  pointer-events: none;
+}
+.fav-expired-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #6B7280;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
 .fav-loading {
   padding: 40px;
   text-align: center;

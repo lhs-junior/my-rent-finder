@@ -110,9 +110,11 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
       <div className="listing-grid">
         {filteredItems.filter((item) => item.listing_id != null).map((item, idx) => {
           const grade = item.grade || getFavoriteGrade?.(item.listing_id) || null;
+          const expired = item.is_expired === true;
           return (
-            <div key={item.listing_id ?? `fav-${idx}`} className="fav-card-wrapper">
+            <div key={item.listing_id ?? `fav-${idx}`} className={`fav-card-wrapper${expired ? " fav-card-wrapper--expired" : ""}`}>
               {grade && <span className={`fav-grade-badge fav-grade-badge--${grade}`}>{grade}</span>}
+              {expired && <span className="fav-expired-badge">종료됨</span>}
               <ListingCard
                 item={item}
                 onClick={() => loadDetail(item.listing_id)}
