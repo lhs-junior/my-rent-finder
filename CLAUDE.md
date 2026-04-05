@@ -43,6 +43,22 @@ node scripts/collect_ops_pipeline.mjs
 cat reports/harness-*.json | jq '.overall, .next_actions'
 ```
 
+## Git
+
+이 리포는 `lhs-junior` 개인 계정 소유. push 전 credential 확인 필요:
+
+```bash
+# 현재 credential 확인
+git credential-manager get <<< "host=github.com"
+
+# lhs-junior 계정으로 전환 후 push
+git -c credential.helper='!gh auth token --user lhs-junior' push origin main
+
+# 또는 gh CLI로 계정 전환
+gh auth switch --user lhs-junior
+git push origin main
+```
+
 ## Key Commands
 
 ```bash
