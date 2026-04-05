@@ -144,6 +144,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         selectedId={selectedId}
         detailOpen={Boolean(detailId)}
         onCardClick={handleCardClick}
+        filters={filters}
+        onFilterChange={handleFilterChange}
       />
     </div>
   );
