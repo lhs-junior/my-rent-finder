@@ -249,7 +249,7 @@ const NON_RESIDENTIAL_PROPERTY_TYPES = new Set([
 
 // ── 비주거 키워드 (name에서 직접 검출) ──
 // 당근 title 형식: "카테고리 가격 - 설명"
-const NON_RESIDENTIAL_NAME_RE = /공장|창고|사무실|상가(?!주택)|매장|점포|토지|대지|임야|주차|작업실|작업장|^건물[\s/]|근린생활|업무\s*시설|숙박|모텔|호텔|펜션|식당|카페|치킨|편의점|세차|노래방|당구|피씨방|PC방/;
+const NON_RESIDENTIAL_NAME_RE = /공장|창고|사무실|오피스|업무용|사무용|상업용|상가(?!주택)|매장|점포|토지|대지|임야|주차|작업실|작업장|^건물[\s/]|근린생활|업무\s*시설|숙박|모텔|호텔|펜션|식당|카페|치킨|편의점|세차|노래방|당구|피씨방|PC방/;
 
 function toNumber(value) {
   if (value === null || value === undefined) return null;

@@ -12,7 +12,7 @@ const DAANGN_IMAGE_URL_HOST_HINTS = [
 const DAANGN_IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
 const DAANGN_IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
 const DAANGN_IMAGE_PATH_HINT_RE = /(?:^|\/)(?:realty\/(?:article|origin)|img|image|photo|upload|media|cdn|files?)\/?/i;
-const DAANGN_NON_RESIDENTIAL_RE = /공장|창고|사무실|상가(?!주택)|매장|점포|토지|대지|임야|주차|작업실|작업장|^건물[\s/]|근린생활|업무\s*시설|숙박|모텔|호텔|펜션|식당|카페|치킨|편의점|세차|노래방|당구|피씨방|PC방/;
+const DAANGN_NON_RESIDENTIAL_RE = /공장|창고|사무실|오피스|업무용|사무용|상업용|상가(?!주택)|매장|점포|토지|대지|임야|주차|작업실|작업장|^건물[\s/]|근린생활|업무\s*시설|숙박|모텔|호텔|펜션|식당|카페|치킨|편의점|세차|노래방|당구|피씨방|PC방/;
 
 const DAANGN_MIN_AREA_M2 = (() => {
   const rawMinArea = process.env.DAANGN_MIN_AREA_M2 ?? process.env.MIN_AREA_M2;

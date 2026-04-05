@@ -4,19 +4,20 @@
  * KB부동산 자동 수집기 v4
  *
  * 전략:
- *   1) Chrome CDP로 기존 kbland.kr 탭 연결 (새 탭/창 안 열음)
+ *   1) launchPersistentContext로 Chrome 프로필 재사용 (수동 실행 불필요)
  *   2) 지도 페이지 이동 → Vuex markerMaemulList에서 클러스터 ID 획득
  *   3) /cl/{클러스터ID} 이동 → site가 propList/filter 호출
  *   4) page.route() 인터셉트로 필터 변경 (물건종류=08,38 + 월세)
  *   5) 응답에서 propertyList 추출 (매물일련번호 + 전체 상세)
  *
- * Chrome 디버깅 모드 실행 필수:
- *   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
- *     --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"
+ * 최초 1회만 로그인 필요 (--headed 모드):
+ *   node scripts/kbland_auto_collector.mjs --headed --sigungu=노원구 --sample-cap=1
+ *   → 이후 headless 자동 실행 가능
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 
 // ── CLI 인자 ──
@@ -369,44 +370,89 @@ async function main() {
   const globalSeenIds = new Set(); // 매물일련번호 cross-district dedup
   const visitedClusters = new Set(); // 클러스터 cross-district dedup
 
-  // CDP 연결
-  let browser;
-  try {
-    browser = await chromium.connectOverCDP("http://localhost:9222");
-    console.log("✓ Chrome CDP 연결");
-  } catch (e) {
-    console.error(`✗ CDP 연결 실패: ${e.message}`);
-    console.error("  Chrome을 디버깅 모드로 실행하세요:");
-    console.error(
-      '  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"',
-    );
-    process.exit(1);
-  }
+  // Chrome 프로필 재사용 (최초 1회 --headed로 로그인 후 자동 실행 가능)
+  const userDataDir = getArg("--user-data-dir", `${process.env.HOME}/.chrome-kbland-headless`);
+  const headless = !hasFlag("--headed");
+  const chromePath = getArg(
+    "--chrome-path",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  );
+  const cdpPort = getArg("--cdp-port", "9222");
 
-  // 기존 kbland.kr 탭 찾기
-  let page = null;
-  for (const ctx of browser.contexts()) {
-    for (const p of ctx.pages()) {
-      if (p.url().includes("kbland.kr")) {
-        page = p;
-        break;
-      }
+  let context = null;
+  let browser = null;
+  let usedCdp = false;
+
+  // Chrome spawn 헬퍼: CDP 포트가 준비될 때까지 대기
+  async function spawnChromeAndWait() {
+    // 이전 실행에서 남은 SingletonLock 제거
+    for (const f of ["SingletonLock", "SingletonSocket", "SingletonCookie"]) {
+      try { fs.unlinkSync(path.join(userDataDir, f)); } catch { /* 없으면 무시 */ }
     }
-    if (page) break;
+    const effectivePath = fs.existsSync(chromePath) ? chromePath : null;
+    if (!effectivePath) throw new Error(`Chrome not found: ${chromePath}`);
+    const chromeProc = spawn(effectivePath, [
+      `--remote-debugging-port=${cdpPort}`,
+      `--user-data-dir=${userDataDir}`,
+      "--headless=new",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-blink-features=AutomationControlled",
+      "about:blank",
+    ], { detached: false, stdio: "ignore" });
+    chromeProc.unref();
+    // CDP 포트 준비될 때까지 최대 10초 대기
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 500));
+      try {
+        const res = await fetch(`http://localhost:${cdpPort}/json/version`);
+        if (res.ok) { console.log(`✓ Chrome spawn 완료 (PID ${chromeProc.pid})`); return chromeProc; }
+      } catch { /* 아직 준비 안 됨 */ }
+    }
+    throw new Error("Chrome CDP 포트 준비 타임아웃");
   }
 
+  let chromeProc = null;
+
+  // 1) CDP 연결 시도 (Chrome이 이미 실행 중이면 재사용)
+  try {
+    browser = await chromium.connectOverCDP(`http://localhost:${cdpPort}`);
+    context = browser.contexts()[0] || await browser.newContext();
+    usedCdp = true;
+    console.log(`✓ Chrome CDP 연결 (port ${cdpPort})`);
+  } catch {
+    // 2) CDP 실패 → Chrome 직접 spawn 후 CDP 연결
+    console.log(`ℹ CDP 연결 실패 → Chrome 직접 실행 (${userDataDir})`);
+    try {
+      chromeProc = await spawnChromeAndWait();
+      browser = await chromium.connectOverCDP(`http://localhost:${cdpPort}`);
+      context = browser.contexts()[0] || await browser.newContext();
+      usedCdp = true;
+      console.log(`✓ Chrome spawn + CDP 연결 성공`);
+    } catch (e) {
+      console.error(`✗ Chrome 실행 실패: ${e.message}`);
+      process.exit(1);
+    }
+  }
+
+  // kbland.kr 탭 찾기 또는 새로 열기
+  let page = null;
+  if (usedCdp) {
+    for (const ctx of browser.contexts()) {
+      for (const p of ctx.pages()) {
+        if (p.url().includes("kbland.kr")) { page = p; break; }
+      }
+      if (page) break;
+    }
+  }
   if (!page) {
-    console.log("ℹ kbland.kr 탭 없음 — 새 페이지를 생성하여 SPA 로드합니다...");
-    const context = browser.contexts()[0] || (await browser.newContext());
     page = await context.newPage();
     await page.goto("https://kbland.kr/map?xy=37.6423,127.0714,14", {
       waitUntil: "networkidle",
       timeout: 60000,
     });
-    console.log(`✓ kbland.kr 신규 탭 로드 완료: ${page.url().substring(0, 60)}`);
-  } else {
-    console.log(`✓ kbland.kr 기존 탭: ${page.url().substring(0, 60)}`);
   }
+  console.log(`✓ kbland.kr 로드 완료: ${page.url().substring(0, 60)}`);
   console.log("");
 
   for (const district of districts) {
@@ -617,6 +663,11 @@ async function main() {
   console.log(`\n  총 수집: ${allRecords.length}건 (고유 매물 ${globalSeenIds.size}개)`);
   console.log(`  방문 클러스터: ${visitedClusters.size}개 (중복 제거됨)`);
   console.log(`  데이터 품질: ${resultData.dataQuality.grade}`);
+  if (!usedCdp) await context.close();
+  // spawn으로 직접 띄운 Chrome이면 종료
+  if (chromeProc) {
+    try { chromeProc.kill(); } catch { /* 이미 종료됨 */ }
+  }
 }
 
 main()

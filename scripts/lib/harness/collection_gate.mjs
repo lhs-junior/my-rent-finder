@@ -74,6 +74,9 @@ export function evaluatePlatform(platform, data) {
   };
 }
 
+// CDP가 필요해서 launchd 환경에서 실패해도 전체 gate에 영향 없는 플랫폼
+const OPTIONAL_PLATFORMS = new Set(["kbland"]);
+
 export function evaluateCollection(summary) {
   const perPlatform = {};
   const scores = [];
@@ -82,8 +85,10 @@ export function evaluateCollection(summary) {
   for (const [platform, data] of Object.entries(summary.platforms)) {
     const result = evaluatePlatform(platform, data);
     perPlatform[platform] = result;
-    scores.push(result.score);
-    if (result.status === PHASE_STATUS.FAIL) failedPlatforms.push(platform);
+    if (!OPTIONAL_PLATFORMS.has(platform)) {
+      scores.push(result.score);
+      if (result.status === PHASE_STATUS.FAIL) failedPlatforms.push(platform);
+    }
   }
 
   const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;

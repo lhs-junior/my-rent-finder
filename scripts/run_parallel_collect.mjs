@@ -936,6 +936,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
             rawFile,
             "--output-meta",
             metaFile,
+            "--cdp-port=9998",
           ];
 
           const kblandFilters = conditionData?.filters || {};

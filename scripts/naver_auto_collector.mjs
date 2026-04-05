@@ -85,6 +85,7 @@ const outputMeta = getArg(
 );
 const headless = !hasFlag("--headed");
 const verbose = hasFlag("--verbose");
+const storageStatePath = getArg("--storage-state", `${process.env.HOME}/.naver-realestate-session.json`);
 const showArticle = parseBooleanArg("--show-article", true);
 const filterProbe = hasFlag("--filter-probe");
 const filterProbeOnly = hasFlag("--filter-probe-only");
@@ -448,12 +449,19 @@ async function captureNaverData() {
     ],
   });
 
+  // 저장된 세션 쿠키 복원 (있으면)
+  const savedSession = fs.existsSync(storageStatePath) ? storageStatePath : undefined;
+  if (savedSession) {
+    console.log(`🔑 저장된 세션 복원: ${storageStatePath}\n`);
+  }
+
   const context = await browser.newContext({
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     viewport: { width: 1400, height: 900 },
     locale: "ko-KR",
     timezoneId: "Asia/Seoul",
+    storageState: savedSession,
   });
 
   const page = await context.newPage();
@@ -869,6 +877,17 @@ async function captureNaverData() {
     }
   }
 
+  // Fallback: viewport/marker responses without cortarNo → inject gu-level address
+  const guFallbackAddress = `서울특별시 ${sigungu}`;
+  for (const resp of capturedResponses) {
+    const articles = resp.payload_json?.articleList || [];
+    for (const art of articles) {
+      if (!art._dongAddress) {
+        art._dongAddress = guFallbackAddress;
+      }
+    }
+  }
+
   // Rewrite raw file with enriched data
   rawStream.end();
   const enrichedStream = fs.createWriteStream(outputRaw, { flags: "w" });
@@ -879,6 +898,14 @@ async function captureNaverData() {
   console.log(`\n📊 Captured ${capturedResponses.length} responses (enriched)\n`);
 
   const finalState = extractMapStateFromUrl(page.url());
+
+  // 세션 쿠키 저장 (다음 실행 시 재사용)
+  try {
+    await context.storageState({ path: storageStatePath });
+    console.log(`💾 세션 저장 완료: ${storageStatePath}`);
+  } catch (e) {
+    console.warn(`⚠️  세션 저장 실패: ${e.message}`);
+  }
 
   console.log("🔒 Closing browser...\n");
   await browser.close();
