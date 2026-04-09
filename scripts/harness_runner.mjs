@@ -37,6 +37,70 @@ function readJsonSafe(filePath) {
   }
 }
 
+// summary.results 배열(platform×sigungu 조합)을 플랫폼별로 집계
+// 실제 매물은 각 result의 normalizedPath JSONL에서 읽어옴
+function buildPlatformData(summary) {
+  const rawResults = summary.results || summary.platforms || {};
+  const platformData = {};
+
+  if (Array.isArray(rawResults)) {
+    for (const r of rawResults) {
+      const platform = r.platform || (r.name || "").split(":")[0] || "unknown";
+      if (!platformData[platform]) {
+        platformData[platform] = { requested: 0, collected: 0, listings: [] };
+      }
+      // normalizedPath JSONL에서 실제 매물 로드
+      if (r.normalizedPath && fs.existsSync(r.normalizedPath)) {
+        try {
+          const lines = fs.readFileSync(r.normalizedPath, "utf8").trim().split("\n").filter(Boolean);
+          const parsed = lines.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+          platformData[platform].collected += parsed.length;
+          platformData[platform].listings.push(...parsed);
+        } catch {}
+      }
+      // targetCap이 있으면 요청 건수로 사용, 없으면 수집 건수로 대체
+      if (r.targetCap && Number.isFinite(r.targetCap)) {
+        platformData[platform].requested += r.targetCap;
+      }
+    }
+    // requested가 0이면 collected로 대체 (targetCap 없는 플랫폼)
+    for (const p of Object.values(platformData)) {
+      if (p.requested === 0) p.requested = p.collected;
+    }
+  } else {
+    for (const [platform, data] of Object.entries(rawResults)) {
+      const listings = data.listings || data.normalized || [];
+      platformData[platform] = {
+        requested: data.requested || data.target_count || listings.length,
+        collected: data.collected || data.count || listings.length,
+        listings,
+      };
+    }
+  }
+  return platformData;
+}
+
+// 모든 플랫폼의 정규화 매물 목록을 합산
+function gatherAllListings(summary) {
+  const rawResults = summary.results || summary.platforms || {};
+  const allListings = [];
+  const items = Array.isArray(rawResults) ? rawResults : Object.values(rawResults);
+  for (const r of items) {
+    if (r.normalizedPath && fs.existsSync(r.normalizedPath)) {
+      try {
+        const lines = fs.readFileSync(r.normalizedPath, "utf8").trim().split("\n").filter(Boolean);
+        for (const l of lines) {
+          try { allListings.push(JSON.parse(l)); } catch {}
+        }
+      } catch {}
+    } else {
+      const listings = r.normalized || r.listings || [];
+      allListings.push(...listings);
+    }
+  }
+  return allListings;
+}
+
 const runId = normalizeRunId(getArg(args, "--run-id", null));
 const outDir = getArg(args, "--out-dir", path.join("scripts", "parallel_collect_runs", runId));
 const workspace = path.resolve(process.cwd(), outDir);
@@ -84,20 +148,7 @@ if (!skipCollect) {
 
     const summary = readJsonSafe(summaryPath);
     if (summary) {
-      const platformData = {};
-      const rawResults = summary.results || summary.platforms || {};
-      // summary.results는 배열일 수 있음 — Object.entries(array)는 숫자 인덱스를 키로 반환하므로 변환 필요
-      const resultEntries = Array.isArray(rawResults)
-        ? rawResults.map((r) => [r.platform || r.name || r.label || "unknown", r])
-        : Object.entries(rawResults);
-      for (const [platform, data] of resultEntries) {
-        const listings = data.listings || data.normalized || [];
-        platformData[platform] = {
-          requested: data.requested || data.target_count || listings.length,
-          collected: data.collected || data.count || listings.length,
-          listings,
-        };
-      }
+      const platformData = buildPlatformData(summary);
       collectionResult = evaluateCollection({ platforms: platformData });
       collectionResult.retries = retries;
 
@@ -151,11 +202,7 @@ if (fs.existsSync(summaryPath)) {
 let normalizationResult;
 const summary = readJsonSafe(summaryPath);
 if (summary) {
-  const allListings = [];
-  for (const data of Object.values(summary.results || summary.platforms || {})) {
-    const listings = data.normalized || data.listings || [];
-    allListings.push(...listings);
-  }
+  const allListings = gatherAllListings(summary);
   normalizationResult = evaluateNormalization(allListings);
 } else {
   normalizationResult = { phase: "normalization", status: "warn", completeness: 0, null_field_counts: {}, total_normalized: 0 };
@@ -167,11 +214,7 @@ console.log(`[harness] ✓ normalization: ${normalizationResult.status} (complet
 // ═══════════════════════════════════════════
 let qualityResult;
 if (summary) {
-  const allListings = [];
-  for (const data of Object.values(summary.results || summary.platforms || {})) {
-    const listings = data.normalized || data.listings || [];
-    allListings.push(...listings);
-  }
+  const allListings = gatherAllListings(summary);
   const rents = allListings.map((l) => l.rent_amount).filter((v) => v != null && v > 0);
   const sortedRents = [...rents].sort((a, b) => a - b);
   const medianRent = sortedRents.length > 0 ? sortedRents[Math.floor(sortedRents.length / 2)] : null;
