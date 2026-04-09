@@ -10,6 +10,7 @@ export default function MapLeftPanel({
   loading,
   selectedId,
   onCardClick,
+  getFavoriteGrade,
 }) {
   const listRef = useRef(null);
 
@@ -110,7 +111,7 @@ export default function MapLeftPanel({
             초기화
           </button>
         </div>
-        {filters.only_favorites && (
+        {filters.only_favorites && getFavoriteGrade && (
           <div className="map-grade-filter">
             {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
               <button
@@ -134,30 +135,34 @@ export default function MapLeftPanel({
         {markers.length === 0 && !loading && (
           <p className="map-left-empty">해당 지역에 매물이 없습니다</p>
         )}
-        {markers.map(m => (
-          <div
-            key={m.listing_id}
-            data-listing-id={String(m.listing_id)}
-            className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
-            onClick={() => onCardClick(m)}
-          >
-            <div className="map-left-card-price">
-              {m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}
+        {markers.map(m => {
+          const grade = getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null;
+          return (
+            <div
+              key={m.listing_id}
+              data-listing-id={String(m.listing_id)}
+              className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
+              onClick={() => onCardClick(m)}
+            >
+              <div className="map-left-card-price">
+                {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}</span>}
+                {m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}
+              </div>
+              <div className="map-left-card-deposit">
+                보증 {m.deposit_amount != null ? `${m.deposit_amount}만` : "-"}
+              </div>
+              <div className="map-left-card-addr">{m.address_text || "-"}</div>
+              <div className="map-left-card-tags">
+                {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}
+                {m.floor != null && <span>{m.floor}층</span>}
+                {!!m.room_count && <span>{m.room_count}룸</span>}
+                {m.lease_type && m.lease_type !== "월세" && (
+                  <span className="map-left-card-tag--lease">{m.lease_type}</span>
+                )}
+              </div>
             </div>
-            <div className="map-left-card-deposit">
-              보증 {m.deposit_amount != null ? `${m.deposit_amount}만` : "-"}
-            </div>
-            <div className="map-left-card-addr">{m.address_text || "-"}</div>
-            <div className="map-left-card-tags">
-              {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}
-              {m.floor != null && <span>{m.floor}층</span>}
-              {!!m.room_count && <span>{m.room_count}룸</span>}
-              {m.lease_type && m.lease_type !== "월세" && (
-                <span className="map-left-card-tag--lease">{m.lease_type}</span>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -58,10 +58,18 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
 
   const isFavorite = useCallback((id) => favoriteIds.has(id), [favoriteIds]);
 
-  const hasGrades = getFavoriteGrade && items.some(item => item.grade);
+  const hasGrades = items.some(item => item.grade);
   const filteredItems = gradeFilter
     ? items.filter(item => (item.grade || getFavoriteGrade?.(item.listing_id)) === gradeFilter)
     : items;
+
+  const gradeCounts = hasGrades
+    ? items.reduce((acc, item) => {
+        const g = item.grade || getFavoriteGrade?.(item.listing_id);
+        if (g && g in acc) acc[g]++;
+        return acc;
+      }, { SS: 0, S: 0, A: 0 })
+    : null;
 
   if (loading && items.length === 0) {
     return <div className="fav-view"><div className="fav-loading">불러오는 중...</div></div>;
@@ -73,7 +81,12 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
     <div className="fav-view">
       <div className="fav-header">
         <h2>즐겨찾기</h2>
-        <span className="fav-count">{filteredItems.length}건</span>
+        <span className="fav-count">
+          {filteredItems.length}건
+          {hasGrades && gradeFilter === "" && filteredItems.length !== (gradeCounts.SS + gradeCounts.S + gradeCounts.A) && (
+            <span className="fav-count-graded"> (등급 {gradeCounts.SS + gradeCounts.S + gradeCounts.A}건)</span>
+          )}
+        </span>
       </div>
       {hasGrades && (
         <div className="fav-grade-filter">
@@ -84,7 +97,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
               className={`fav-grade-btn fav-grade-btn--${opt.v || "all"}${gradeFilter === opt.v ? " fav-grade-btn--active" : ""}`}
               onClick={() => setGradeFilter(opt.v)}
             >
-              {opt.l}
+              {opt.v ? `${opt.l}(${gradeCounts[opt.v]})` : `전체(${items.length})`}
             </button>
           ))}
         </div>

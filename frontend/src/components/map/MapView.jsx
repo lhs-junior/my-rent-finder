@@ -96,6 +96,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}
+          getFavoriteGrade={getFavoriteGrade}
         />
       </div>
 

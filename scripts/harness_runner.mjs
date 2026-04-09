@@ -85,7 +85,12 @@ if (!skipCollect) {
     const summary = readJsonSafe(summaryPath);
     if (summary) {
       const platformData = {};
-      for (const [platform, data] of Object.entries(summary.results || summary.platforms || {})) {
+      const rawResults = summary.results || summary.platforms || {};
+      // summary.results는 배열일 수 있음 — Object.entries(array)는 숫자 인덱스를 키로 반환하므로 변환 필요
+      const resultEntries = Array.isArray(rawResults)
+        ? rawResults.map((r) => [r.platform || r.name || r.label || "unknown", r])
+        : Object.entries(rawResults);
+      for (const [platform, data] of resultEntries) {
         const listings = data.listings || data.normalized || [];
         platformData[platform] = {
           requested: data.requested || data.target_count || listings.length,

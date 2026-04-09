@@ -3293,6 +3293,12 @@ pre {
   padding: 2px 10px;
   border-radius: 20px;
 }
+.fav-count-graded {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin-left: 2px;
+}
 
 /* 찜 등급 필터 */
 .fav-grade-filter {
@@ -3338,6 +3344,21 @@ pre {
 .fav-grade-badge--SS { background: #f5a623; color: #fff; }
 .fav-grade-badge--S  { background: #1d6fa4; color: #fff; }
 .fav-grade-badge--A  { background: #2e7d32; color: #fff; }
+
+/* 지도 좌측 카드 등급 뱃지 */
+.map-left-grade-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.map-left-grade-badge--SS { background: #f5a623; color: #fff; }
+.map-left-grade-badge--S  { background: #1d6fa4; color: #fff; }
+.map-left-grade-badge--A  { background: #2e7d32; color: #fff; }
 
 /* 종료된 찜 매물 */
 .fav-card-wrapper--expired {
