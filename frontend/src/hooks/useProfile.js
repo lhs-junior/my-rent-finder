@@ -22,7 +22,7 @@ export function useProfile(apiBase = "") {
       if (!res.ok) { setError("PIN이 틀렸습니다"); setAuthenticated(false); return; }
       const data = await res.json();
       setSettings(data.settings || {});
-      setFavoriteIds(new Set(data.favoriteIds || []));
+      setFavoriteIds(new Set((data.favoriteIds || []).map(Number).filter(Boolean)));
       setFavoriteGrades(data.favoriteGrades || {});
       setAuthenticated(true);
       setError("");
@@ -54,21 +54,23 @@ export function useProfile(apiBase = "") {
 
   const toggleFavorite = useCallback(async (listingId) => {
     if (!pin) return;
+    const numId = Number(listingId);
+    if (!numId) return;
     const res = await fetch(`${apiBase}/api/profile/favorites/toggle`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin, listing_id: listingId }),
+      body: JSON.stringify({ pin, listing_id: numId }),
     });
     const data = await res.json();
     setFavoriteIds((ids) => {
       const next = new Set(ids);
-      if (data.action === "added") next.add(listingId);
-      else next.delete(listingId);
+      if (data.action === "added") next.add(numId);
+      else next.delete(numId);
       return next;
     });
   }, [pin, apiBase]);
 
-  const isFavorite = useCallback((listingId) => favoriteIds.has(listingId), [favoriteIds]);
+  const isFavorite = useCallback((listingId) => favoriteIds.has(Number(listingId)), [favoriteIds]);
 
   const getFavoriteGrade = useCallback((listingId) => favoriteGrades[listingId] || null, [favoriteGrades]);
 

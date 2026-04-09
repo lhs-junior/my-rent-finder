@@ -12,7 +12,9 @@ const KBLAND_FIELD_HINTS = {
   depositKeys: ["deposit", "deposit_amount"],
   areaExclusiveKeys: ["area", "area_exclusive_m2"],
   areaGrossKeys: ["supplyArea", "area_gross_m2"],
-  roomCountKeys: ["rooms", "room_count"],
+  // rooms/bathroomCount는 건물 전체 세대·욕실 총합이므로 개별 매물 값으로 사용 안 함
+  roomCountKeys: ["room_count"],
+  bathroomCountKeys: ["bathroom_count"],
   floorKeys: ["floor"],
   totalFloorKeys: ["totalFloor", "total_floor"],
   buildingUseKeys: ["propertyType", "building_use"],

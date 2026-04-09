@@ -263,8 +263,8 @@ export default function App() {
       <main className={`app-content${activeView === "map" ? " app-content--fullwidth" : ""}`}>
         {activeView === "ops" && <OperationsDashboard apiBase={apiBase} runId={runId} />}
         {activeView === "matches" && <MatchingBoard apiBase={apiBase} runId={runId} />}
-        {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
-        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} /></MapErrorBoundary>}
+        {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} favoriteIds={favoriteIds} />}
+        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} authenticated={authenticated} pin={pin} /></MapErrorBoundary>}
         {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>

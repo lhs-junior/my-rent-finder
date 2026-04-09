@@ -15,16 +15,58 @@ function toFiniteCoordinate(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavoriteGrade }) {
-  const { markers, totalInBounds, loading, error, fetchMarkers } = useMapListings(apiBase);
+export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavoriteGrade, authenticated, pin }) {
+  const { markers: geoMarkers, totalInBounds, loading: geoLoading, error, fetchMarkers } = useMapListings(apiBase);
+  const [favMarkers, setFavMarkers] = useState([]);
+  const [favLoading, setFavLoading] = useState(false);
   const [filters, setFilters] = useState({});
+
+  // 찜만 보기 활성화 시 favorites API에서 직접 마커 로드
+  useEffect(() => {
+    if (!filters.only_favorites) {
+      setFavMarkers([]);
+      return;
+    }
+    setFavLoading(true);
+    const fetchFav = authenticated && pin
+      ? fetch(`${apiBase}/api/profile/favorites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin }),
+        })
+      : fetch(`${apiBase}/api/favorites`);
+
+    fetchFav
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
+      .then(data => {
+        const items = data.items || [];
+        setFavMarkers(
+          items
+            .filter(it => it.lat != null && it.lng != null && !it.is_expired)
+            .map(it => ({
+              listing_id: it.listing_id,
+              lat: it.lat,
+              lng: it.lng,
+              rent_amount: it.rent_amount,
+              deposit_amount: it.deposit_amount,
+              address_text: it.address_text,
+              area_exclusive_m2: it.area_exclusive_m2,
+              floor: it.floor,
+              room_count: it.room_count,
+              lease_type: it.lease_type,
+            }))
+        );
+      })
+      .catch(() => setFavMarkers([]))
+      .finally(() => setFavLoading(false));
+  }, [filters.only_favorites, authenticated, pin, apiBase]);
+
+  const markers = filters.only_favorites ? favMarkers : geoMarkers;
+  const loading = filters.only_favorites ? favLoading : geoLoading;
 
   const displayedMarkers = (() => {
     let result = markers;
-    if (filters.only_favorites) {
-      result = result.filter(m => isFavorite && isFavorite(m.listing_id));
-    }
-    if (filters.grade && getFavoriteGrade) {
+    if (filters.only_favorites && filters.grade && getFavoriteGrade) {
       result = result.filter(m => getFavoriteGrade(m.listing_id) === filters.grade);
     }
     return result;
@@ -37,12 +79,12 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const handleBoundsChange = useCallback((bounds) => {
     boundsRef.current = bounds;
-    fetchMarkers(bounds, filters);
+    if (!filters.only_favorites) fetchMarkers(bounds, filters);
   }, [fetchMarkers, filters]);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
-    if (boundsRef.current) fetchMarkers(boundsRef.current, newFilters);
+    if (!newFilters.only_favorites && boundsRef.current) fetchMarkers(boundsRef.current, newFilters);
   }, [fetchMarkers]);
 
   const handleMarkerClick = useCallback((marker) => {
@@ -92,7 +134,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           filters={filters}
           onFilterChange={handleFilterChange}
           markers={displayedMarkers}
-          totalInBounds={filters.only_favorites ? displayedMarkers.length : totalInBounds}
+          totalInBounds={filters.only_favorites ? favMarkers.length : totalInBounds}
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}

@@ -4238,3 +4238,231 @@ pre {
   display: flex;
   align-items: center;
 }
+
+/* ─── ListingSearch 개선 UI (ls-*) ─────────────────────────────── */
+.ls-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ls-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.ls-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.ls-count-badge {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+.ls-last-updated {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+.ls-header-actions {
+  display: flex;
+  gap: 8px;
+}
+.ls-btn-search {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 7px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ls-btn-search:hover:not(:disabled) { background: var(--primary-dark, #2563eb); }
+.ls-btn-search:disabled { opacity: 0.6; cursor: not-allowed; }
+.ls-btn-reset {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ls-btn-reset:hover { background: var(--panel-raised); border-color: #b8b5af; }
+
+/* 필터 영역 */
+.ls-filters {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ls-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ls-filter-row--platform { gap: 5px; }
+.ls-filter-row--main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* 필드 */
+.ls-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ls-field-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.ls-field--err .ls-field-label { color: var(--danger, #dc2626); }
+.ls-field-err {
+  font-size: 0.72rem;
+  color: var(--danger, #dc2626);
+  margin: 0;
+}
+
+/* 인풋 */
+.ls-input {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+  height: 32px;
+  box-sizing: border-box;
+}
+.ls-input:focus { border-color: var(--primary); }
+.ls-input--addr { width: 130px; }
+.ls-input--num { width: 60px; text-align: right; }
+.ls-select {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  padding: 5px 6px;
+  font-size: 0.85rem;
+  height: 32px;
+  outline: none;
+  cursor: pointer;
+}
+.ls-select:focus { border-color: var(--primary); }
+
+/* 범위 입력 */
+.ls-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ls-range-sep { color: var(--text-soft); font-size: 0.85rem; }
+
+/* 칩 그룹 */
+.ls-chip-group { display: flex; gap: 4px; }
+
+/* 칩 */
+.ls-chip {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--text-soft);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.ls-chip:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.ls-chip--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.ls-chip--fav { border-color: #f87171; color: #ef4444; }
+.ls-chip--fav.ls-chip--active { background: #ef4444; border-color: #ef4444; color: #fff; }
+.ls-chip--disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 찜 활성 태그 */
+.ls-active-tag { display: flex; gap: 6px; flex-wrap: wrap; }
+.ls-tag {
+  font-size: 0.75rem;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-weight: 500;
+}
+.ls-tag--fav { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
+/* 에러 */
+.ls-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius);
+  color: #dc2626;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+}
+
+/* 결과 헤더 */
+.ls-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ls-results-info { font-size: 0.85rem; color: var(--text-soft); }
+
+/* 페이저 */
+.ls-pager { display: flex; align-items: center; gap: 6px; }
+.ls-pager-info { font-size: 0.82rem; color: var(--text-soft); min-width: 50px; text-align: center; }
+.ls-pager-btn {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.ls-pager-btn:hover:not(:disabled) { background: var(--panel-raised); }
+.ls-pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .ls-filter-row--main { gap: 10px; }
+  .ls-input--addr { width: 110px; }
+  .ls-input--num { width: 52px; }
+}

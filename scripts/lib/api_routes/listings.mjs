@@ -152,6 +152,10 @@ export async function handleListings(req, res) {
   const limit = Math.max(1, parseQueryInt(url.searchParams.get("limit"), 50));
   const offset = Math.max(0, parseQueryInt(url.searchParams.get("offset"), 0));
   const leaseType = safeText(url.searchParams.get("lease_type"), null);
+  const favoriteIdsParam = safeText(url.searchParams.get("favorite_ids"), null);
+  const favoriteIdsList = favoriteIdsParam
+    ? favoriteIdsParam.split(",").map(s => parseInt(s.trim(), 10)).filter(n => Number.isFinite(n) && n > 0)
+    : null;
 
   const listingRows = await withDbClient(async (client) => {
     const cond = ["1=1", "nl.deleted_at IS NULL"];
@@ -215,6 +219,10 @@ export async function handleListings(req, res) {
     if (buildingUse) {
       params.push(`%${buildingUse}%`);
       cond.push(`nl.building_use ILIKE $${params.length}`);
+    }
+    if (favoriteIdsList && favoriteIdsList.length > 0) {
+      params.push(favoriteIdsList);
+      cond.push(`nl.listing_id = ANY($${params.length})`);
     }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
