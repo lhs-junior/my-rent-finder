@@ -23,7 +23,8 @@ export function useProfile(apiBase = "") {
       const data = await res.json();
       setSettings(data.settings || {});
       setFavoriteIds(new Set((data.favoriteIds || []).map(Number).filter(Boolean)));
-      setFavoriteGrades(data.favoriteGrades || {});
+      const grades = data.favoriteGrades || {};
+      setFavoriteGrades(Object.fromEntries(Object.entries(grades).map(([k, v]) => [String(k), v])));
       setAuthenticated(true);
       setError("");
       localStorage.setItem(STORAGE_KEY, pinValue);
@@ -72,7 +73,7 @@ export function useProfile(apiBase = "") {
 
   const isFavorite = useCallback((listingId) => favoriteIds.has(Number(listingId)), [favoriteIds]);
 
-  const getFavoriteGrade = useCallback((listingId) => favoriteGrades[listingId] || null, [favoriteGrades]);
+  const getFavoriteGrade = useCallback((listingId) => favoriteGrades[String(listingId)] || null, [favoriteGrades]);
 
   const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);

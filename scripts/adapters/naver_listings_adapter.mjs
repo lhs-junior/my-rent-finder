@@ -923,10 +923,28 @@ function parseFloorRaw(raw) {
     return { floor: -Math.max(1, Number(basementPair[1])), total_floor: Number(basementPair[2]) };
   }
 
-  // Naver "고/3", "중/4", "저/3" format: relative floor / total
-  const relativePair = /^(고|중|저)\s*\/\s*(\d+)/i.exec(s);
-  if (relativePair) {
-    return { floor: null, total_floor: Number(relativePair[2]) };
+  // "지/N" format: 지하층 abbreviated (e.g. "지/3")
+  const jiPair = /^지\s*\/\s*(\d+)/i.exec(s);
+  if (jiPair) {
+    return { floor: -1, total_floor: Number(jiPair[1]) };
+  }
+
+  // "반지하/N" or standalone "반지하"
+  if (/반지하/i.test(s)) {
+    const totalMatch = /\/\s*(\d+)/.exec(s);
+    return { floor: -1, total_floor: totalMatch ? Number(totalMatch[1]) : null };
+  }
+
+  // Naver "고/3", "중/4" format: relative floor / total (층수 불명)
+  const highMidPair = /^(고|중)\s*\/\s*(\d+)/i.exec(s);
+  if (highMidPair) {
+    return { floor: null, total_floor: Number(highMidPair[2]) };
+  }
+
+  // Naver "저/3" format: 저층 = 반지하/1층 → floor=0 (탈락 대상)
+  const lowPair = /^저\s*\/\s*(\d+)/i.exec(s);
+  if (lowPair) {
+    return { floor: 0, total_floor: Number(lowPair[1]) };
   }
 
   const pair = /(\d+)\s*\/\s*(\d+)/.exec(s);
@@ -950,7 +968,7 @@ function parseFloorRaw(raw) {
     return { floor: Number(onlyFloor[1]), total_floor: null };
   }
 
-  if (/(반지하|옥탑|반납|옥상)/i.test(s)) {
+  if (/(옥탑|옥상)/i.test(s)) {
     return { floor: null, total_floor: null };
   }
 

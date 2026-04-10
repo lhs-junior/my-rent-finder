@@ -119,6 +119,7 @@ const DABANG_FIELD_HINTS = {
     "location.lng",
   ],
   roomCountKeys: [
+    "beds_num",
     "room_type_str",
     "room_type_main_str",
     "roomTypeName",

@@ -73,9 +73,9 @@ export default function ListingCard({
   const area = item.area_exclusive_m2 || item.area_gross_m2 || item.area_m2;
   const searchVariant = variant === "search";
   const tags = [
-    area ? `${area}m²` : null,
-    item.room_count ? `${item.room_count}룸` : null,
+    area ? `${area}㎡` : null,
     item.floor != null ? `${item.floor}층` : null,
+    item.room_count ? `${item.room_count}룸` : null,
     item.building_use || null,
     item.lease_type === "매매" && item.building_year ? `${item.building_year}년` : null,
   ].filter(Boolean);

@@ -3344,6 +3344,16 @@ pre {
 .fav-grade-badge--SS { background: #f5a623; color: #fff; }
 .fav-grade-badge--S  { background: #1d6fa4; color: #fff; }
 .fav-grade-badge--A  { background: #2e7d32; color: #fff; }
+.fav-platform-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #e8e8e8;
+  color: #666;
+  margin-left: 2px;
+  vertical-align: middle;
+}
 
 /* 지도 좌측 카드 등급 뱃지 */
 .map-left-grade-badge {
@@ -3359,6 +3369,16 @@ pre {
 .map-left-grade-badge--SS { background: #f5a623; color: #fff; }
 .map-left-grade-badge--S  { background: #1d6fa4; color: #fff; }
 .map-left-grade-badge--A  { background: #2e7d32; color: #fff; }
+.map-left-platform-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #e8e8e8;
+  color: #666;
+  margin-left: 2px;
+  vertical-align: middle;
+}
 
 /* 종료된 찜 매물 */
 .fav-card-wrapper--expired {

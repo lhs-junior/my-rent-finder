@@ -1145,7 +1145,7 @@ export class BaseUserOnlyAdapter extends BaseListingAdapter {
     const totalFloor = floorData.total_floor || parseFloor(pick(row, this.hints.totalFloorKeys, null)).total_floor;
 
     const roomCountRaw = pick(row, this.hints.roomCountKeys, null);
-    const roomCount = Number(roomCountRaw) || parseRoom(pick(row, this.hints.titleKeys, null) || pick(row, this.hints.rawTextKeys, null));
+    const roomCount = Number(roomCountRaw) || parseRoom(roomCountRaw) || parseRoom(pick(row, this.hints.titleKeys, null) || pick(row, this.hints.rawTextKeys, null));
     const bathroomCount = Number(pick(row, this.hints.bathroomCountKeys, null)) || null;
 
     const latKeys = this.hints.latKeys || ["lat", "latitude", "y", "위도"];

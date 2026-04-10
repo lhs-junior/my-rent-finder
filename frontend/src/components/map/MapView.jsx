@@ -54,6 +54,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               floor: it.floor,
               room_count: it.room_count,
               lease_type: it.lease_type,
+              platform_code: it.platform_code || null,
+              grade: it.grade || null,
             }))
         );
       })
@@ -66,8 +68,11 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const displayedMarkers = (() => {
     let result = markers;
-    if (filters.only_favorites && filters.grade && getFavoriteGrade) {
-      result = result.filter(m => getFavoriteGrade(m.listing_id) === filters.grade);
+    if (filters.only_favorites && filters.grade) {
+      result = result.filter(m => {
+        const grade = m.grade || (getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null);
+        return grade === filters.grade;
+      });
     }
     return result;
   })();
@@ -134,7 +139,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           filters={filters}
           onFilterChange={handleFilterChange}
           markers={displayedMarkers}
-          totalInBounds={filters.only_favorites ? favMarkers.length : totalInBounds}
+          totalInBounds={filters.only_favorites ? displayedMarkers.length : totalInBounds}
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}

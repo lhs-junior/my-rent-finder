@@ -12,8 +12,8 @@ const KBLAND_FIELD_HINTS = {
   depositKeys: ["deposit", "deposit_amount"],
   areaExclusiveKeys: ["area", "area_exclusive_m2"],
   areaGrossKeys: ["supplyArea", "area_gross_m2"],
-  // rooms/bathroomCount는 건물 전체 세대·욕실 총합이므로 개별 매물 값으로 사용 안 함
-  roomCountKeys: ["room_count"],
+  // rooms: 개별 매물 방수 (1~3이 99.5%), 5이상은 건물 총합이므로 post-processing에서 cap
+  roomCountKeys: ["room_count", "rooms"],
   bathroomCountKeys: ["bathroom_count"],
   floorKeys: ["floor"],
   totalFloorKeys: ["totalFloor", "total_floor"],
@@ -66,6 +66,11 @@ export class KblandListingAdapter extends BaseUserOnlyAdapter {
       // building_use 보정 (parseBuildingUseFallback의 "연립/다세대" 오매핑 수정)
       if (correctedBuildingUse) {
         item.building_use = correctedBuildingUse;
+      }
+
+      // rooms > 4이면 건물 총합이므로 null 처리
+      if (item.room_count != null && item.room_count > 4) {
+        item.room_count = null;
       }
 
       return item;

@@ -53,10 +53,11 @@ function platformBadgeStyle(platform) {
 
 export default function MapListingCard({ marker, isSelected, onClick, isFavorite, onToggleFavorite }) {
   const m = marker;
+  const area = m.area_exclusive_m2 || m.area_m2;
   const details = [
-    m.area_m2 ? `${m.area_m2}m²` : null,
+    area ? `${area}㎡` : null,
+    m.floor != null ? `${m.floor}층` : null,
     m.room_count ? `${m.room_count}룸` : null,
-    m.floor ? `${m.floor}층` : null,
   ].filter(Boolean).join(" · ");
   const price = normalizeDisplayMoney(m);
 

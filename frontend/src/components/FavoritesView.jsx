@@ -136,6 +136,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
           return (
             <div key={item.listing_id ?? `fav-${idx}`} className={`fav-card-wrapper${expired ? " fav-card-wrapper--expired" : ""}`}>
               {grade && <span className={`fav-grade-badge fav-grade-badge--${grade}`}>{grade}</span>}
+              {item.platform_code && <span className="fav-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[item.platform_code] || item.platform_code}</span>}
               {expired && <span className="fav-expired-badge">종료됨</span>}
               <ListingCard
                 item={item}

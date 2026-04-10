@@ -646,6 +646,7 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
           "roomCount",
           "room_cnt",
           "room_cnts",
+          "name",
         ],
         bathroomCountKeys: [
           "bathroomCnt",

@@ -146,6 +146,7 @@ export default function MapLeftPanel({
             >
               <div className="map-left-card-price">
                 {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}</span>}
+                {m.platform_code && <span className="map-left-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[m.platform_code] || m.platform_code}</span>}
                 {m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}
               </div>
               <div className="map-left-card-deposit">
@@ -153,7 +154,7 @@ export default function MapLeftPanel({
               </div>
               <div className="map-left-card-addr">{m.address_text || "-"}</div>
               <div className="map-left-card-tags">
-                {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}
+                {(m.area_exclusive_m2 || m.area_m2) && <span>{m.area_exclusive_m2 || m.area_m2}㎡</span>}
                 {m.floor != null && <span>{m.floor}층</span>}
                 {!!m.room_count && <span>{m.room_count}룸</span>}
                 {m.lease_type && m.lease_type !== "월세" && (

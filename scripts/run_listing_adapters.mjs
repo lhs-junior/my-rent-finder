@@ -61,6 +61,10 @@ function applyOutputFilters(items) {
     const depositAmount = toFiniteNumber(item?.deposit_amount);
     const area = pickComparableArea(item);
 
+    // 반지하/지하 제외 (floor <= 0)
+    const floor = toFiniteNumber(item?.floor);
+    if (floor !== null && floor <= 0) return false;
+
     if (filterRentMax > 0 && rentAmount !== null && rentAmount > filterRentMax) return false;
     if (filterDepositMax > 0 && depositAmount !== null && depositAmount > filterDepositMax) return false;
     if (filterMinArea > 0 && area !== null && area < filterMinArea) return false;

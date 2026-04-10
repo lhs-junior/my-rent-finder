@@ -248,7 +248,39 @@ if (matcherOutput?.pairs) {
 console.log(`[harness] ✓ matching: ${matchResult.status} (auto: ${matchResult.auto_matched}, promoted: ${matchResult.evaluator_promoted}, uncertain: ${matchResult.still_uncertain})`);
 
 // ═══════════════════════════════════════════
-// Phase 6: Build Final Report
+// Phase 6: 종료 매물 체크
+// ═══════════════════════════════════════════
+if (!hasArg(args, "--skip-status")) {
+  try {
+    const statusScript = path.resolve(import.meta.dirname, "check_listing_status.mjs");
+    runPhase("listing status check", statusScript, ["--platform", "all"]);
+    console.log("[harness] ✓ listing status check complete");
+  } catch (err) {
+    console.error(`[harness] ⚠ listing status check error: ${err.message}`);
+  }
+} else {
+  console.log("[harness] ▶ skipping listing status check (--skip-status)");
+}
+
+// ═══════════════════════════════════════════
+// Phase 7: 배점 + 찜 저장
+// ═══════════════════════════════════════════
+if (!hasArg(args, "--skip-score")) {
+  try {
+    const scoreScript = path.resolve(import.meta.dirname, "score_and_pin_favorites.mjs");
+    runPhase("score & pin favorites", scoreScript, [
+      "--pin=1004", "--threshold-ss=10", "--threshold-s=8", "--threshold-a=6",
+    ]);
+    console.log("[harness] ✓ score & pin favorites complete");
+  } catch (err) {
+    console.error(`[harness] ⚠ score & pin error: ${err.message}`);
+  }
+} else {
+  console.log("[harness] ▶ skipping score & pin (--skip-score)");
+}
+
+// ═══════════════════════════════════════════
+// Phase 8: Build Final Report
 // ═══════════════════════════════════════════
 const durationMs = Date.now() - startTime;
 const report = buildReport(runId, {
