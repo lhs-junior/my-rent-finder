@@ -294,33 +294,40 @@ npm run ops:full:stack
 
 ### 매물 배점 & 찜 자동 저장
 
-수집된 매물을 자동으로 점수 매기고 PIN별 찜 목록에 저장합니다.
+수집된 매물을 자동으로 점수 매기고 PIN별 찜 목록에 저장합니다. 하네스 파이프라인(`harness_runner.mjs`)에 통합되어 수집 시 자동 실행됩니다.
 
 ```bash
-# SS급(11점↑) → PIN 1004, S급(9~10점) → PIN 1005, A급(6~8점) → PIN 1006
-node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --pin-a=1006
+# 하네스 파이프라인 (권장 — 수집→정규화→매칭→종료체크→배점 전체 실행)
+node scripts/harness_runner.mjs
 
-# SS급만 저장
-node scripts/score_and_pin_favorites.mjs --pin-ss=1004
+# 배점만 수동 실행
+node scripts/score_and_pin_favorites.mjs --pin=1004 \
+  --threshold-ss=10 --threshold-s=8 --threshold-a=6
 
 # 저장 안 하고 점수 분포만 확인 (dry run)
-node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --dry-run
+node scripts/score_and_pin_favorites.mjs --pin=1004 --dry-run \
+  --threshold-ss=10 --threshold-s=8 --threshold-a=6
 
-# 기준 커스텀: SS=12점↑, S=10점↑, A=7점↑
-node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --threshold-ss=12 --threshold-s=10 --threshold-a=7
+# 종료 매물 체크만 수동 실행
+node scripts/check_listing_status.mjs --platform all
 ```
 
-**배점 기준** (최대 13점):
+**배점 기준** (최대 15점, 회사: 헤이그라운드 서울숲점):
 
 | 항목       | 배점  | 기준                                                  |
 | ---------- | ----- | ----------------------------------------------------- |
-| 층수       | 0~3점 | 3층↑=3, 2층=2, 1층/모름=1, **반지하=탈락**            |
-| 사진       | 0~3점 | 5장↑=3, 3~4장=2, 1~2장=1, **0장=탈락**               |
-| 가성비     | 0~3점 | 구평균 80%↓=3, 100%↓=2, 120%↓=1, **150%↑=탈락**      |
-| 방향       | 0~2점 | 남향/남동=2, 동/남서=1                                |
-| 건물유형   | 0~2점 | 빌라/연립/투룸↑=2, 단독/다가구=1                      |
+| 회사 거리  | 0~4점 | ≤3km=4, ≤5km=3, ≤7km=2, ≤10km=1, 초과=0             |
+| 지하철 거리| 0~2점 | ≤400m=2, ≤700m=1, 초과=0 (서울 핵심 30개 역 기준)     |
+| 면적       | 0~3점 | ≥50㎡=3, ≥40㎡=2, ≥33㎡=1                            |
+| 연식       | 0~3점 | ≥2015=3, ≥2010=2, ≥2005=1, 불명=0                    |
+| 층수       | 0~2점 | 3층↑=2, 2층=1                                        |
+| 사진       | 0~1점 | 5장↑=1                                               |
 
-탈락 조건(반지하, 사진 없음, 가격 이상치)에 해당하는 매물은 점수와 무관하게 제외됩니다.
+**등급**: SS=10점↑, S=8~9점, A=6~7점
+
+**탈락 조건**: 반지하/지하(floor≤0), 저층("저/N"), 옥탑방, 1룸/원룸(room_count≤1), 사진0장, 가격이상치(구평균 150%↑)
+
+**중복 제거**: lat/lng 근사 + 동일 월세 → 크로스플랫폼 중복 시 최고점만 유지
 
 ### QA / 개발
 
@@ -345,21 +352,18 @@ node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --threshold-
 ## 데이터 파이프라인
 
 ```text
-수집 (Playwright)  →  정규화  →  DB 저장  →  지오코딩  →  중복 매칭  →  대시보드
-
-naver              adapters/   raw_listings   카카오 API   matcher_v1   API 서버
-dabang             *_adapter   normalized_    lat/lng      match_       React SPA
-zigbang                        listings       백필         groups       + 카카오맵
-peterpanz
-daangn
+수집 → 정규화 → DB 저장 → 매칭 → 종료 체크 → 배점/찜 → API → 프론트엔드
 ```
 
-1. **수집**: 각 플랫폼에서 Playwright Stealth로 매물 데이터 크롤링
-2. **정규화**: 플랫폼별 어댑터가 통합 스키마로 변환 (주소 코드, 면적 m², 월세/보증금 등)
+1. **수집**: 6개 플랫폼에서 Playwright Stealth로 매물 크롤링 (반지하 자동 제외)
+2. **정규화**: 플랫폼별 어댑터가 통합 스키마로 변환 (주소, 면적 ㎡, 월세/보증금, 방수)
 3. **DB 저장**: raw + normalized 매물을 PostgreSQL에 저장
-4. **지오코딩**: 카카오 주소 검색 API로 매물 주소 → 위경도 좌표 변환
-5. **중복 매칭**: 주소·면적·가격·속성 기반 가중 점수로 동일 매물 식별 (93점 이상 자동 매칭)
-6. **대시보드**: REST API + React SPA + 카카오맵으로 결과 조회
+4. **중복 매칭**: 주소·면적·가격·속성 기반 가중 점수로 동일 매물 식별 (93점 이상 자동 매칭)
+5. **종료 체크**: 각 플랫폼 API로 매물 활성/종료 확인 → `deleted_at` 설정
+6. **배점/찜**: 회사거리+지하철+면적+연식+층수+사진 가중 점수 → SS/S/A 등급 → pin_favorites 저장
+7. **대시보드**: REST API + React SPA + 카카오맵으로 결과 조회
+
+`node scripts/harness_runner.mjs` 하나로 1~6단계 전체 실행. `--skip-collect`, `--skip-status`, `--skip-score` 옵션으로 단계별 스킵 가능.
 
 ## Docker 전체 실행
 
