@@ -148,10 +148,11 @@ const DISTRICT_IDS = {
 };
 
 // ── 주거용 매물 타입 필터 ──
-// SingleFamilyResidence: 원룸, 투룸, 빌라
-// Place: 주택 (일부 주거용)
-// Apartment: 아파트 (제외 - 우리 프로젝트는 빌라/다가구 대상)
+// JSON-LD @type 기반 (구버전): SingleFamilyResidence, Place
+// salesType 기반 (신버전, 2026-04~): OPEN_ONE_ROOM, TWO_ROOM, SPLIT_ONE_ROOM, ETC
+// STORE(상가), APART(아파트)는 제외
 const RESIDENTIAL_TYPES = new Set(["SingleFamilyResidence", "Place"]);
+const RESIDENTIAL_SALES_TYPES = new Set(["OPEN_ONE_ROOM", "TWO_ROOM", "SPLIT_ONE_ROOM", "ETC", "VILLA", "DANDOK"]);
 
 // ── 가격 파싱 ──
 function parsePrice(name) {
@@ -1430,12 +1431,19 @@ async function collectDistrict(districtName, locationId) {
     );
 
   // 2. 주거용 타입만 필터링
+  // JSON-LD @type(구버전) 또는 remixContext salesType(신버전) 기반 판별
   const residentialItems = districtItems
     .map((item) => ({
       ...item,
       _detail: getDaangnDetail(detailMap, item),
     }))
-    .filter((item) => RESIDENTIAL_TYPES.has(item["@type"]));
+    .filter((item) => {
+      // 신버전: salesType으로 판별
+      const salesType = item._detail?.salesType || item._detail?.salesTypeV2;
+      if (salesType) return RESIDENTIAL_SALES_TYPES.has(salesType);
+      // 구버전: @type으로 판별 (fallback)
+      return RESIDENTIAL_TYPES.has(item["@type"]);
+    });
   await hydrateItemsWithDetail(residentialItems);
   if (verbose)
     console.log(
