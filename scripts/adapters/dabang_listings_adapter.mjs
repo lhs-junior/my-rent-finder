@@ -160,14 +160,12 @@ const DABANG_FIELD_HINTS = {
     "direction_str",
   ],
   buildingUseKeys: [
-    "buildingUse",
-    "building_use",
-    "buildingType",
-    "building_type",
+    // roomTypeName: 다방이 제공하는 한글 건물 유형 (원룸/투룸 등)
     "roomTypeName",
     "house_type",
     "houseType",
-    "building_use_types_str",
+    // buildingType/building_type 은 숫자 코드이므로 제외
+    // building_use_types_str 은 배열이므로 normalizeFromRawRecord에서 별도 처리
   ],
   sourceUrlKeys: [
     "source_url",
@@ -389,6 +387,25 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
         normalized.area_exclusive_m2_min = areaFromDesc;
         normalized.area_exclusive_m2_max = areaFromDesc;
         normalized.area_claimed = "exclusive";
+      }
+    }
+
+    // building_use: building_use_types_str 배열 → 한글 문자열로 변환
+    // 숫자 코드(1,2,3 등)가 그대로 들어온 경우 무효화
+    {
+      const bu = normalized.building_use;
+      if (bu != null && /^\d+$/.test(String(bu))) {
+        // 숫자 코드 → null
+        normalized.building_use = null;
+      }
+      if (normalized.building_use == null) {
+        const buTypes = mergedRow?.building_use_types_str || mergedRow?.buildingUseTypesStr;
+        if (Array.isArray(buTypes) && buTypes.length > 0) {
+          const text = buTypes.filter(Boolean).join("/");
+          if (text) normalized.building_use = text;
+        } else if (typeof buTypes === "string" && buTypes.trim()) {
+          normalized.building_use = buTypes.trim();
+        }
       }
     }
 
