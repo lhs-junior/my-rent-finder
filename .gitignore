@@ -100,9 +100,11 @@ scripts/qa/*_fidelity_*.json
 scripts/*.jsonl
 
 # Keep fixtures and reference data
-!scripts/*_raw_samples.jsonl
 !scripts/*_sniffed_data*.json
 !scripts/kbland_probe_report.json
+
+# Harness reports (자동 생성)
+reports/harness-*.json
 
 # Editor
 .vscode/
