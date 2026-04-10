@@ -1317,6 +1317,78 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
   return listingId;
 }
 
+const IMAGE_BATCH_SIZE = 200;
+
+function buildBatchUpsertSql(batchSize, onConflictClause) {
+  const valuesClauses = [];
+  for (let i = 0; i < batchSize; i++) {
+    const off = i * 4;
+    valuesClauses.push(`($${off + 1}, $${off + 2}, $${off + 3}, 'queued', $${off + 4})`);
+  }
+  return `
+    INSERT INTO listing_images (listing_id, raw_id, source_url, status, is_primary)
+    VALUES ${valuesClauses.join(", ")}
+    ON CONFLICT ${onConflictClause} DO UPDATE
+    SET raw_id = EXCLUDED.raw_id,
+        listing_id = EXCLUDED.listing_id,
+        status = CASE
+          WHEN listing_images.status IN ('downloaded') THEN 'downloaded'
+          ELSE EXCLUDED.status
+        END,
+        is_primary = listing_images.is_primary OR EXCLUDED.is_primary
+  `;
+}
+
+function flattenBatchParams(batch) {
+  const params = [];
+  for (const item of batch) {
+    params.push(item.listingId, item.rawId, item.sourceUrl, item.isPrimary);
+  }
+  return params;
+}
+
+async function upsertImageBatch(client, batch) {
+  const params = flattenBatchParams(batch);
+  const primarySql = buildBatchUpsertSql(batch.length, "(listing_id, source_url)");
+  try {
+    await client.query(primarySql, params);
+    return;
+  } catch (error) {
+    if (error?.code === "42P10") {
+      const fallbackSql = buildBatchUpsertSql(batch.length, "(source_url)");
+      try {
+        await client.query(fallbackSql, params);
+        return;
+      } catch (fbErr) {
+        if (fbErr?.code !== "23503") throw fbErr;
+      }
+    }
+    if (error?.code === "23503") {
+      // FK violation in batch → row-by-row fallback for this batch only
+      for (const item of batch) {
+        const rowParams = [item.listingId, item.rawId, item.sourceUrl, item.isPrimary];
+        try {
+          await client.query(buildBatchUpsertSql(1, "(listing_id, source_url)"), rowParams);
+        } catch (rowErr) {
+          if (rowErr?.code === "42P10") {
+            try {
+              await client.query(buildBatchUpsertSql(1, "(source_url)"), rowParams);
+            } catch (fbRowErr) {
+              if (fbRowErr?.code !== "23503") throw fbRowErr;
+            }
+          } else if (rowErr?.code === "23503") {
+            // skip FK violation silently
+          } else {
+            throw rowErr;
+          }
+        }
+      }
+      return;
+    }
+    throw error;
+  }
+}
+
 async function upsertImageQueue(client, imageQueue) {
   if (!Array.isArray(imageQueue) || imageQueue.length === 0) return;
 
@@ -1332,69 +1404,14 @@ async function upsertImageQueue(client, imageQueue) {
     const key = `${listingId}|${sourceUrl}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    normalizedItems.push({
-      listingId,
-      rawId,
-      sourceUrl,
-      isPrimary,
-    });
+    normalizedItems.push({ listingId, rawId, sourceUrl, isPrimary });
   }
 
   if (!normalizedItems.length) return;
 
-  const upsertByListingSource = `
-      INSERT INTO listing_images (
-        listing_id,
-        raw_id,
-        source_url,
-        status,
-        is_primary
-      ) VALUES ($1, $2, $3, 'queued', $4)
-      ON CONFLICT (listing_id, source_url) DO UPDATE
-      SET raw_id = EXCLUDED.raw_id,
-          listing_id = EXCLUDED.listing_id,
-          status = CASE
-            WHEN listing_images.status IN ('downloaded') THEN 'downloaded'
-            ELSE EXCLUDED.status
-          END,
-          is_primary = listing_images.is_primary OR EXCLUDED.is_primary
-      `;
-
-  for (const item of normalizedItems) {
-    const params = [item.listingId, item.rawId, item.sourceUrl, item.isPrimary];
-    try {
-      await client.query(upsertByListingSource, params);
-      continue;
-    } catch (error) {
-      if (error?.code === "42P10") {
-        const upsertBySourceUrl = `
-            INSERT INTO listing_images (
-              listing_id,
-              raw_id,
-              source_url,
-              status,
-              is_primary
-            ) VALUES ($1, $2, $3, 'queued', $4)
-            ON CONFLICT (source_url) DO UPDATE
-            SET raw_id = EXCLUDED.raw_id,
-                listing_id = EXCLUDED.listing_id,
-                status = CASE
-                  WHEN listing_images.status IN ('downloaded') THEN 'downloaded'
-                  ELSE EXCLUDED.status
-                END,
-                is_primary = listing_images.is_primary OR EXCLUDED.is_primary
-            `;
-        await client.query(upsertBySourceUrl, params);
-        continue;
-      }
-      if (error?.code === "23503") {
-        console.warn(
-          `⚠️  listing_images FK violation skipped: listing_id=${item.listingId} not in normalized_listings (source_url=${item.sourceUrl})`,
-        );
-        continue;
-      }
-      throw error;
-    }
+  for (let i = 0; i < normalizedItems.length; i += IMAGE_BATCH_SIZE) {
+    const batch = normalizedItems.slice(i, i + IMAGE_BATCH_SIZE);
+    await upsertImageBatch(client, batch);
   }
 }
 
