@@ -98,7 +98,7 @@ function buildNaverHouseUrl(options) {
   if (ms) target.searchParams.set("ms", ms);
   target.searchParams.set("a", a || DEFAULT_NAVER_A);
   target.searchParams.set("b", b || "B2");
-  target.searchParams.set("d", d || "80");
+  target.searchParams.set("d", d || "100");
   target.searchParams.set("e", e || "RETAIL");
   target.searchParams.set("articleNo", articleNo);
 
@@ -118,7 +118,7 @@ function resolveNaver(listing, sourceRef) {
   const listingTrade = parseLeaseTypeToNaverTrade(
     normalizeText(listing?.tradeTypeCode || listing?.lease_type || listing?.leaseType),
   );
-  const rentMax = normalizeText(listing?.rent_amount) || "80";
+  const rentMax = normalizeText(listing?.rent_amount) || "100";
 
   for (const raw of sourceCandidates) {
     const parsed = toUrl(raw);

@@ -54,7 +54,7 @@ function normalizeSampleCap(raw, fallback = 100) {
 
 const sigungu = getArg("--sigungu", "노원구");
 const sampleCap = normalizeSampleCap(getArg("--sample-cap", "100"), 100);
-const rentMax = getIntArg("--rent-max", 80);
+const rentMax = getIntArg("--rent-max", 100);
 const depositMax = getIntArg("--deposit-max", 6000);
 const minArea = getIntArg("--min-area", 40);
 const outputRaw = getArg("--output-raw", "scripts/zigbang_raw_samples.jsonl");

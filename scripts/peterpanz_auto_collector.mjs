@@ -55,7 +55,7 @@ function normalizeSampleCap(raw, fallback = 100) {
 
 const sigungu = getArg("--sigungu", "노원구");
 const sampleCap = normalizeSampleCap(getArg("--sample-cap", "100"), 100);
-const rentMax = getIntArg("--rent-max", 80); // 만원
+const rentMax = getIntArg("--rent-max", 100); // 만원
 const depositMax = getIntArg("--deposit-max", 6000); // 만원
 const minAreaM2 = getIntArg("--min-area", 40); // m²
 const outputRaw = getArg("--output-raw", "scripts/peterpanz_raw_samples.jsonl");

@@ -33,7 +33,7 @@ function normalizeSampleCap(raw, fallback = 100) {
 
 const sigungu = getArg("--sigungu", "노원구");
 const sampleCap = normalizeSampleCap(getArg("--sample-cap", "100"), 100);
-const rentMax = Number(getArg("--rent-max", "80"));
+const rentMax = Number(getArg("--rent-max", "100"));
 const depositMax = Number(getArg("--deposit-max", "6000"));
 const minAreaM2 = Number(getArg("--min-area", "40"));
 const outputRaw = path.resolve(

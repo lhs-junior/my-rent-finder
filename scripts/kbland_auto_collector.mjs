@@ -34,7 +34,7 @@ const hasFlag = (name) => args.includes(name);
 const sigunguList = getArg("--sigungu-list", null);
 const sigungu = sigunguList || getArg("--sigungu", "노원구");
 const sampleCap = Number(getArg("--sample-cap", "200"));
-const rentMax = Number(getArg("--rent-max", "80"));
+const rentMax = Number(getArg("--rent-max", "100"));
 const depositMax = Number(getArg("--deposit-max", "6000"));
 const minAreaM2 = Number(getArg("--min-area", "40"));
 const verbose = hasFlag("--verbose");

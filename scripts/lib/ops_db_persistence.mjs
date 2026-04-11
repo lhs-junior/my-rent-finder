@@ -1409,10 +1409,17 @@ async function upsertImageQueue(client, imageQueue) {
 
   if (!normalizedItems.length) return;
 
+  const totalBatches = Math.ceil(normalizedItems.length / IMAGE_BATCH_SIZE);
+  console.log(`📸 imageQueue: ${normalizedItems.length}건 저장 시작 (${totalBatches}배치)`);
   for (let i = 0; i < normalizedItems.length; i += IMAGE_BATCH_SIZE) {
     const batch = normalizedItems.slice(i, i + IMAGE_BATCH_SIZE);
+    const batchNum = Math.floor(i / IMAGE_BATCH_SIZE) + 1;
     await upsertImageBatch(client, batch);
+    if (totalBatches > 1) {
+      console.log(`📸 imageQueue: 배치 ${batchNum}/${totalBatches} 완료 (${Math.min(i + IMAGE_BATCH_SIZE, normalizedItems.length)}/${normalizedItems.length}건)`);
+    }
   }
+  console.log(`✅ imageQueue: ${normalizedItems.length}건 저장 완료`);
 }
 
 function parseViolations(item) {

@@ -9,7 +9,7 @@ const DEFAULT_FILTERS = {
   platformCode: "",
   address: "",
   minRent: "0",
-  maxRent: "80",
+  maxRent: "100",
   minArea: "",
   maxArea: "",
   minFloor: "",
@@ -256,7 +256,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
                 inputMode="numeric"
                 value={filters.maxRent}
                 onChange={e => set("maxRent", e.target.value)}
-                placeholder="80"
+                placeholder="100"
               />
             </div>
             {formErrors.minRent && <p className="ls-field-err">{formErrors.minRent}</p>}

@@ -27,7 +27,7 @@
   "sigunguList": ["노원구", "중랑구", "동대문구", "광진구", "성북구", "성동구", "중구", "종로구"],
   "leaseType": "월세",
   "rentMin": 0,
-  "rentMax": 80,
+  "rentMax": 100,
   "depositMax": 6000,
   "minAreaM2": 40,
   "propertyTypes": ["빌라/연립", "단독/다가구"]
@@ -35,7 +35,7 @@
 ```
 
 - **지역**: `sigunguList` 배열에 수집할 구 목록 (서울시 내)
-- **월세**: `rentMax` 만원 이하 (현재 80만원)
+- **월세**: `rentMax` 만원 이하 (현재 100만원)
 - **보증금**: `depositMax` 만원 이하 (현재 6000만원)
 - **면적**: `minAreaM2` m² 이상 (현재 40m², 약 12평)
 - **매물 종류**: `propertyTypes` (빌라/연립, 단독/다가구)

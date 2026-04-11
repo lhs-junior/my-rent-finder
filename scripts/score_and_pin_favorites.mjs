@@ -127,6 +127,10 @@ scored AS (
     CASE
       WHEN n.floor IS NOT NULL AND n.floor <= 0 THEN -99  -- 반지하/지하
       WHEN n.title ILIKE '%옥탑%' OR n.building_use ILIKE '%옥탑%' THEN -99  -- 옥탑방
+      WHEN n.building_use ILIKE '%근린생활%' OR n.building_use ILIKE '%제1종%' OR n.building_use ILIKE '%제2종%' THEN -99  -- 근린생활시설
+      WHEN n.building_use ILIKE '%상가주택%' THEN -99  -- 상가주택 (1층 상가)
+      WHEN n.title ILIKE '%전입불가%' OR n.title ILIKE '%전입신고%불%'
+        OR n.description_text ILIKE '%전입불가%' OR n.description_text ILIKE '%전입신고%불%' THEN -99  -- 전입신고 불가
       WHEN n.title ILIKE '%원룸%' OR n.title ILIKE '%오픈형%'
         OR n.title ILIKE '%1룸%' OR n.title ILIKE '%쓰리룸%' OR n.title ILIKE '%3룸%'
         OR n.building_use ILIKE '%원룸%' OR n.building_use ILIKE '%오픈%원룸%'
@@ -208,7 +212,8 @@ scored AS (
   LEFT JOIN min_subway_dist sub ON sub.listing_id = n.listing_id
   WHERE n.lease_type = '월세' AND n.deleted_at IS NULL
     AND (n.building_use IS NULL OR n.building_use NOT IN
-      ('사무실','오피스텔','상가','공장','창고','토지','주차장','매장','작업실','건물','기타'))
+      ('사무실','오피스텔','상가','공장','창고','토지','주차장','매장','작업실','건물','기타',
+       '제1종근린생활시설','제2종근린생활시설','근린생활시설','상가주택'))
 ),
 ranked AS (
   SELECT
