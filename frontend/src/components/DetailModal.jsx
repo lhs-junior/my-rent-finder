@@ -378,7 +378,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
                     if (verifyStatus.alive === false) {
                       if (!window.confirm("이 매물은 원본 사이트에서 만료된 것으로 확인됩니다.\n그래도 원본 사이트로 이동하시겠습니까?")) return;
                     }
-                    onOpenExternal ? onOpenExternal(detail) : window.open(externalUrl, "_blank", "noopener,noreferrer");
+                    onOpenExternal ? onOpenExternal(displayDetail) : window.open(externalUrl, "_blank", "noopener,noreferrer");
                   }}
                 >
                   {verifyStatus.checking ? "확인 중..." : verifyStatus.alive === false ? "원본 보기 (만료됨)" : "원본 보기"}

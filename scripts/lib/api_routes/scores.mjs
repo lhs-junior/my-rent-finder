@@ -34,7 +34,7 @@ export async function handleScores(req, res) {
 
   try {
     const result = await withDbClient(async (client) => {
-      let whereClause = "WHERE sl.grade IS NOT NULL AND sl.grade != 'REJECT'";
+      let whereClause = "WHERE sl.grade IS NOT NULL AND sl.grade != 'REJECT' AND nl.deleted_at IS NULL";
       const params = [];
       if (grades) {
         params.push(grades);
@@ -142,13 +142,14 @@ export async function handleScoresSummary(req, res) {
   try {
     const result = await withDbClient(async (client) => {
       const { rows } = await client.query(`
-        SELECT grade, COUNT(*) AS count,
-               AVG(total_score) AS avg_score,
-               AVG(effective_monthly_cost) AS avg_cost
-        FROM scored_listings
-        WHERE grade IS NOT NULL AND grade != 'REJECT'
-        GROUP BY grade
-        ORDER BY CASE grade WHEN 'SS' THEN 1 WHEN 'S' THEN 2 WHEN 'A' THEN 3 WHEN 'B' THEN 4 ELSE 5 END
+        SELECT sl.grade, COUNT(*) AS count,
+               AVG(sl.total_score) AS avg_score,
+               AVG(sl.effective_monthly_cost) AS avg_cost
+        FROM scored_listings sl
+        JOIN normalized_listings nl ON nl.listing_id = sl.listing_id
+        WHERE sl.grade IS NOT NULL AND sl.grade != 'REJECT' AND nl.deleted_at IS NULL
+        GROUP BY sl.grade
+        ORDER BY CASE sl.grade WHEN 'SS' THEN 1 WHEN 'S' THEN 2 WHEN 'A' THEN 3 WHEN 'B' THEN 4 ELSE 5 END
       `);
       return rows.map((r) => ({
         grade: r.grade,

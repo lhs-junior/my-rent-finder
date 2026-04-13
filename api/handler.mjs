@@ -1,23 +1,14 @@
 /**
  * Vercel Serverless catch-all API handler.
- * Delegates to the existing route handlers from scripts/lib/api_routes/*.
+ * 공유 라우터(router.mjs)에 위임 — 라우트 추가/변경은 router.mjs만 수정.
  */
 
-import { toText } from "../scripts/lib/db_client.mjs";
 import {
   sendJson,
   send404,
   sendServerError,
 } from "../scripts/lib/api_helpers.mjs";
-import { handleHealth } from "../scripts/lib/api_routes/health.mjs";
-import { handleOps, handleCollectionRuns } from "../scripts/lib/api_routes/ops.mjs";
-import { handleListings, handleListingDetail, handleListingsGeo, handleListingVerify } from "../scripts/lib/api_routes/listings.mjs";
-import { handleMatches, handleMatchGroup } from "../scripts/lib/api_routes/matches.mjs";
-import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "../scripts/lib/api_routes/favorites.mjs";
-import { handleSettings } from "../scripts/lib/api_routes/settings.mjs";
-import { handleAffordability } from "../scripts/lib/api_routes/affordability.mjs";
-import { handleProfileRead, handleProfileSettings, handleProfileFavorites, handleProfileFavoriteToggle } from "../scripts/lib/api_routes/profile.mjs";
-import { handleScores, handleScoresSummary } from "../scripts/lib/api_routes/scores.mjs";
+import { dispatchApiRoute } from "../scripts/lib/api_routes/router.mjs";
 
 function resolveRequestPath(req) {
   const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
@@ -70,118 +61,8 @@ export default async function handler(req, res) {
     }
 
     const pathname = resolveRequestPath(req);
-
-    if (pathname === "/api/health") {
-      await handleHealth(req, res);
-      return;
-    }
-    if (pathname === "/api/ops") {
-      await handleOps(req, res);
-      return;
-    }
-    if (pathname === "/api/collection/runs") {
-      await handleCollectionRuns(req, res);
-      return;
-    }
-    if (pathname === "/api/listings") {
-      await handleListings(req, res);
-      return;
-    }
-    if (pathname === "/api/listings/geo") {
-      await handleListingsGeo(req, res);
-      return;
-    }
-    if (pathname === "/api/favorites/ids" && req.method === "GET") {
-      await handleFavoriteIds(req, res);
-      return;
-    }
-    if (pathname === "/api/favorites" && req.method === "GET") {
-      await handleFavorites(req, res);
-      return;
-    }
-    if (pathname === "/api/favorites" && req.method === "POST") {
-      await parseJsonBody(req);
-      await handleAddFavorite(req, res);
-      return;
-    }
-    if (pathname.startsWith("/api/favorites/") && req.method === "DELETE") {
-      const favListingId = pathname.slice("/api/favorites/".length);
-      await handleRemoveFavorite(req, res, favListingId);
-      return;
-    }
-    if (pathname === "/api/scores/summary") {
-      await handleScoresSummary(req, res);
-      return;
-    }
-    if (pathname === "/api/scores") {
-      await handleScores(req, res);
-      return;
-    }
-    if (pathname === "/api/matches") {
-      await handleMatches(req, res);
-      return;
-    }
-    // /api/listings/:id/verify — check if listing is still alive on source
-    const verifyMatch = pathname.match(/^\/api\/listings\/(\d+)\/verify$/);
-    if (verifyMatch) {
-      await handleListingVerify(req, res, verifyMatch[1]);
-      return;
-    }
-    if (pathname.startsWith("/api/listings/")) {
-      let listingIdText = null;
-      try {
-        listingIdText = toText(decodeURIComponent(pathname.slice("/api/listings/".length)).trim(), null);
-      } catch {
-        listingIdText = null;
-      }
-      if (!listingIdText || !/^\d+$/.test(listingIdText)) {
-        sendJson(res, 400, { error: "invalid_listing_id" });
-        return;
-      }
-      await handleListingDetail(req, res, listingIdText);
-      return;
-    }
-    if (pathname.startsWith("/api/match-groups/")) {
-      const id = pathname.slice("/api/match-groups/".length);
-      await handleMatchGroup(req, res, id);
-      return;
-    }
-    if (
-      pathname === "/api/settings" ||
-      pathname === "/api/settings/read" ||
-      pathname === "/api/settings/has-pin" ||
-      pathname === "/api/settings/init-pin"
-    ) {
-      await parseJsonBody(req);
-      await handleSettings(req, res);
-      return;
-    }
-    if (pathname === "/api/affordability") {
-      await handleAffordability(req, res);
-      return;
-    }
-    if (pathname === "/api/profile/read") {
-      await parseJsonBody(req);
-      await handleProfileRead(req, res);
-      return;
-    }
-    if (pathname === "/api/profile/settings") {
-      await parseJsonBody(req);
-      await handleProfileSettings(req, res);
-      return;
-    }
-    if (pathname === "/api/profile/favorites") {
-      await parseJsonBody(req);
-      await handleProfileFavorites(req, res);
-      return;
-    }
-    if (pathname === "/api/profile/favorites/toggle") {
-      await parseJsonBody(req);
-      await handleProfileFavoriteToggle(req, res);
-      return;
-    }
-
-    send404(res);
+    const matched = await dispatchApiRoute(req, res, pathname, parseJsonBody);
+    if (!matched) send404(res);
   } catch (error) {
     console.error("[api/handler]", error);
     sendServerError(res, error);

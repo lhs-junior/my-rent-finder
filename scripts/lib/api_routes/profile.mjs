@@ -185,30 +185,29 @@ export async function handleProfileFavoriteToggle(req, res) {
   }
 
   try {
-    const existing = await withDbClient((client) =>
-      client.query(
-        "SELECT 1 FROM pin_favorites WHERE pin_hash = $1 AND listing_id = $2",
-        [pinHash, listingId]
-      )
-    );
-
-    if (existing.rows.length > 0) {
-      await withDbClient((client) =>
-        client.query(
-          "DELETE FROM pin_favorites WHERE pin_hash = $1 AND listing_id = $2",
+    const action = await withDbClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const del = await client.query(
+          "DELETE FROM pin_favorites WHERE pin_hash = $1 AND listing_id = $2 RETURNING listing_id",
           [pinHash, listingId]
-        )
-      );
-      sendJson(res, 200, { action: "removed", listing_id: listingId });
-    } else {
-      await withDbClient((client) =>
-        client.query(
+        );
+        if (del.rowCount > 0) {
+          await client.query("COMMIT");
+          return "removed";
+        }
+        await client.query(
           "INSERT INTO pin_favorites (pin_hash, listing_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
           [pinHash, listingId]
-        )
-      );
-      sendJson(res, 200, { action: "added", listing_id: listingId });
-    }
+        );
+        await client.query("COMMIT");
+        return "added";
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      }
+    });
+    sendJson(res, 200, { action, listing_id: listingId });
   } catch (e) {
     sendJson(res, 500, { error: "DB error" });
   }
