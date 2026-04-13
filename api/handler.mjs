@@ -17,6 +17,7 @@ import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavo
 import { handleSettings } from "../scripts/lib/api_routes/settings.mjs";
 import { handleAffordability } from "../scripts/lib/api_routes/affordability.mjs";
 import { handleProfileRead, handleProfileSettings, handleProfileFavorites, handleProfileFavoriteToggle } from "../scripts/lib/api_routes/profile.mjs";
+import { handleScores, handleScoresSummary } from "../scripts/lib/api_routes/scores.mjs";
 
 function resolveRequestPath(req) {
   const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
@@ -106,6 +107,14 @@ export default async function handler(req, res) {
     if (pathname.startsWith("/api/favorites/") && req.method === "DELETE") {
       const favListingId = pathname.slice("/api/favorites/".length);
       await handleRemoveFavorite(req, res, favListingId);
+      return;
+    }
+    if (pathname === "/api/scores/summary") {
+      await handleScoresSummary(req, res);
+      return;
+    }
+    if (pathname === "/api/scores") {
+      await handleScores(req, res);
       return;
     }
     if (pathname === "/api/matches") {
