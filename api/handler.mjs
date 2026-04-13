@@ -146,7 +146,12 @@ export default async function handler(req, res) {
       await handleMatchGroup(req, res, id);
       return;
     }
-    if (pathname === "/api/settings" || pathname === "/api/settings/read") {
+    if (
+      pathname === "/api/settings" ||
+      pathname === "/api/settings/read" ||
+      pathname === "/api/settings/has-pin" ||
+      pathname === "/api/settings/init-pin"
+    ) {
       await parseJsonBody(req);
       await handleSettings(req, res);
       return;
