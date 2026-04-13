@@ -52,8 +52,28 @@ function EffectiveCost({ rent, deposit, cost }) {
   );
 }
 
+function sortItems(items, sortBy) {
+  const copy = [...items];
+  if (sortBy === "cost") {
+    copy.sort((a, b) => {
+      const ca = a.effective_monthly_cost ?? Infinity;
+      const cb = b.effective_monthly_cost ?? Infinity;
+      if (ca !== cb) return ca - cb;
+      return (b.total_score ?? 0) - (a.total_score ?? 0);
+    });
+  } else {
+    copy.sort((a, b) => {
+      if ((b.total_score ?? 0) !== (a.total_score ?? 0)) return (b.total_score ?? 0) - (a.total_score ?? 0);
+      const ca = a.effective_monthly_cost ?? Infinity;
+      const cb = b.effective_monthly_cost ?? Infinity;
+      return ca - cb;
+    });
+  }
+  return copy;
+}
+
 export default function ScoresView({ apiBase, isFavorite, toggleFavorite }) {
-  const [items, setItems] = useState([]);
+  const [rawItems, setRawItems] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -64,20 +84,23 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite }) {
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
+  // 서버에서는 grade 필터만 적용해서 한 번 fetch — 정렬은 클라이언트에서 즉시 처리
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
 
     const gradeParam = gradeFilter || "SS,S,A";
-    fetch(`${normalizedApiBase}/api/scores?grade=${gradeParam}&sort=${sortBy}&limit=200`, { signal: controller.signal })
+    fetch(`${normalizedApiBase}/api/scores?grade=${gradeParam}&limit=200`, { signal: controller.signal })
       .then((r) => { if (!r.ok) throw new Error(`API error: ${r.status}`); return r.json(); })
-      .then((data) => setItems(data.items || []))
+      .then((data) => setRawItems(data.items || []))
       .catch((err) => { if (err.name !== "AbortError") setError(err.message); })
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [normalizedApiBase, gradeFilter, sortBy]);
+  }, [normalizedApiBase, gradeFilter]);
+
+  const items = sortItems(rawItems, sortBy);
 
   useEffect(() => {
     fetch(`${normalizedApiBase}/api/scores/summary`)

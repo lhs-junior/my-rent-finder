@@ -44,23 +44,23 @@ export async function handleScores(req, res) {
       const { rows } = await client.query(query, params);
 
       const listingIds = rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
-      const imageRows = listingIds.length
-        ? await client.query(
-            `SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`,
-            [listingIds],
-          )
-        : { rows: [] };
+      const [imageRows, firstImageRows] = listingIds.length
+        ? await Promise.all([
+            client.query(
+              `SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`,
+              [listingIds],
+            ),
+            client.query(
+              `SELECT DISTINCT ON (listing_id) listing_id, source_url
+               FROM listing_images
+               WHERE listing_id = ANY($1) AND source_url IS NOT NULL AND source_url != ''
+               ORDER BY listing_id, is_primary DESC, image_id ASC`,
+              [listingIds],
+            ),
+          ])
+        : [{ rows: [] }, { rows: [] }];
       const imageMap = parseImageMap(imageRows.rows || []);
 
-      const firstImageRows = listingIds.length
-        ? await client.query(
-            `SELECT DISTINCT ON (listing_id) listing_id, source_url
-             FROM listing_images
-             WHERE listing_id = ANY($1) AND source_url IS NOT NULL AND source_url != ''
-             ORDER BY listing_id, is_primary DESC, image_id ASC`,
-            [listingIds],
-          )
-        : { rows: [] };
       const firstImageMap = new Map();
       for (const row of firstImageRows.rows || []) {
         const lid = toInt(row.listing_id, null);
