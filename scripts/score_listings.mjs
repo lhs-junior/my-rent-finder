@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 
-// scripts/score_and_pin_favorites.mjs
-// 매물을 배점 기준으로 점수 매기고 PIN별 찜 목록에 저장
+// scripts/score_listings.mjs
+// 매물을 배점 기준으로 점수 매기고 scored_listings 테이블에 저장
+// pin_favorites(유저 수동 찜)와 완전 분리
 //
-// v2: 가성비(RPM) 중심 + 환승 기반 + 데이터 정제
+// v3: 가성비(RPM) 중심 + 환승 기반 + 데이터 정제 + 실질 월비용
 //
 // 사용법:
-//   node scripts/score_and_pin_favorites.mjs --pin=1004
-//   node scripts/score_and_pin_favorites.mjs --pin=1004 --max-rent=80
-//   node scripts/score_and_pin_favorites.mjs --pin=1004 --dry-run
-//   node scripts/score_and_pin_favorites.mjs --pin=1004 --threshold-ss=12 --threshold-s=10 --threshold-a=8
+//   node scripts/score_listings.mjs
+//   node scripts/score_listings.mjs --max-rent=80
+//   node scripts/score_listings.mjs --interest-rate=0.04
+//   node scripts/score_listings.mjs --dry-run
+//   node scripts/score_listings.mjs --threshold-ss=12 --threshold-s=10 --threshold-a=8
 
 import { withDbClient } from "./lib/db_client.mjs";
-import { hashPin } from "./lib/pin_hash.mjs";
 
 // ── CLI 파싱 ──────────────────────────────────────────────────
 function parseArgs() {
@@ -25,14 +26,11 @@ function parseArgs() {
       }),
   );
   return {
-    pin: args["pin"] || null,
-    pinSS: args["pin-ss"] || null,
-    pinS: args["pin-s"] || null,
-    pinA: args["pin-a"] || null,
     thresholdSS: Number(args["threshold-ss"]) || 12,
     thresholdS: Number(args["threshold-s"]) || 10,
     thresholdA: Number(args["threshold-a"]) || 8,
     maxRent: args["max-rent"] ? Number(args["max-rent"]) : null,
+    interestRate: Number(args["interest-rate"]) || 0.04,
     dryRun: args["dry-run"] === "true",
   };
 }
@@ -213,6 +211,8 @@ best_transfer AS (
 scored AS (
   SELECT
     n.listing_id,
+    n.rent_amount,
+    n.deposit_amount,
 
     -- ① 탈락 판정
     CASE
@@ -307,7 +307,7 @@ scored AS (
 ),
 ranked AS (
   SELECT
-    s.listing_id,
+    s.listing_id, s.rent_amount, s.deposit_amount,
     s.eliminate, s.rpm_score, s.subway_score, s.transfer_score,
     s.area_score, s.floor_score, s.year_score, s.img_score,
     (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) AS total_score,
@@ -321,7 +321,7 @@ ranked AS (
   WHERE s.eliminate != -99
 )
 SELECT
-  listing_id,
+  listing_id, rent_amount, deposit_amount,
   eliminate, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score,
   total_score
 FROM ranked
@@ -334,27 +334,12 @@ ORDER BY total_score DESC, listing_id
 async function main() {
   const opts = parseArgs();
 
-  if (!opts.pin && !opts.pinSS && !opts.pinS && !opts.pinA) {
-    console.error("오류: --pin 또는 --pin-ss/--pin-s/--pin-a 중 하나 이상 지정 필요");
-    console.error("예시(단일 PIN): node scripts/score_and_pin_favorites.mjs --pin=1004");
-    console.error("예시(분리 PIN): node scripts/score_and_pin_favorites.mjs --pin-ss=1004 --pin-s=1005 --pin-a=1006");
-    console.error("옵션: --max-rent=80 (월세 상한), --dry-run (저장 안 함)");
-    process.exit(1);
-  }
-
-  const pinHash = opts.pin ? hashPin(opts.pin) : null;
-  const pinHashSS = opts.pinSS ? hashPin(opts.pinSS) : null;
-  const pinHashS = opts.pinS ? hashPin(opts.pinS) : null;
-  const pinHashA = opts.pinA ? hashPin(opts.pinA) : null;
-
-  console.log("── 매물 배점 v2 시작 (가성비+환승 기반) ──");
-  if (pinHash) {
-    console.log(`  단일 PIN 모드: PIN ${opts.pin} 에 SS/S/A 모두 저장`);
-  }
+  console.log("── 매물 배점 v3 시작 (가성비+환승 기반, scored_listings 저장) ──");
   if (opts.maxRent) console.log(`  월세 상한: ${opts.maxRent}만원`);
-  console.log(`  SS급 기준: ${opts.thresholdSS}점 이상${opts.pinSS ? ` → PIN ${opts.pinSS}` : pinHash ? ` → PIN ${opts.pin}` : " (건너뜀)"}`);
-  console.log(`  S급 기준: ${opts.thresholdS}~${opts.thresholdSS - 1}점${opts.pinS ? ` → PIN ${opts.pinS}` : pinHash ? ` → PIN ${opts.pin}` : " (건너뜀)"}`);
-  console.log(`  A급 기준: ${opts.thresholdA}~${opts.thresholdS - 1}점${opts.pinA ? ` → PIN ${opts.pinA}` : pinHash ? ` → PIN ${opts.pin}` : " (건너뜀)"}`);
+  console.log(`  이자율: ${(opts.interestRate * 100).toFixed(1)}% (실질 월비용 계산용)`);
+  console.log(`  SS급 기준: ${opts.thresholdSS}점 이상`);
+  console.log(`  S급 기준: ${opts.thresholdS}~${opts.thresholdSS - 1}점`);
+  console.log(`  A급 기준: ${opts.thresholdA}~${opts.thresholdS - 1}점`);
   if (opts.dryRun) console.log("  [DRY RUN] 저장하지 않고 집계만 수행");
 
   const scoreQuery = buildScoreQuery(opts.maxRent);
@@ -363,17 +348,33 @@ async function main() {
     // 1) 점수 계산
     const { rows } = await client.query(scoreQuery);
 
-    const ssGrade = rows.filter((r) => r.total_score >= opts.thresholdSS);
-    const sGrade = rows.filter((r) => r.total_score >= opts.thresholdS && r.total_score < opts.thresholdSS);
-    const aGrade = rows.filter((r) => r.total_score >= opts.thresholdA && r.total_score < opts.thresholdS);
+    // 등급 분류
+    const graded = rows.map((r) => {
+      let grade;
+      if (r.total_score >= opts.thresholdSS) grade = "SS";
+      else if (r.total_score >= opts.thresholdS) grade = "S";
+      else if (r.total_score >= opts.thresholdA) grade = "A";
+      else grade = "B";
+
+      // 실질 월비용 = 월세 + (보증금 × 연이율 / 12)
+      const effectiveMonthlyCost = r.deposit_amount > 0
+        ? Math.round(r.rent_amount + (r.deposit_amount * opts.interestRate / 12))
+        : r.rent_amount;
+
+      return { ...r, grade, effectiveMonthlyCost };
+    });
+
+    const ssGrade = graded.filter((r) => r.grade === "SS");
+    const sGrade = graded.filter((r) => r.grade === "S");
+    const aGrade = graded.filter((r) => r.grade === "A");
 
     // 점수 분포
     const dist = {};
-    for (const r of rows) {
+    for (const r of graded) {
       dist[r.total_score] = (dist[r.total_score] || 0) + 1;
     }
 
-    console.log(`\n── 점수 분포 (총 ${rows.length}개 통과, 탈락 제외) ──`);
+    console.log(`\n── 점수 분포 (총 ${graded.length}개 통과, 탈락 제외) ──`);
     console.log("  배점: 가성비(0~4) + 지하철(0~3) + 환승(0~3) + 면적(0~2) + 층수(0~2) + 연식(0~1) + 사진(0~1) = 최대16점");
     for (const score of Object.keys(dist).sort((a, b) => b - a)) {
       const bar = "█".repeat(Math.ceil(dist[score] / 5));
@@ -383,7 +384,7 @@ async function main() {
     console.log(`\n  SS급 (${opts.thresholdSS}점↑): ${ssGrade.length}개`);
     console.log(`  S급 (${opts.thresholdS}~${opts.thresholdSS - 1}점): ${sGrade.length}개`);
     console.log(`  A급 (${opts.thresholdA}~${opts.thresholdS - 1}점): ${aGrade.length}개`);
-    console.log(`  B급 (${opts.thresholdA}점↓): ${rows.length - ssGrade.length - sGrade.length - aGrade.length}개 (저장 안 함)`);
+    console.log(`  B급 (${opts.thresholdA}점↓): ${graded.length - ssGrade.length - sGrade.length - aGrade.length}개`);
 
     // 상위 매물 미리보기 (SS급 상위 5개)
     if (ssGrade.length > 0) {
@@ -397,114 +398,35 @@ async function main() {
       console.log("\n  ── SS급 상위 미리보기 ──");
       for (const p of preview.rows) {
         const s = ssGrade.find((r) => r.listing_id === p.listing_id);
-        console.log(`    ${p.rent_amount}만/${p.deposit_amount}보 ${p.area_exclusive_m2}m² ${p.room_count}룸 ${p.floor}층 | rpm=${s.rpm_score} 지하철=${s.subway_score} 환승=${s.transfer_score} 면적=${s.area_score} 층=${s.floor_score} 연식=${s.year_score} 사진=${s.img_score} → ${s.total_score}점 | ${(p.address_text || "").substring(0, 30)}`);
+        console.log(`    ${p.rent_amount}만/${p.deposit_amount}보 ${p.area_exclusive_m2}m² ${p.room_count}룸 ${p.floor}층 (실질 ${s.effectiveMonthlyCost}만/월) | rpm=${s.rpm_score} 지하철=${s.subway_score} 환승=${s.transfer_score} 면적=${s.area_score} 층=${s.floor_score} 연식=${s.year_score} 사진=${s.img_score} → ${s.total_score}점 | ${(p.address_text || "").substring(0, 30)}`);
       }
     }
 
-    if (opts.dryRun) return { ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
+    if (opts.dryRun) return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
 
-    // 2) 저장
-    let ssInserted = 0;
-    let sInserted = 0;
-    let aInserted = 0;
+    // 2) scored_listings에 UPSERT
+    // 기존 데이터 전체 삭제 후 재삽입 (매 실행마다 전체 갱신)
+    await client.query("DELETE FROM scored_listings");
 
-    if (pinHash) {
-      const allGrades = [
-        ...ssGrade.map((r) => ({ id: r.listing_id, grade: "SS" })),
-        ...sGrade.map((r) => ({ id: r.listing_id, grade: "S" })),
-        ...aGrade.map((r) => ({ id: r.listing_id, grade: "A" })),
-      ];
-      if (allGrades.length > 0) {
-        const ids = allGrades.map((g) => g.id);
-        const grades = allGrades.map((g) => g.grade);
-        await client.query(
-          `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
-           SELECT $1, UNNEST($2::int[]), UNNEST($3::text[])
-           ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = EXCLUDED.grade`,
-          [pinHash, ids, grades],
-        );
-        ssInserted = ssGrade.length;
-        sInserted = sGrade.length;
-        aInserted = aGrade.length;
-      }
+    if (graded.length > 0) {
+      const values = graded.map((r) =>
+        `(${r.listing_id}, ${r.total_score}, '${r.grade}', ${r.rpm_score}, ${r.subway_score}, ${r.transfer_score}, ${r.area_score}, ${r.floor_score}, ${r.year_score}, ${r.img_score}, ${r.effectiveMonthlyCost}, NOW())`
+      ).join(",\n");
+
+      await client.query(`
+        INSERT INTO scored_listings
+          (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost, scored_at)
+        VALUES ${values}
+      `);
     }
 
-    if (pinHashSS && ssGrade.length > 0) {
-      const ids = ssGrade.map((r) => r.listing_id);
-      const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
-         SELECT $1, UNNEST($2::int[]), 'SS'
-         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'SS'`,
-        [pinHashSS, ids],
-      );
-      ssInserted = res.rowCount;
-    }
+    console.log(`\n── scored_listings 저장 완료: ${graded.length}개 ──`);
 
-    if (pinHashS && sGrade.length > 0) {
-      const ids = sGrade.map((r) => r.listing_id);
-      const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
-         SELECT $1, UNNEST($2::int[]), 'S'
-         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'S'`,
-        [pinHashS, ids],
-      );
-      sInserted = res.rowCount;
-    }
-
-    if (pinHashA && aGrade.length > 0) {
-      const ids = aGrade.map((r) => r.listing_id);
-      const res = await client.query(
-        `INSERT INTO pin_favorites (pin_hash, listing_id, grade)
-         SELECT $1, UNNEST($2::int[]), 'A'
-         ON CONFLICT (pin_hash, listing_id) DO UPDATE SET grade = 'A'`,
-        [pinHashA, ids],
-      );
-      aInserted = res.rowCount;
-    }
-
-    // 3) 정리: 삭제된 매물 및 점수 미달 매물 제거
-    const allSelectedIds = [
-      ...ssGrade.map((r) => r.listing_id),
-      ...sGrade.map((r) => r.listing_id),
-      ...aGrade.map((r) => r.listing_id),
-    ];
-
-    const pinsToClean = [pinHash, pinHashSS, pinHashS, pinHashA].filter(Boolean);
-    let cleanedCount = 0;
-    for (const ph of pinsToClean) {
-      const r1 = await client.query(
-        `DELETE FROM pin_favorites pf
-         USING normalized_listings nl
-         WHERE pf.pin_hash = $1
-           AND pf.listing_id = nl.listing_id
-           AND nl.deleted_at IS NOT NULL`,
-        [ph],
-      );
-      cleanedCount += r1.rowCount;
-
-      if (allSelectedIds.length > 0) {
-        const r2 = await client.query(
-          `DELETE FROM pin_favorites
-           WHERE pin_hash = $1
-             AND listing_id NOT IN (SELECT UNNEST($2::int[]))`,
-          [ph, allSelectedIds],
-        );
-        cleanedCount += r2.rowCount;
-      }
-    }
-
-    if (cleanedCount > 0) {
-      console.log(`\n  정리: 삭제/탈락 매물 ${cleanedCount}개 pin_favorites에서 제거`);
-    }
-
-    return { ssCount: ssInserted, sCount: sInserted, aCount: aInserted, saved: true };
+    return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: true };
   });
 
   if (result.saved) {
-    console.log(`\n── 저장 완료 ──`);
-    if (pinHashSS) console.log(`  PIN ${opts.pinSS} (SS급): ${result.ssCount}개 추가`);
-    if (pinHashS) console.log(`  PIN ${opts.pinS} (S급): ${result.sCount}개 추가`);
-    if (pinHashA) console.log(`  PIN ${opts.pinA} (A급): ${result.aCount}개 추가`);
+    console.log(`  SS: ${result.ssCount}개, S: ${result.sCount}개, A: ${result.aCount}개, B: ${result.total - result.ssCount - result.sCount - result.aCount}개`);
   }
 }
 

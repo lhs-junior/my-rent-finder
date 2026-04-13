@@ -28,6 +28,7 @@ import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavo
 import { handleSettings } from "./lib/api_routes/settings.mjs";
 import { handleAffordability } from "./lib/api_routes/affordability.mjs";
 import { handleProfileRead, handleProfileSettings, handleProfileFavorites, handleProfileFavoriteToggle } from "./lib/api_routes/profile.mjs";
+import { handleScores, handleScoresSummary } from "./lib/api_routes/scores.mjs";
 
 function resolveRequestPath(req) {
   const headerPath = req.headers["x-vercel-pathname"] || req.headers["x-vercel-original-pathname"];
@@ -217,6 +218,14 @@ async function route(req, res) {
     if (pathname.startsWith("/api/match-groups/")) {
       const id = pathname.slice("/api/match-groups/".length);
       await handleMatchGroup(req, res, id);
+      return;
+    }
+    if (pathname === "/api/scores" && req.method === "GET") {
+      await handleScores(req, res);
+      return;
+    }
+    if (pathname === "/api/scores/summary" && req.method === "GET") {
+      await handleScoresSummary(req, res);
       return;
     }
     if (pathname === "/api/affordability") {

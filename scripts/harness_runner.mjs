@@ -263,20 +263,20 @@ if (!hasArg(args, "--skip-status")) {
 }
 
 // ═══════════════════════════════════════════
-// Phase 7: 배점 + 찜 저장
+// Phase 7: AI 배점 (scored_listings 저장)
 // ═══════════════════════════════════════════
 if (!hasArg(args, "--skip-score")) {
   try {
-    const scoreScript = path.resolve(import.meta.dirname, "score_and_pin_favorites.mjs");
-    runPhase("score & pin favorites", scoreScript, [
-      "--pin=1004", "--threshold-ss=10", "--threshold-s=8", "--threshold-a=6",
+    const scoreScript = path.resolve(import.meta.dirname, "score_listings.mjs");
+    runPhase("score listings", scoreScript, [
+      "--interest-rate=0.04",
     ]);
-    console.log("[harness] ✓ score & pin favorites complete");
+    console.log("[harness] ✓ score listings complete");
   } catch (err) {
-    console.error(`[harness] ⚠ score & pin error: ${err.message}`);
+    console.error(`[harness] ⚠ score listings error: ${err.message}`);
   }
 } else {
-  console.log("[harness] ▶ skipping score & pin (--skip-score)");
+  console.log("[harness] ▶ skipping score (--skip-score)");
 }
 
 // ═══════════════════════════════════════════

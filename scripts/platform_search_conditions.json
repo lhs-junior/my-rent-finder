@@ -16,7 +16,7 @@
     ],
     "rentMin": 0,
     "rentMax": 100,
-    "depositMax": 6000,
+    "depositMax": 10000,
     "minAreaM2": 40,
     "propertyTypes": [
       "빌라/연립",

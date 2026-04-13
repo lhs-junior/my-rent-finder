@@ -22,7 +22,7 @@ export async function handleProfileRead(req, res) {
   if (!pinHash) { sendJson(res, 401, { error: "PIN required" }); return; }
 
   try {
-    const [profileRows, favRows] = await withDbClient(async (client) => {
+    const [profileRows, favRows, scoreRows] = await withDbClient(async (client) => {
       const p = await client.query(
         "SELECT my_capital, my_income, ltv_ratio, dti_limit, loan_type FROM user_profiles WHERE pin_hash = $1",
         [pinHash]
@@ -34,7 +34,14 @@ export async function handleProfileRead(req, res) {
          ORDER BY pf.added_at DESC`,
         [pinHash]
       );
-      return [p.rows, f.rows];
+      const s = await client.query(
+        `SELECT sl.listing_id, sl.grade, sl.total_score, sl.effective_monthly_cost
+         FROM scored_listings sl
+         JOIN normalized_listings nl ON nl.listing_id = sl.listing_id
+         WHERE nl.deleted_at IS NULL AND sl.grade IN ('SS','S','A')
+         ORDER BY sl.total_score DESC`
+      );
+      return [p.rows, f.rows, s.rows];
     });
 
     const settings = profileRows[0] || {};
@@ -42,7 +49,10 @@ export async function handleProfileRead(req, res) {
     const favoriteGrades = Object.fromEntries(
       favRows.filter((r) => r.grade).map((r) => [r.listing_id, r.grade])
     );
-    sendJson(res, 200, { settings, favoriteIds, favoriteGrades });
+    const scoredGrades = Object.fromEntries(
+      scoreRows.map((r) => [r.listing_id, r.grade])
+    );
+    sendJson(res, 200, { settings, favoriteIds, favoriteGrades, scoredGrades });
   } catch (e) {
     sendJson(res, 500, { error: "DB error" });
   }

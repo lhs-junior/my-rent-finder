@@ -72,7 +72,7 @@ function normalizeTradeType(raw) {
 const sigungu = getArg("--sigungu", "노원구");
 const sampleCap = normalizeSampleCap(getArg("--sample-cap", "100"), 100);
 const rentMax = parseMoneyInput(getArg("--rent-max", "100"), 1000000);
-const depositMax = parseMoneyInput(getArg("--deposit-max", "6000"), 60000000);
+const depositMax = parseMoneyInput(getArg("--deposit-max", "10000"), 100000000);
 const minArea = getIntArg("--min-area", 40);
 const minAreaSqm = minArea > 0 ? minArea : 40;
 const salePriceMax = getIntArg("--sale-price-max", 70000); // 만원 단위 그대로 사용

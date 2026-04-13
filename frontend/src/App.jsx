@@ -8,6 +8,7 @@ import OperationsDashboard from "./components/OperationsDashboard.jsx";
 import MatchingBoard from "./components/MatchingBoard.jsx";
 import ListingSearch from "./components/ListingSearch.jsx";
 import FavoritesView from "./components/FavoritesView.jsx";
+import ScoresView from "./components/ScoresView.jsx";
 import MapView from "./components/map/MapView.jsx";
 import { SaleListingsView } from "./components/SaleListingsView.jsx";
 import { SettingsModal } from "./components/SettingsModal.jsx";
@@ -204,6 +205,16 @@ export default function App() {
           </button>
           <button
             type="button"
+            className={`nav-tab ${activeView === "scores" ? "nav-tab--active" : ""}`}
+            onClick={() => setActiveView("scores")}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1l2 4h4l-3.2 2.5L12 12 8 9.5 4 12l1.2-4.5L2 5h4l2-4z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+            </svg>
+            AI추천
+          </button>
+          <button
+            type="button"
             className={`nav-tab ${activeView === "favorites" ? "nav-tab--active" : ""}`}
             onClick={() => setActiveView("favorites")}
           >
@@ -265,6 +276,7 @@ export default function App() {
         {activeView === "matches" && <MatchingBoard apiBase={apiBase} runId={runId} />}
         {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} favoriteIds={favoriteIds} />}
         {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} authenticated={authenticated} pin={pin} /></MapErrorBoundary>}
+        {activeView === "scores" && <ScoresView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
         {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>

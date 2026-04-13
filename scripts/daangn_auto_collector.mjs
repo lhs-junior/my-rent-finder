@@ -23,7 +23,7 @@ const hasFlag = (name) => args.includes(name);
 const sigungu = getArg("--sigungu", "노원구");
 const sampleCap = Number(getArg("--sample-cap", "0")) || Infinity;
 const rentMax = Number(getArg("--rent-max", "100"));
-const depositMax = Number(getArg("--deposit-max", "6000"));
+const depositMax = Number(getArg("--deposit-max", "10000"));
 const minAreaM2 = Number(getArg("--min-area", "40"));
 const verbose = hasFlag("--verbose");
 const outputRaw = getArg("--output-raw", null);
