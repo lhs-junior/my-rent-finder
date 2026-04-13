@@ -3671,6 +3671,33 @@ pre {
   right: 8px;
   z-index: 2;
 }
+.listing-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.listing-card-map-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  color: var(--primary, #2563eb);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: background 0.15s;
+}
+.listing-card-map-btn:hover {
+  background: var(--primary, #2563eb);
+  color: #fff;
+}
 
 /* Compact side variant */
 .listing-card-fav--compact {

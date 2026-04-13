@@ -1,6 +1,8 @@
 import { toInt, toNumber, withDbClient } from "../db_client.mjs";
 import { safeText, sendJson, platformNameFromCode, parseImageMap, extractImageUrlsFromPayload } from "../api_helpers.mjs";
 
+const ANON_PIN_HASH = "__anon__";
+
 // ---------------------------------------------------------------------------
 // GET /api/favorites — list all favorites with listing details
 // ---------------------------------------------------------------------------
@@ -9,18 +11,18 @@ export async function handleFavorites(req, res) {
   try {
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
-        SELECT uf.favorite_id, uf.memo, uf.created_at AS favorited_at,
-               nl.listing_id, nl.platform_code, nl.source_url, nl.external_id,
+        SELECT pf.listing_id, pf.added_at AS favorited_at, pf.grade,
+               nl.platform_code, nl.source_url, nl.external_id,
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
                nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
                nl.lat, nl.lng, nl.quality_flags, nl.created_at, rl.payload_json
-        FROM user_favorites uf
-        JOIN normalized_listings nl ON nl.listing_id = uf.listing_id
+        FROM pin_favorites pf
+        JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
-        WHERE nl.deleted_at IS NULL
-        ORDER BY uf.created_at DESC
-      `);
+        WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+        ORDER BY pf.added_at DESC
+      `, [ANON_PIN_HASH]);
 
       const listingIds = rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
       const [imageRows, firstImageRows] = listingIds.length
@@ -49,8 +51,8 @@ export async function handleFavorites(req, res) {
         const listingId = toInt(row.listing_id, null);
         const fallbackImageUrls = extractImageUrlsFromPayload(row.payload_json);
         return {
-          favorite_id: toInt(row.favorite_id, null),
-          memo: safeText(row.memo, null),
+          favorite_id: listingId,
+          memo: null,
           favorited_at: row.favorited_at ? new Date(row.favorited_at).toISOString() : null,
           listing_id: listingId,
           platform_code: safeText(row.platform_code, ""),
@@ -94,11 +96,11 @@ export async function handleFavoriteIds(req, res) {
   try {
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
-        SELECT uf.listing_id
-        FROM user_favorites uf
-        JOIN normalized_listings nl ON nl.listing_id = uf.listing_id
-        WHERE nl.deleted_at IS NULL
-      `);
+        SELECT pf.listing_id
+        FROM pin_favorites pf
+        JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
+        WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+      `, [ANON_PIN_HASH]);
       return rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
     });
 
@@ -127,8 +129,6 @@ export async function handleAddFavorite(req, res) {
     return;
   }
 
-  const memo = safeText(body.memo, null);
-
   try {
     const result = await withDbClient(async (client) => {
       const check = await client.query(
@@ -137,14 +137,11 @@ export async function handleAddFavorite(req, res) {
       );
       if (!check.rows.length) return { error: "listing_not_found" };
 
-      const row = await client.query(
-        `INSERT INTO user_favorites (listing_id, memo)
-         VALUES ($1, $2)
-         ON CONFLICT (listing_id) DO UPDATE SET memo = COALESCE(EXCLUDED.memo, user_favorites.memo)
-         RETURNING favorite_id, listing_id, memo, created_at`,
-        [listingId, memo],
+      await client.query(
+        `INSERT INTO pin_favorites (pin_hash, listing_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [ANON_PIN_HASH, listingId],
       );
-      return row.rows[0];
+      return { listing_id: listingId };
     });
 
     if (result?.error) {
@@ -153,10 +150,8 @@ export async function handleAddFavorite(req, res) {
     }
 
     sendJson(res, 200, {
-      favorite_id: toInt(result.favorite_id, null),
-      listing_id: toInt(result.listing_id, null),
-      memo: safeText(result.memo, null),
-      created_at: result.created_at ? new Date(result.created_at).toISOString() : null,
+      favorite_id: result.listing_id,
+      listing_id: result.listing_id,
     });
   } catch (e) {
     console.error("[favorites/add] error:", e.message);
@@ -178,8 +173,8 @@ export async function handleRemoveFavorite(req, res, listingId) {
   try {
     const deleted = await withDbClient(async (client) => {
       const result = await client.query(
-        `DELETE FROM user_favorites WHERE listing_id = $1 RETURNING favorite_id`,
-        [id],
+        `DELETE FROM pin_favorites WHERE pin_hash = $1 AND listing_id = $2 RETURNING listing_id`,
+        [ANON_PIN_HASH, id],
       );
       return result.rowCount > 0;
     });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Component } from "react";
+import { useEffect, useState, useRef, useCallback, Component } from "react";
 import { useApiHealth } from "./hooks/useApi.js";
 import { useFavorites } from "./hooks/useFavorites.js";
 import { useProfile } from "./hooks/useProfile.js";
@@ -143,6 +143,13 @@ export default function App() {
   const { pin, authenticated, settings: profileSettings, favoriteIds: profileFavoriteIds, error: profileError, signIn, signOut, saveSetting, toggleFavorite: profileToggleFavorite, isFavorite: profileIsFavorite, getFavoriteGrade } = useProfile(apiBase);
   const [showPinLogin, setShowPinLogin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [mapFocusListing, setMapFocusListing] = useState(null);
+
+  const onViewOnMap = useCallback((listing) => {
+    if (!listing?.lat || !listing?.lng) return;
+    setMapFocusListing({ listing_id: listing.listing_id, lat: listing.lat, lng: listing.lng });
+    setActiveView("map");
+  }, []);
 
   const favoriteIds = authenticated ? profileFavoriteIds : sessionFavoriteIds;
   const isFavorite = authenticated ? profileIsFavorite : sessionIsFavorite;
@@ -274,10 +281,10 @@ export default function App() {
       <main className={`app-content${activeView === "map" ? " app-content--fullwidth" : ""}`}>
         {activeView === "ops" && <OperationsDashboard apiBase={apiBase} runId={runId} />}
         {activeView === "matches" && <MatchingBoard apiBase={apiBase} runId={runId} />}
-        {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} favoriteIds={favoriteIds} />}
-        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} authenticated={authenticated} pin={pin} /></MapErrorBoundary>}
-        {activeView === "scores" && <ScoresView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
-        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} />}
+        {activeView === "listings" && <ListingSearch apiBase={apiBase} runId={runId} isFavorite={isFavorite} toggleFavorite={toggleFavorite} favoriteIds={favoriteIds} onViewOnMap={onViewOnMap} />}
+        {activeView === "map" && <MapErrorBoundary><MapView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} getFavoriteGrade={authenticated ? getFavoriteGrade : null} authenticated={authenticated} pin={pin} focusListing={mapFocusListing} onFocusConsumed={() => setMapFocusListing(null)} /></MapErrorBoundary>}
+        {activeView === "scores" && <ScoresView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} onViewOnMap={onViewOnMap} />}
+        {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} onViewOnMap={onViewOnMap} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
       </main>
     </div>

@@ -4,7 +4,7 @@ import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
-export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin, getFavoriteGrade }) {
+export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin, getFavoriteGrade, onViewOnMap }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -143,6 +143,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
                 onClick={() => loadDetail(item.listing_id)}
                 isFavorite={isFavorite(item.listing_id)}
                 onToggleFavorite={() => toggleFavorite(item.listing_id)}
+                onViewOnMap={onViewOnMap}
               />
             </div>
           );

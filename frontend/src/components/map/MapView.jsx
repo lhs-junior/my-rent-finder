@@ -15,7 +15,7 @@ function toFiniteCoordinate(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavoriteGrade, authenticated, pin }) {
+export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavoriteGrade, authenticated, pin, focusListing, onFocusConsumed }) {
   const { markers: geoMarkers, totalInBounds, loading: geoLoading, error, fetchMarkers } = useMapListings(apiBase);
   const [favMarkers, setFavMarkers] = useState([]);
   const [favLoading, setFavLoading] = useState(false);
@@ -122,6 +122,20 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     setSelectedId(null);
     mapRef.current?.clearSelection?.();
   }, []);
+
+  // 다른 탭에서 "지도에서 보기" 클릭 시 자동 센터링 + 상세 열기
+  useEffect(() => {
+    if (!focusListing) return;
+    const { listing_id, lat, lng } = focusListing;
+    if (lat != null && lng != null) {
+      mapRef.current?.focusAt?.({ lat, lng, zoom: MAP_CARD_FOCUS_ZOOM });
+    }
+    if (listing_id) {
+      setSelectedId(String(listing_id));
+      setDetailId(String(listing_id));
+    }
+    onFocusConsumed?.();
+  }, [focusListing, onFocusConsumed]);
 
   useEffect(() => {
     if (!selectedId) return;

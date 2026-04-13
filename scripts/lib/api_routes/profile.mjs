@@ -23,6 +23,14 @@ export async function handleProfileRead(req, res) {
 
   try {
     const [profileRows, favRows, scoreRows] = await withDbClient(async (client) => {
+      // 비인증(__anon__) 찜을 현재 사용자 pin_hash로 병합 (최초 로그인 시 1회성)
+      await client.query(
+        `INSERT INTO pin_favorites (pin_hash, listing_id, added_at)
+         SELECT $1, listing_id, added_at FROM pin_favorites WHERE pin_hash = '__anon__'
+         ON CONFLICT DO NOTHING`,
+        [pinHash]
+      );
+
       const p = await client.query(
         "SELECT my_capital, my_income, ltv_ratio, dti_limit, loan_type FROM user_profiles WHERE pin_hash = $1",
         [pinHash]

@@ -58,7 +58,7 @@ function formatTimestamp(value) {
   return date.toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavorite, favoriteIds }) {
+export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavorite, favoriteIds, onViewOnMap }) {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [submittedFilters, setSubmittedFilters] = useState(DEFAULT_FILTERS);
   const [formErrors, setFormErrors] = useState({});
@@ -408,6 +408,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             onClick={() => item.listing_id && loadDetail(item.listing_id)}
             isFavorite={isFavorite ? isFavorite(item.listing_id) : false}
             onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : null}
+            onViewOnMap={onViewOnMap}
             isLoadingDetail={loadingDetailId === toIdText(item.listing_id)}
           />
         ))}

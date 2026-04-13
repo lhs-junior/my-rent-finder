@@ -72,7 +72,7 @@ function sortItems(items, sortBy) {
   return copy;
 }
 
-export default function ScoresView({ apiBase, isFavorite, toggleFavorite }) {
+export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onViewOnMap }) {
   const [rawItems, setRawItems] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -205,6 +205,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite }) {
               onClick={() => loadDetail(item.listing_id)}
               isFavorite={isFavorite?.(item.listing_id)}
               onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : undefined}
+              onViewOnMap={onViewOnMap}
             />
           </div>
         ))}

@@ -64,6 +64,7 @@ export default function ListingCard({
   onClick,
   isFavorite,
   onToggleFavorite,
+  onViewOnMap,
   compact,
   variant,
   isLoadingDetail,
@@ -215,11 +216,23 @@ export default function ListingCard({
           )}
         </div>
       </button>
-      {onToggleFavorite && (
-        <div className="listing-card-fav">
+      <div className="listing-card-actions">
+        {onViewOnMap && item.lat != null && item.lng != null && (
+          <button
+            type="button"
+            className="listing-card-map-btn"
+            title="지도에서 보기"
+            onClick={(e) => { e.stopPropagation(); onViewOnMap(item); }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M1 3.5l4.5-2 5 2 4.5-2v11l-4.5 2-5-2-4.5 2v-11z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+        {onToggleFavorite && (
           <FavoriteButton active={isFavorite} onClick={() => onToggleFavorite()} size="sm" />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
