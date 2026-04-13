@@ -11,9 +11,9 @@ function ScoreBadge({ grade, score }) {
     <span
       className="fav-grade-badge"
       style={{ background: GRADE_COLORS[grade] || "#6b7280", color: "#fff" }}
-      title={`총점 ${score}/16`}
+      title={`AI 배점 총점 ${score}/16점`}
     >
-      {grade} ({score})
+      {grade} · {score}점
     </span>
   );
 }

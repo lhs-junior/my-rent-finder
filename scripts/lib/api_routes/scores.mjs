@@ -3,6 +3,18 @@
 import { withDbClient, toInt, toNumber } from "../db_client.mjs";
 import { sendJson, safeText, platformNameFromCode, parseImageMap, extractImageUrlsFromPayload } from "../api_helpers.mjs";
 
+// 모듈 레벨 캐시 — Vercel warm instance 유지 시 재연결 없이 즉시 반환
+const _cache = new Map(); // key → { data, ts }
+const CACHE_TTL_MS = 3 * 60 * 1000; // 3분
+
+function cacheGet(key) {
+  const entry = _cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL_MS) { _cache.delete(key); return null; }
+  return entry.data;
+}
+function cacheSet(key, data) { _cache.set(key, { data, ts: Date.now() }); }
+
 // GET /api/scores?grade=SS,S,A&sort=score|cost&limit=100
 export async function handleScores(req, res) {
   const url = new URL(req.url, "http://localhost");
@@ -11,6 +23,14 @@ export async function handleScores(req, res) {
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "200", 10), 500);
 
   const grades = gradeFilter ? gradeFilter.split(",").map((g) => g.trim().toUpperCase()) : null;
+
+  // 캐시 키 — sort는 클라이언트 처리이므로 grade+limit만
+  const cacheKey = `scores:${gradeFilter || "all"}:${limit}`;
+  const cached = cacheGet(cacheKey);
+  if (cached) {
+    sendJson(res, 200, cached);
+    return;
+  }
 
   try {
     const result = await withDbClient(async (client) => {
@@ -105,7 +125,9 @@ export async function handleScores(req, res) {
       });
     });
 
-    sendJson(res, 200, { items: result, total: result.length });
+    const payload = { items: result, total: result.length };
+    cacheSet(cacheKey, payload);
+    sendJson(res, 200, payload);
   } catch (e) {
     console.error("[scores] error:", e.message);
     sendJson(res, 500, { error: "DB error" });
@@ -114,6 +136,9 @@ export async function handleScores(req, res) {
 
 // GET /api/scores/summary — 등급별 요약
 export async function handleScoresSummary(req, res) {
+  const cached = cacheGet("scores:summary");
+  if (cached) { sendJson(res, 200, cached); return; }
+
   try {
     const result = await withDbClient(async (client) => {
       const { rows } = await client.query(`
@@ -133,7 +158,9 @@ export async function handleScoresSummary(req, res) {
       }));
     });
 
-    sendJson(res, 200, { grades: result, total: result.reduce((s, r) => s + r.count, 0) });
+    const payload = { grades: result, total: result.reduce((s, r) => s + r.count, 0) };
+    cacheSet("scores:summary", payload);
+    sendJson(res, 200, payload);
   } catch (e) {
     console.error("[scores/summary] error:", e.message);
     sendJson(res, 500, { error: "DB error" });
