@@ -19,6 +19,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
   const { markers: geoMarkers, totalInBounds, loading: geoLoading, error, fetchMarkers } = useMapListings(apiBase);
   const [favMarkers, setFavMarkers] = useState([]);
   const [favLoading, setFavLoading] = useState(false);
+  const [aiMarkers, setAiMarkers] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [filters, setFilters] = useState({});
 
   // 찜만 보기 활성화 시 favorites API에서 직접 마커 로드
@@ -63,12 +65,47 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       .finally(() => setFavLoading(false));
   }, [filters.only_favorites, authenticated, pin, apiBase]);
 
-  const markers = filters.only_favorites ? favMarkers : geoMarkers;
-  const loading = filters.only_favorites ? favLoading : geoLoading;
+  // AI 추천만 보기 활성화 시 scores API에서 마커 로드
+  useEffect(() => {
+    if (!filters.only_ai) {
+      setAiMarkers([]);
+      return;
+    }
+    setAiLoading(true);
+    fetch(`${apiBase}/api/scores?grade=SS,S,A&limit=500`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
+      .then(data => {
+        const items = data.items || [];
+        setAiMarkers(
+          items
+            .filter(it => it.lat != null && it.lng != null)
+            .map(it => ({
+              listing_id: it.listing_id,
+              lat: it.lat,
+              lng: it.lng,
+              rent_amount: it.rent_amount,
+              deposit_amount: it.deposit_amount,
+              address_text: it.address_text,
+              area_exclusive_m2: it.area_exclusive_m2,
+              floor: it.floor,
+              room_count: it.room_count,
+              lease_type: it.lease_type,
+              platform_code: it.platform_code || null,
+              grade: it.grade || null,
+              total_score: it.total_score || null,
+            }))
+        );
+      })
+      .catch(() => setAiMarkers([]))
+      .finally(() => setAiLoading(false));
+  }, [filters.only_ai, apiBase]);
+
+  const markers = filters.only_ai ? aiMarkers : filters.only_favorites ? favMarkers : geoMarkers;
+  const loading = filters.only_ai ? aiLoading : filters.only_favorites ? favLoading : geoLoading;
 
   const displayedMarkers = (() => {
     let result = markers;
-    if (filters.only_favorites && filters.grade) {
+    if ((filters.only_favorites || filters.only_ai) && filters.grade) {
       result = result.filter(m => {
         const grade = m.grade || (getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null);
         return grade === filters.grade;
@@ -84,12 +121,14 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const handleBoundsChange = useCallback((bounds) => {
     boundsRef.current = bounds;
-    if (!filters.only_favorites) fetchMarkers(bounds, filters);
+    if (!filters.only_favorites && !filters.only_ai) fetchMarkers(bounds, filters);
   }, [fetchMarkers, filters]);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
-    if (!newFilters.only_favorites && boundsRef.current) fetchMarkers(boundsRef.current, newFilters);
+    if (!newFilters.only_favorites && !newFilters.only_ai && boundsRef.current) {
+      fetchMarkers(boundsRef.current, newFilters);
+    }
   }, [fetchMarkers]);
 
   const handleMarkerClick = useCallback((marker) => {
@@ -153,7 +192,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           filters={filters}
           onFilterChange={handleFilterChange}
           markers={displayedMarkers}
-          totalInBounds={filters.only_favorites ? displayedMarkers.length : totalInBounds}
+          totalInBounds={(filters.only_favorites || filters.only_ai) ? displayedMarkers.length : totalInBounds}
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}

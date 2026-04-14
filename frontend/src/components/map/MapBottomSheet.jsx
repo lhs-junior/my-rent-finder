@@ -127,12 +127,19 @@ export default function MapBottomSheet({
                 <button
                   type="button"
                   className={`map-favorites-only-btn${filters.only_favorites ? " map-favorites-only-btn--active" : ""}`}
-                  onClick={() => onFilterChange?.({ ...filters, only_favorites: !filters.only_favorites, grade: "" })}
+                  onClick={() => onFilterChange?.({ only_favorites: !filters.only_favorites, grade: "" })}
                 >
                   ♥ 찜만 보기
                 </button>
+                <button
+                  type="button"
+                  className={`map-favorites-only-btn map-ai-only-btn${filters.only_ai ? " map-favorites-only-btn--active map-ai-only-btn--active" : ""}`}
+                  onClick={() => onFilterChange?.({ only_ai: !filters.only_ai, grade: "" })}
+                >
+                  ★ AI 추천
+                </button>
               </div>
-              {filters.only_favorites && (
+              {(filters.only_favorites || filters.only_ai) && (
                 <div className="map-grade-filter">
                   {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
                     <button

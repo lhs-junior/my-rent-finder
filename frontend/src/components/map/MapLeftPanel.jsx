@@ -99,9 +99,17 @@ export default function MapLeftPanel({
             type="button"
             className={`map-favorites-only-btn${filters.only_favorites ? " map-favorites-only-btn--active" : ""}`}
             aria-pressed={!!filters.only_favorites}
-            onClick={() => onFilterChange({ ...filters, only_favorites: !filters.only_favorites, grade: "" })}
+            onClick={() => onFilterChange({ only_favorites: !filters.only_favorites, grade: "" })}
           >
             ♥ 찜만 보기
+          </button>
+          <button
+            type="button"
+            className={`map-favorites-only-btn map-ai-only-btn${filters.only_ai ? " map-favorites-only-btn--active map-ai-only-btn--active" : ""}`}
+            aria-pressed={!!filters.only_ai}
+            onClick={() => onFilterChange({ only_ai: !filters.only_ai, grade: "" })}
+          >
+            ★ AI 추천
           </button>
           <button
             type="button"
@@ -111,7 +119,7 @@ export default function MapLeftPanel({
             초기화
           </button>
         </div>
-        {filters.only_favorites && getFavoriteGrade && (
+        {(filters.only_favorites || filters.only_ai) && (
           <div className="map-grade-filter">
             {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
               <button
@@ -136,7 +144,7 @@ export default function MapLeftPanel({
           <p className="map-left-empty">해당 지역에 매물이 없습니다</p>
         )}
         {markers.map(m => {
-          const grade = getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null;
+          const grade = m.grade || (getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null);
           return (
             <div
               key={m.listing_id}
@@ -145,7 +153,7 @@ export default function MapLeftPanel({
               onClick={() => onCardClick(m)}
             >
               <div className="map-left-card-price">
-                {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}</span>}
+                {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}{m.total_score != null ? ` ${m.total_score}` : ""}</span>}
                 {m.platform_code && <span className="map-left-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[m.platform_code] || m.platform_code}</span>}
                 {m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}
               </div>
