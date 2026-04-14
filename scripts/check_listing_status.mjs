@@ -30,6 +30,7 @@ const verbose = hasFlag("--verbose");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const MAX_CONSECUTIVE_TIMEOUTS = 8; // 연속 타임아웃 8회 → 해당 플랫폼 중단
+const NAVER_DELAY_MS = 500; // 네이버는 rate limit 회피를 위해 더 긴 딜레이
 
 const COMMON_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -166,6 +167,7 @@ async function checkNaverListing(externalId) {
   });
 
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
+  if (res.status === 429) return { status: "error", httpStatus: 429 }; // rate limit → consecutive timeout 로직에 위임
   if (res.status >= 300 && res.status < 400) {
     const location = res.headers.get("location") || "";
     // Redirect to search/main = listing gone
@@ -183,6 +185,15 @@ async function checkNaverListing(externalId) {
       html.includes("이미 거래된")
     ) {
       return { status: "expired", resultCode: "page_expired" };
+    }
+    // Check for error page — "일시적인 오류로 정보를 불러오지 못했어요" etc.
+    if (
+      html.includes("정보를 불러오지 못했") ||
+      html.includes("일시적인 오류") ||
+      html.includes("다시 시도해 주세요") ||
+      html.includes("페이지를 찾을 수 없")
+    ) {
+      return { status: "expired", resultCode: "error_page" };
     }
     // Check for active listing indicators
     if (html.includes("articleDetail") || html.includes("매물번호") || html.includes("articleNo")) {
@@ -238,6 +249,38 @@ async function checkDaangnListing(externalId, _row) {
   return { status: "error", httpStatus: res.status };
 }
 
+// ── 부동산써브 상태 체크 ──
+
+async function checkServeListing(externalId) {
+  const url = `https://www.serve.co.kr/good/v1/map/getAtclDetail?atclNo=${encodeURIComponent(externalId)}&tabNo=2`;
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": COMMON_UA,
+      Accept: "application/json",
+      Referer: "https://www.serve.co.kr/good/map",
+    },
+    signal: AbortSignal.timeout(5000),
+  });
+
+  if (!res.ok) return { status: "error", httpStatus: res.status };
+
+  const json = await res.json();
+  const resultList = json?.data?.resultList;
+
+  // 결과 없음 → 매물 삭제/종료
+  if (!resultList || resultList.length === 0) {
+    return { status: "expired", resultCode: "not_found" };
+  }
+
+  const item = resultList[0];
+  // atclStusCd: "7" = 활성 (관찰된 값), 다른 값이면 종료 가능
+  if (item.atclStusCd && item.atclStusCd !== "7") {
+    return { status: "expired", resultCode: `status_${item.atclStusCd}` };
+  }
+
+  return { status: "active" };
+}
+
 // ── 플랫폼별 체커 맵 ──
 
 const CHECKERS = {
@@ -247,10 +290,11 @@ const CHECKERS = {
   peterpanz: checkPeterpanzListing,
   naver: checkNaverListing,
   daangn: checkDaangnListing,
+  serve: checkServeListing,
 };
 
 // DB 기반 만료: HTTP 체크가 불가능한 플랫폼 (서버 IP 차단 등)
-const DB_ONLY_PLATFORMS = new Set(["naver"]);
+const DB_ONLY_PLATFORMS = new Set([]);
 const EXPIRE_DAYS_WITH_STALE = 30; // STALE_SUSPECT + 30일 경과 → 만료
 const EXPIRE_DAYS_ABSOLUTE = 60;   // 무조건 만료
 
@@ -363,16 +407,20 @@ async function checkPlatform(platformCode, client) {
 
     try {
       const result = await checker(row.external_id, row);
-      consecutiveTimeouts = 0; // 성공 시 리셋
 
       if (result.status === "expired") {
+        consecutiveTimeouts = 0;
         expired++;
         expiredIds.push(row.listing_id);
-        console.log(`  ✗ ${row.external_id} — 종료 (${row.title || "제목없음"})`);
+        console.log(`  ✗ ${row.external_id} — 종료 [${result.resultCode}] (${row.title || "제목없음"})`);
       } else if (result.status === "active") {
+        consecutiveTimeouts = 0;
         active++;
         if (verbose) console.log(`  ✓ ${row.external_id} — 활성`);
       } else {
+        // error / unknown — 429 등 rate limit도 연속 에러로 카운트
+        if (result.httpStatus === 429) consecutiveTimeouts++;
+        else consecutiveTimeouts = 0;
         errors++;
         console.log(`  ? ${row.external_id} — ${result.status} (code: ${result.resultCode || result.httpStatus})`);
       }
@@ -386,7 +434,7 @@ async function checkPlatform(platformCode, client) {
       console.log(`  ! ${row.external_id} — 오류: ${e.message}`);
     }
 
-    await sleep(delayMs);
+    await sleep(platformCode === "naver" ? Math.max(delayMs, NAVER_DELAY_MS) : delayMs);
   }
 
   // 종료된 매물 soft-delete

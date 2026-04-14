@@ -5,7 +5,7 @@
 ## Architecture
 
 ```
-Collection (6 platforms) → Normalization → DB → Matching → Status Check → Scoring → API → Frontend
+Collection (7 platforms) → Normalization → DB → Matching → Status Check → Scoring → API → Frontend
 ```
 
 - **수집**: `scripts/{platform}_auto_collector.mjs` — Playwright Stealth 또는 직접 fetch
@@ -34,7 +34,7 @@ Collection (6 platforms) → Normalization → DB → Matching → Status Check 
 
 ## DB 구조 (핵심 테이블)
 
-- **normalized_listings**: 정규화된 매물 (6개 플랫폼 통합)
+- **normalized_listings**: 정규화된 매물 (7개 플랫폼 통합)
 - **scored_listings**: AI 배점 결과 (listing_id PK, 개별점수 7개, 등급, 실질 월비용)
 - **pin_favorites**: 유저 수동 찜 (pin_hash + listing_id, toggle API 사용)
 - **user_favorites**: deprecated (pin_favorites로 통합)

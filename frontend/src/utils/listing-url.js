@@ -13,6 +13,8 @@ const PLATFORM_ALIAS = {
   부동산114: "r114",
   피터팬: "peterpanz",
   peterpanz: "peterpanz",
+  serve: "serve",
+  부동산써브: "serve",
 };
 
 const DEFAULT_NAVER_A = "DDDGG:JWJT:SGJT:VL";
@@ -192,6 +194,9 @@ function resolveByPattern(platform, listing, sourceRef) {
   }
   if (platform === "kbland") {
     return `https://www.kbland.kr/p/${encodeURIComponent(sourceRef)}`;
+  }
+  if (platform === "serve") {
+    return `https://www.serve.co.kr/good/map?m=2&atcl=${encodeURIComponent(sourceRef)}`;
   }
 
   return "";

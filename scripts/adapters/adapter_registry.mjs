@@ -7,6 +7,7 @@ import { R114ListingAdapter } from "./r114_listings_adapter.mjs";
 import { DaangnListingAdapter } from "./daangn_listings_adapter.mjs";
 import { PeterpanzListingAdapter } from "./peterpanz_listings_adapter.mjs";
 import { KblandListingAdapter } from "./kbland_listings_adapter.mjs";
+import { ServeListingAdapter } from "./serve_listings_adapter.mjs";
 
 export const ADAPTER_REGISTRY = {
   naver: {
@@ -65,12 +66,22 @@ export const ADAPTER_REGISTRY = {
     readiness: "READY",
     notes: "KB부동산 raw 정규화 파서 연결 완료",
   },
+  serve: {
+    platformCode: "serve",
+    platformName: "부동산써브",
+    collectionMode: "DIRECT_FETCH",
+    adapterFactory: () => new ServeListingAdapter(),
+    readiness: "READY",
+    notes: "부동산써브 API 정규화 파서 연결 완료",
+  },
 };
 
 const ADAPTER_ALIAS = {
   naver_land: "naver",
   kb부동산: "kbland",
   kb: "kbland",
+  serve: "serve",
+  부동산써브: "serve",
 };
 
 export function getAdapter(platformCode) {

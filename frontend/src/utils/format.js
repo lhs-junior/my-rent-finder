@@ -13,6 +13,7 @@ export const PLATFORM_OPTIONS = [
   { value: "kbland", label: "KB부동산" },
   { value: "peterpanz", label: "피터팬" },
   { value: "daangn", label: "당근부동산" },
+  { value: "serve", label: "부동산써브" },
 ];
 
 export function toMoney(value) {
@@ -52,6 +53,7 @@ export function toPlatformLabel(code) {
     kbland: "KB부동산",
     peterpanz: "피터팬",
     daangn: "당근부동산",
+    serve: "부동산써브",
   };
   return map[code] || code || "-";
 }
@@ -80,6 +82,7 @@ export const PLATFORM_COLORS = {
   kbland: "#EF4444",
   peterpanz: "#F97316",
   daangn: "#FF6F0F",
+  serve: "#10B981",
 };
 
 /** 직방 이미지 CDN은 w/h 파라미터 필수 */

@@ -79,6 +79,7 @@ const scriptPaths = {
   peterpanzCollect: path.resolve(process.cwd(), "scripts/peterpanz_auto_collector.mjs"),
   daangnCollect: path.resolve(process.cwd(), "scripts/daangn_auto_collector.mjs"),
   kblandCollect: path.resolve(process.cwd(), "scripts/kbland_auto_collector.mjs"),
+  serveCollect: path.resolve(process.cwd(), "scripts/serve_auto_collector.mjs"),
 };
 
 const runId = getArg(args, "--run-id", new Date().toISOString().replace(/[T:.]/g, "-"));
@@ -128,8 +129,10 @@ const platformAlias = {
   kb부동산: "kbland",
   kb: "kbland",
   KB부동산: "kbland",
+  serve: "serve",
+  부동산써브: "serve",
 };
-const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn", "kbland"]);
+const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn", "kbland", "serve"]);
 function normalizePlatform(raw) {
   return (
     platformAlias[raw] ||
@@ -1069,6 +1072,88 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
             return {
               platform: "r114",
+              sigungu,
+              rawFile,
+              metaFile,
+              normalizedPath,
+              collectResult,
+              normalizeResult,
+              targetCap: perSigunguCap,
+              success: true,
+            };
+          },
+        });
+      }
+      continue;
+    }
+
+    if (normalizedCode === "serve") {
+      const serveSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigungu = conditionData?.target?.sigungu;
+      const sigunguCandidates = unique(
+        [
+          ...serveSigunguFromTarget,
+          ...selectedSigunguList,
+          ...(overrideSigungu ? [overrideSigungu] : []),
+          ...(fallbackSigungu ? [fallbackSigungu] : ["성동구"]),
+        ].filter(Boolean),
+      ).slice(0, Math.max(1, naverMaxRegions));
+
+      const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
+      for (const sigungu of sigunguCandidates) {
+        jobs.push({
+          name: `serve:${sigungu}`,
+          run: async () => {
+            const safe = sanitizeFileToken(sigungu);
+            const rawFile = path.join(workspace, `serve_raw_${runId}_${safe}.jsonl`);
+            const metaFile = path.join(workspace, `serve_meta_${runId}_${safe}.json`);
+            const serveArgs = [
+              "--sigungu",
+              sigungu,
+              "--sample-cap",
+              asSampleCapArg(perSigunguCap),
+              "--output-raw",
+              rawFile,
+              "--output-meta",
+              metaFile,
+            ];
+
+            const serveFilters = conditionData?.filters || {};
+            const serveFilterArgs = buildFilterArgs({
+              rentMax: serveFilters.rentMax,
+              depositMax: serveFilters.depositMax,
+              minAreaM2: serveFilters.minAreaM2,
+            });
+            serveArgs.push(...serveFilterArgs);
+
+            const collectResult = await runNode(`serve_auto:${sigungu}`, scriptPaths.serveCollect, serveArgs, {
+              stream: true,
+            });
+
+            let normalizedPath = null;
+            let normalizeResult = null;
+            if (runNormalize) {
+              normalizedPath = path.join(workspace, `serve_normalized_${runId}_${safe}.json`);
+              normalizeResult = await runNode(
+                "serve_adapter",
+                scriptPaths.listingAdapters,
+                [
+                  "--platform",
+                  "serve",
+                  "--input",
+                  rawFile,
+                  "--out",
+                  normalizedPath,
+                  "--max-items",
+                  asAdapterMaxArg(perSigunguCap),
+                  ...serveFilterArgs,
+                ],
+                { stream: false },
+              );
+            }
+
+            return {
+              platform: "serve",
               sigungu,
               rawFile,
               metaFile,
