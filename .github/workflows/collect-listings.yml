@@ -141,13 +141,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Score and grade favorites
+      - name: Score and grade listings (AI 추천)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SCORE_PIN: ${{ secrets.SCORE_PIN }}
         run: |
-          if [ -z "$SCORE_PIN" ]; then
-            echo "SCORE_PIN secret이 설정되지 않아 등급 분류를 건너뜁니다."
-            exit 0
-          fi
-          node scripts/score_and_pin_favorites.mjs --pin="$SCORE_PIN"
+          node scripts/score_listings.mjs
