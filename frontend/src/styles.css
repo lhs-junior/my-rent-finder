@@ -3325,34 +3325,67 @@ pre {
 .fav-grade-btn--active.fav-grade-btn--S   { background: #1d6fa4; color: #fff; border-color: #1d6fa4; }
 .fav-grade-btn--active.fav-grade-btn--A   { background: #2e7d32; color: #fff; border-color: #2e7d32; }
 
-/* 찜 카드 래퍼 + 등급 배지 */
-.fav-card-wrapper {
-  position: relative;
+/* 찜 카드 */
+.fav-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
-.fav-grade-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 1;
-  padding: 2px 7px;
+.fav-card:hover {
+  border-color: #b8b5af;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.fav-card .listing-card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+}
+.fav-card .listing-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+.fav-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 4px;
+  flex-wrap: wrap;
+}
+.fav-card-grade {
+  display: inline-block;
+  padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 700;
+  color: #fff;
   letter-spacing: 0.03em;
-  pointer-events: none;
 }
-.fav-grade-badge--SS { background: #f5a623; color: #fff; }
-.fav-grade-badge--S  { background: #1d6fa4; color: #fff; }
-.fav-grade-badge--A  { background: #2e7d32; color: #fff; }
-.fav-platform-badge {
-  display: inline-block;
+.fav-card-grade--SS { background: #f5a623; }
+.fav-card-grade--S  { background: #1d6fa4; }
+.fav-card-grade--A  { background: #2e7d32; }
+.fav-card-platform {
   font-size: 10px;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 3px;
   background: #e8e8e8;
   color: #666;
-  margin-left: 2px;
-  vertical-align: middle;
+}
+.fav-card-expired {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #6B7280;
+  color: #fff;
+  margin-left: auto;
+}
+.fav-card--expired {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 /* 지도 좌측 카드 등급 뱃지 */
@@ -3378,28 +3411,6 @@ pre {
   color: #666;
   margin-left: 2px;
   vertical-align: middle;
-}
-
-/* 종료된 찜 매물 */
-.fav-card-wrapper--expired {
-  opacity: 0.45;
-  pointer-events: none;
-}
-.fav-card-wrapper--expired .fav-expired-badge {
-  pointer-events: none;
-}
-.fav-expired-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  background: #6B7280;
-  color: #fff;
-  letter-spacing: 0.02em;
 }
 
 .fav-loading {
@@ -4515,12 +4526,67 @@ pre {
 }
 
 /* ── ScoresView (AI 추천) ── */
+.score-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.score-card:hover {
+  border-color: #b8b5af;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.score-card .listing-card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+}
+.score-card .listing-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+.score-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 4px;
+  flex-wrap: wrap;
+}
+.score-card-grade {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+.score-card-platform {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #e8e8e8;
+  color: #666;
+}
+.score-card-cost {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: auto;
+}
 .score-breakdown {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 4px 10px 8px;
   font-size: 11px;
+  border-top: 1px solid var(--line, #e5e5e5);
 }
 .score-breakdown-item {
   display: inline-flex;
@@ -4539,18 +4605,6 @@ pre {
 }
 .score-breakdown-value--max {
   color: #dc2626;
-}
-.score-effective-cost {
-  position: absolute;
-  top: 28px;
-  left: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #059669;
-  background: #ecfdf5;
-  border-radius: 4px;
-  padding: 1px 6px;
-  z-index: 2;
 }
 .score-sort-separator {
   color: var(--muted, #6b7280);

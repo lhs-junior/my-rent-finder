@@ -9,8 +9,8 @@ const GRADE_COLORS = { SS: "#dc2626", S: "#f59e0b", A: "#3b82f6", B: "#6b7280" }
 function ScoreBadge({ grade, score }) {
   return (
     <span
-      className="fav-grade-badge"
-      style={{ background: GRADE_COLORS[grade] || "#6b7280", color: "#fff" }}
+      className="score-card-grade"
+      style={{ background: GRADE_COLORS[grade] || "#6b7280" }}
       title={`AI 배점 총점 ${score}/16점`}
     >
       {grade} · {score}점
@@ -46,7 +46,7 @@ function ScoreBreakdown({ scores }) {
 function EffectiveCost({ rent, deposit, cost }) {
   if (!cost || !deposit) return null;
   return (
-    <span className="score-effective-cost" title={`월세 ${rent}만 + 보증금 기회비용 → 실질 ${cost}만/월`}>
+    <span className="score-card-cost" title={`월세 ${rent}만 + 보증금 기회비용 → 실질 ${cost}만/월`}>
       실질 {cost}만/월
     </span>
   );
@@ -191,15 +191,16 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
 
       <div className="listing-grid">
         {items.map((item, idx) => (
-          <div key={item.listing_id ?? `score-${idx}`} className="fav-card-wrapper">
-            <ScoreBadge grade={item.grade} score={item.total_score} />
-            {item.platform_code && (
-              <span className="fav-platform-badge">
-                {({ naver: "네이버", dabang: "다방", daangn: "당근", peterpanz: "피터팬", zigbang: "직방", kbland: "KB" })[item.platform_code] || item.platform_code}
-              </span>
-            )}
-            <EffectiveCost rent={item.rent_amount} deposit={item.deposit_amount} cost={item.effective_monthly_cost} />
-            <ScoreBreakdown scores={item.scores} />
+          <div key={item.listing_id ?? `score-${idx}`} className="score-card">
+            <div className="score-card-header">
+              <ScoreBadge grade={item.grade} score={item.total_score} />
+              {item.platform_code && (
+                <span className="score-card-platform">
+                  {({ naver: "네이버", dabang: "다방", daangn: "당근", peterpanz: "피터팬", zigbang: "직방", kbland: "KB" })[item.platform_code] || item.platform_code}
+                </span>
+              )}
+              <EffectiveCost rent={item.rent_amount} deposit={item.deposit_amount} cost={item.effective_monthly_cost} />
+            </div>
             <ListingCard
               item={item}
               onClick={() => loadDetail(item.listing_id)}
@@ -207,6 +208,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
               onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : undefined}
               onViewOnMap={onViewOnMap}
             />
+            <ScoreBreakdown scores={item.scores} />
           </div>
         ))}
       </div>

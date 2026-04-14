@@ -134,10 +134,14 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
           const grade = item.grade || getFavoriteGrade?.(item.listing_id) || null;
           const expired = item.is_expired === true;
           return (
-            <div key={item.listing_id ?? `fav-${idx}`} className={`fav-card-wrapper${expired ? " fav-card-wrapper--expired" : ""}`}>
-              {grade && <span className={`fav-grade-badge fav-grade-badge--${grade}`}>{grade}</span>}
-              {item.platform_code && <span className="fav-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[item.platform_code] || item.platform_code}</span>}
-              {expired && <span className="fav-expired-badge">종료됨</span>}
+            <div key={item.listing_id ?? `fav-${idx}`} className={`fav-card${expired ? " fav-card--expired" : ""}`}>
+              {(grade || item.platform_code || expired) && (
+                <div className="fav-card-header">
+                  {grade && <span className={`fav-card-grade fav-card-grade--${grade}`}>{grade}</span>}
+                  {item.platform_code && <span className="fav-card-platform">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[item.platform_code] || item.platform_code}</span>}
+                  {expired && <span className="fav-card-expired">종료됨</span>}
+                </div>
+              )}
               <ListingCard
                 item={item}
                 onClick={() => loadDetail(item.listing_id)}
