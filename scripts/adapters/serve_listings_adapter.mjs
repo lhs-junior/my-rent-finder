@@ -103,6 +103,7 @@ export class ServeListingAdapter extends BaseListingAdapter {
       lng,
       image_urls: imageUrls,
       built_date: builtDate,
+      cross_ref: raw.naverAtclNo ? String(raw.naverAtclNo) : null,
       meta: {
         naverAtclNo: raw.naverAtclNo || null,
         ctgryCd1: raw.ctgryCd1 || null,

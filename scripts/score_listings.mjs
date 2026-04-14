@@ -305,6 +305,18 @@ scored AS (
       ('사무실','오피스텔','상가','공장','창고','토지','주차장','매장','작업실','건물','기타',
        '제1종근린생활시설','제2종근린생활시설','근린생활시설','상가주택'))
 ),
+-- 교차 플랫폼 중복 제거: serve.cross_ref = naver.external_id → naver 쪽 제외
+cross_ref_dupes AS (
+  SELECT nv.listing_id AS naver_listing_id
+  FROM normalized_listings sv
+  JOIN normalized_listings nv
+    ON sv.cross_ref = nv.external_id
+    AND nv.platform_code = 'naver'
+    AND nv.deleted_at IS NULL
+  WHERE sv.platform_code = 'serve'
+    AND sv.cross_ref IS NOT NULL
+    AND sv.deleted_at IS NULL
+),
 ranked AS (
   SELECT
     s.listing_id, s.rent_amount, s.deposit_amount,
@@ -318,7 +330,9 @@ ranked AS (
     ) AS dup_rank
   FROM scored s
   JOIN normalized_listings n ON n.listing_id = s.listing_id
+  LEFT JOIN cross_ref_dupes crd ON crd.naver_listing_id = s.listing_id
   WHERE s.eliminate != -99
+    AND crd.naver_listing_id IS NULL  -- naver 중복 매물 제외 (serve에 같은 매물 있음)
 )
 SELECT
   listing_id, rent_amount, deposit_amount,
