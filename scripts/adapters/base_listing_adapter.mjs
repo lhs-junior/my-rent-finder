@@ -160,12 +160,19 @@ function imageRate(items) {
   return withValidImage.length / items.length;
 }
 
+// 비매물 이미지 패턴 — 아이콘, 로고, UI 요소, 배지, 프로필 등
+const IMAGE_BAD_PATTERNS =
+  /(?:blank\.gif|\/ico_|logo|banner|noimg|facebook|btn_|favicon|sprite|placeholder|\.ico(?:\?|$)|thmb_|mc_icon_|gnb_|searchicon|\/icon\/|\/icons\/|\/badge[s]?\/|\/stamp\/|\/label\/|\/tag\/|profile_img|agent_photo|_avatar|_profile\.|bg_|background_|arrow_|close_|star_|rating_|share_|like_|heart_|no_image|no_photo|default_img|default_photo|thumb_default|\/ad\/|ad_banner|adimg)/i;
+
 function isValidImageUrl(url) {
   const s = String(url || "").trim();
   if (!/^https?:\/\//i.test(s)) return false;
   try {
     const parsed = new URL(s);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    // bad pattern이면 유효하지 않은 이미지로 판정
+    if (IMAGE_BAD_PATTERNS.test(parsed.pathname.toLowerCase())) return false;
+    return true;
   } catch {
     return false;
   }

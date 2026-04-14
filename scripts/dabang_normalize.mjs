@@ -109,5 +109,5 @@ console.log(
   `   requiredFields: ${(Math.round(result.stats.requiredFieldsRate * 1000) / 10).toFixed(1)}%`,
 );
 console.log(
-  `   imageUrlRate: ${(Math.round(result.stats.imageRate * 1000) / 10).toFixed(1)}%`,
+  `   매물사진 보유율: ${(Math.round(result.stats.imageRate * 1000) / 10).toFixed(1)}%`,
 );
