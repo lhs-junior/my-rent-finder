@@ -418,23 +418,44 @@ async function main() {
 
     if (opts.dryRun) return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
 
-    // 2) scored_listings에 UPSERT
-    // 기존 데이터 전체 삭제 후 재삽입 (매 실행마다 전체 갱신)
-    await client.query("DELETE FROM scored_listings");
+    // 2) scored_listings 전체 갱신 — 트랜잭션으로 원자성 보장
+    // BEGIN/COMMIT: DELETE + INSERT를 하나의 트랜잭션으로 묶어 FK 위반 방지
+    // INSERT ... JOIN normalized_listings: SELECT~INSERT 사이에 하드 DELETE된 listing_id를 안전하게 스킵
+    await client.query("BEGIN");
+    try {
+      await client.query("DELETE FROM scored_listings");
 
-    if (graded.length > 0) {
-      const values = graded.map((r) =>
-        `(${r.listing_id}, ${r.total_score}, '${r.grade}', ${r.rpm_score}, ${r.subway_score}, ${r.transfer_score}, ${r.area_score}, ${r.floor_score}, ${r.year_score}, ${r.img_score}, ${r.effectiveMonthlyCost}, NOW())`
-      ).join(",\n");
+      let insertedCount = 0;
+      if (graded.length > 0) {
+        const values = graded.map((r) =>
+          `(${r.listing_id}, ${r.total_score}, '${r.grade}', ${r.rpm_score}, ${r.subway_score}, ${r.transfer_score}, ${r.area_score}, ${r.floor_score}, ${r.year_score}, ${r.img_score}, ${r.effectiveMonthlyCost})`
+        ).join(",\n");
 
-      await client.query(`
-        INSERT INTO scored_listings
-          (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost, scored_at)
-        VALUES ${values}
-      `);
+        const result = await client.query(`
+          WITH vals (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost) AS (
+            VALUES ${values}
+          )
+          INSERT INTO scored_listings
+            (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost, scored_at)
+          SELECT v.listing_id::integer, v.total_score::smallint, v.grade,
+                 v.rpm_score::smallint, v.subway_score::smallint, v.transfer_score::smallint,
+                 v.area_score::smallint, v.floor_score::smallint, v.year_score::smallint,
+                 v.img_score::smallint, v.effective_monthly_cost::integer, NOW()
+          FROM vals v
+          JOIN normalized_listings nl ON nl.listing_id = v.listing_id::integer
+        `);
+        insertedCount = result.rowCount ?? 0;
+        if (insertedCount < graded.length) {
+          console.warn(`  [경고] 배점 대상 ${graded.length}개 중 ${insertedCount}개만 저장 (${graded.length - insertedCount}개 listing_id가 수집 중 삭제됨)`);
+        }
+      }
+
+      await client.query("COMMIT");
+      console.log(`\n── scored_listings 저장 완료: ${graded.length}개 ──`);
+    } catch (txErr) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw txErr;
     }
-
-    console.log(`\n── scored_listings 저장 완료: ${graded.length}개 ──`);
 
     return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: true };
   });
