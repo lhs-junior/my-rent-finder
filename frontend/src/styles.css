@@ -992,11 +992,17 @@ body {
     left: 0;
     right: 0;
     width: 100%;
+    height: auto;
     max-height: 92vh;
     border-radius: 20px 20px 0 0;
     overflow-y: auto;
     animation: mdl-slide-up 0.28s ease-out;
     box-shadow: 0 -8px 32px rgba(0,0,0,.2);
+    background: var(--panel);
+  }
+  .map-3panel-right--open .map-right-body {
+    overflow-y: visible;
+    flex: none;
   }
   .map-3panel-right--open .map-right-header {
     position: sticky;
