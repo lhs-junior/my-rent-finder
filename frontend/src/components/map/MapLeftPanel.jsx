@@ -7,6 +7,7 @@ export default function MapLeftPanel({
   onFilterChange,
   markers,
   totalInBounds,
+  isFiltered,
   loading,
   selectedId,
   onCardClick,
@@ -137,7 +138,7 @@ export default function MapLeftPanel({
 
       {/* 목록 */}
       <div className="map-left-count">
-        {loading ? "조회 중..." : `지도 내 ${totalInBounds ?? markers.length}건`}
+        {loading ? "조회 중..." : isFiltered ? `${totalInBounds ?? markers.length}건` : `지도 내 ${totalInBounds ?? markers.length}건`}
       </div>
       <div className="map-left-list" ref={listRef}>
         {markers.length === 0 && !loading && (

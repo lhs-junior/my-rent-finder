@@ -100,6 +100,14 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       .finally(() => setAiLoading(false));
   }, [filters.only_ai, apiBase]);
 
+  const hasNonModeFilters = !!(
+    filters.lease_type || filters.platform_code ||
+    filters.min_rent || filters.max_rent ||
+    filters.min_area || filters.max_area ||
+    filters.min_floor || filters.has_image
+  );
+  const isLocalMode = filters.only_favorites || filters.only_ai || hasNonModeFilters;
+
   const markers = filters.only_ai ? aiMarkers : filters.only_favorites ? favMarkers : geoMarkers;
   const loading = filters.only_ai ? aiLoading : filters.only_favorites ? favLoading : geoLoading;
 
@@ -156,7 +164,14 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const handleBoundsChange = useCallback((bounds) => {
     boundsRef.current = bounds;
-    if (!filters.only_favorites && !filters.only_ai) fetchMarkers(bounds, filters);
+    const localMode = !!(
+      filters.only_favorites || filters.only_ai ||
+      filters.lease_type || filters.platform_code ||
+      filters.min_rent || filters.max_rent ||
+      filters.min_area || filters.max_area ||
+      filters.min_floor || filters.has_image
+    );
+    if (!localMode) fetchMarkers(bounds, filters);
   }, [fetchMarkers, filters]);
 
   const handleFilterChange = useCallback((newFilters) => {
@@ -227,7 +242,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           filters={filters}
           onFilterChange={handleFilterChange}
           markers={displayedMarkers}
-          totalInBounds={(filters.only_favorites || filters.only_ai) ? displayedMarkers.length : totalInBounds}
+          totalInBounds={isLocalMode ? displayedMarkers.length : totalInBounds}
+          isFiltered={isLocalMode}
           loading={loading}
           selectedId={selectedId}
           onCardClick={handleCardClick}
@@ -276,7 +292,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       {/* 모바일: 하단 시트 */}
       <MapBottomSheet
         markers={displayedMarkers}
-        totalInBounds={totalInBounds}
+        totalInBounds={isLocalMode ? displayedMarkers.length : totalInBounds}
         loading={loading}
         selectedId={selectedId}
         detailOpen={Boolean(detailId)}
