@@ -1236,7 +1236,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
   return jobs;
 }
 
-async function runJobs(jobs, concurrency) {
+async function runJobs(jobs, concurrency, { onComplete } = {}) {
   const results = [];
   let pointer = 0;
 
@@ -1256,6 +1256,12 @@ async function runJobs(jobs, concurrency) {
           ok: true,
           ...data,
         };
+        // 잡 완료 직후 스트리밍 persist (비동기, 실패해도 수집 흐름 방해 안 함)
+        if (onComplete) {
+          onComplete(results[current]).catch((e) =>
+            console.error(`[STREAM_PERSIST] ${jobLabel} DB 저장 실패: ${e?.message || e}`),
+          );
+        }
       } catch (error) {
         const result = {
           name: jobLabel,
@@ -1321,12 +1327,38 @@ const jobs = buildJobs(targetMap, targetFile, {
   filters: naverCondition,
 });
 
+// 잡 완료 직후 해당 플랫폼만 즉시 DB에 저장 (upsert라 중복 안전)
+async function persistJobResult(result) {
+  if (!result?.ok || result?.skipped) return;
+  if (!result?.normalizedPath && !result?.rawFile) return;
+  const safe = (result.name || "job").replace(/[:/\\]/g, "_");
+  const miniPath = path.join(workspace, `mini_summary_${safe}_${runId}.json`);
+  writeJson(miniPath, {
+    runId,
+    startedAt: result.startedAt,
+    finishedAt: result.finishedAt,
+    workspace,
+    results: [result],
+  });
+  try {
+    const persisted = await persistSummaryToDb(miniPath, { runId });
+    console.log(
+      `[STREAM_PERSIST] ${result.name}: ${persisted?.normalizedCount ?? 0}건 DB 저장 완료`,
+    );
+  } finally {
+    // 미니 summary 파일은 사용 후 제거
+    try { fs.unlinkSync(miniPath); } catch {}
+  }
+}
+
+const streamPersist = persistToDb ? persistJobResult : undefined;
+
 const phase1Jobs = jobs.filter((j) => j._phase === 1);
 const phase2Jobs = jobs.filter((j) => j._phase !== 1);
 
 let phase1Results = [];
 if (phase1Jobs.length > 0) {
-  phase1Results = await runJobs(phase1Jobs, maxParallel);
+  phase1Results = await runJobs(phase1Jobs, maxParallel, { onComplete: streamPersist });
 
   // serve raw 파일에서 naverAtclNo 추출
   const serveNaverIds = [];
@@ -1350,7 +1382,7 @@ if (phase1Jobs.length > 0) {
   }
 }
 
-const phase2Results = await runJobs(phase2Jobs, maxParallel);
+const phase2Results = await runJobs(phase2Jobs, maxParallel, { onComplete: streamPersist });
 const results = [...phase1Results, ...phase2Results];
 
 function assessDataQuality(result) {

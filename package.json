@@ -7,6 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "postinstall": "node scripts/postinstall.mjs",
     "test": "vitest run",
     "lint": "eslint scripts/*.mjs scripts/lib/*.mjs scripts/lib/api_routes/*.mjs frontend/src/ --max-warnings=50",
     "format": "prettier --write \"scripts/**/*.mjs\" \"frontend/src/**/*.{js,jsx,css}\"",
