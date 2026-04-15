@@ -31,6 +31,17 @@ const maxItems = normalizeMaxItems(getArg("--max-items", "200"), 200);
 const filterRentMax = Number(getArg("--rent-max", "0")) || 0;
 const filterDepositMax = Number(getArg("--deposit-max", "0")) || 0;
 const filterMinArea = Number(getArg("--min-area", "0")) || 0;
+const skipCrossRefsFile = getArg("--skip-cross-refs-file", null);
+const skipCrossRefsSet = new Set();
+if (skipCrossRefsFile && fs.existsSync(skipCrossRefsFile)) {
+  try {
+    const ids = JSON.parse(fs.readFileSync(skipCrossRefsFile, "utf8"));
+    for (const id of ids) skipCrossRefsSet.add(String(id));
+    console.log(`[SERVE_DEDUP] serve cross-refs ${skipCrossRefsSet.size}개 로드 → 중복 스킵 예정`);
+  } catch (e) {
+    console.warn(`[SERVE_DEDUP] cross-refs 파일 로드 실패: ${e.message}`);
+  }
+}
 const listOnly = hasFlag("--list");
 const allowPlanned = hasFlag("--allow-planned");
 const runAllPlatforms = String(platform).toLowerCase() === "all";
@@ -168,7 +179,25 @@ console.log(`📥 INPUT: ${input}`);
 console.log(`📤 OUTPUT: ${resolvedOut}`);
 
 const result = await adapter.normalizeFromRawFile(input, { maxItems });
-const filtered = applyOutputFilters(result.items);
+
+// serve 2-phase dedup: source_ref가 serve naverAtclNo와 일치하는 매물 제외
+let dedupedItems = result.items;
+let serveSkipCount = 0;
+if (skipCrossRefsSet.size > 0) {
+  dedupedItems = result.items.filter((item) => {
+    const ref = item?.source_ref || item?.external_id;
+    if (ref && skipCrossRefsSet.has(String(ref))) {
+      serveSkipCount++;
+      return false;
+    }
+    return true;
+  });
+  if (serveSkipCount > 0) {
+    console.log(`[SERVE_DEDUP] ${serveSkipCount}개 매물 스킵 (serve 중복 제거)`);
+  }
+}
+
+const filtered = applyOutputFilters(dedupedItems);
 
 const output = {
   platform_code: platform,
@@ -188,6 +217,7 @@ const output = {
   stats: result.stats,
   samples: result.samples.slice(0, 20),
   filteredByCondition: filtered.filteredCount,
+  dedupedByServe: serveSkipCount,
   items: filtered.items,
 };
 

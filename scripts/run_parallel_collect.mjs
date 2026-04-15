@@ -484,6 +484,10 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
                   ...(Number.isFinite(Number(naverFilters.minAreaM2))
                     ? ["--min-area", String(Math.floor(naverFilters.minAreaM2))]
                     : []),
+                  // serve 2-phase dedup: serve 먼저 수집된 경우 동일 매물 스킵
+                  ...(collectCtx.serveNaverCrossRefsFile
+                    ? ["--skip-cross-refs-file", collectCtx.serveNaverCrossRefsFile]
+                    : []),
                 ],
                 { stream: false },
               );
@@ -1103,6 +1107,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
       for (const sigungu of sigunguCandidates) {
         jobs.push({
           name: `serve:${sigungu}`,
+          _phase: 1,
           run: async () => {
             const safe = sanitizeFileToken(sigungu);
             const rawFile = path.join(workspace, `serve_raw_${runId}_${safe}.jsonl`);
@@ -1308,11 +1313,45 @@ const targetFile = {
   target: naverCondition,
 };
 const targetMap = makePlatformTargets(targetFile.targets || []);
+// 2-phase 수집: serve가 Phase 1으로 먼저 완료 → naverAtclNo 추출 → Phase 2(naver/kbland 등)에서 중복 스킵
+const collectCtx = { serveNaverCrossRefsFile: null };
+
 const jobs = buildJobs(targetMap, targetFile, {
   target: naverCondition,
   filters: naverCondition,
 });
-const results = await runJobs(jobs, maxParallel);
+
+const phase1Jobs = jobs.filter((j) => j._phase === 1);
+const phase2Jobs = jobs.filter((j) => j._phase !== 1);
+
+let phase1Results = [];
+if (phase1Jobs.length > 0) {
+  phase1Results = await runJobs(phase1Jobs, maxParallel);
+
+  // serve raw 파일에서 naverAtclNo 추출
+  const serveNaverIds = [];
+  for (const r of phase1Results) {
+    if (r?.ok && r.rawFile && fs.existsSync(r.rawFile)) {
+      const lines = fs.readFileSync(r.rawFile, "utf8").split("\n").filter(Boolean);
+      for (const line of lines) {
+        try {
+          const obj = JSON.parse(line);
+          if (obj.naverAtclNo) serveNaverIds.push(String(obj.naverAtclNo));
+        } catch {}
+      }
+    }
+  }
+
+  if (serveNaverIds.length > 0) {
+    const crossRefsFile = path.join(workspace, `serve_naver_cross_refs_${runId}.json`);
+    fs.writeFileSync(crossRefsFile, JSON.stringify(serveNaverIds));
+    collectCtx.serveNaverCrossRefsFile = crossRefsFile;
+    console.log(`[SERVE_DEDUP] serve에서 ${serveNaverIds.length}개 naverAtclNo 추출 → 네이버 어댑터에서 중복 스킵`);
+  }
+}
+
+const phase2Results = await runJobs(phase2Jobs, maxParallel);
+const results = [...phase1Results, ...phase2Results];
 
 function assessDataQuality(result) {
   if (!result || !result.ok) return { grade: "FAIL", reason: "job_failed" };
