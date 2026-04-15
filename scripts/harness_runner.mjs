@@ -49,11 +49,11 @@ function buildPlatformData(summary) {
       if (!platformData[platform]) {
         platformData[platform] = { requested: 0, collected: 0, listings: [] };
       }
-      // normalizedPath JSONL에서 실제 매물 로드
+      // normalizedPath JSON에서 실제 매물 로드 (형식: { items: [...] })
       if (r.normalizedPath && fs.existsSync(r.normalizedPath)) {
         try {
-          const lines = fs.readFileSync(r.normalizedPath, "utf8").trim().split("\n").filter(Boolean);
-          const parsed = lines.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+          const raw = JSON.parse(fs.readFileSync(r.normalizedPath, "utf8"));
+          const parsed = Array.isArray(raw) ? raw : (raw.items || []);
           platformData[platform].collected += parsed.length;
           platformData[platform].listings.push(...parsed);
         } catch {}
@@ -88,10 +88,9 @@ function gatherAllListings(summary) {
   for (const r of items) {
     if (r.normalizedPath && fs.existsSync(r.normalizedPath)) {
       try {
-        const lines = fs.readFileSync(r.normalizedPath, "utf8").trim().split("\n").filter(Boolean);
-        for (const l of lines) {
-          try { allListings.push(JSON.parse(l)); } catch {}
-        }
+        const raw = JSON.parse(fs.readFileSync(r.normalizedPath, "utf8"));
+        const parsed = Array.isArray(raw) ? raw : (raw.items || []);
+        allListings.push(...parsed);
       } catch {}
     } else {
       const listings = r.normalized || r.listings || [];
@@ -124,12 +123,16 @@ const collectPassThrough = args.filter((arg) => {
   );
 });
 
+// per-phase timing
+const phaseTimes = {};
+
 // ═══════════════════════════════════════════
 // Phase 1: Collection + Quality Gate
 // ═══════════════════════════════════════════
 let collectionResult;
 
 if (!skipCollect) {
+  phaseTimes.collection_start = Date.now();
   const collectArgs = [
     ...collectPassThrough,
     "--run-id", runId,
@@ -165,14 +168,18 @@ if (!skipCollect) {
   }
 } else {
   console.log("[harness] ▶ skipping collection (--skip-collect)");
+  phaseTimes.collection_start = Date.now();
   collectionResult = { phase: "collection", status: "pass", score: 100, retries: 0, per_platform: {}, failed_platforms: [] };
 }
-
-console.log(`[harness] ✓ collection: ${collectionResult.status} (score: ${collectionResult.score})`);
+phaseTimes.collection_end = Date.now();
+const collectionDurationMs = phaseTimes.collection_end - phaseTimes.collection_start;
+collectionResult.duration_ms = collectionDurationMs;
+console.log(`[harness] ✓ collection: ${collectionResult.status} (score: ${collectionResult.score}) — ${(collectionDurationMs / 1000).toFixed(1)}s`);
 
 // ═══════════════════════════════════════════
 // Phase 2: Build operations (normalization + matching)
 // ═══════════════════════════════════════════
+phaseTimes.matching_start = Date.now();
 if (fs.existsSync(summaryPath)) {
   const buildPassThrough = collectPassThrough.filter((arg) => {
     return !(
@@ -196,9 +203,13 @@ if (fs.existsSync(summaryPath)) {
   }
 }
 
+phaseTimes.matching_end = Date.now();
+const matchingDurationMs = phaseTimes.matching_end - phaseTimes.matching_start;
+
 // ═══════════════════════════════════════════
 // Phase 3: Normalization Gate (from summary data)
 // ═══════════════════════════════════════════
+phaseTimes.normalization_start = Date.now();
 let normalizationResult;
 const summary = readJsonSafe(summaryPath);
 if (summary) {
@@ -207,7 +218,10 @@ if (summary) {
 } else {
   normalizationResult = { phase: "normalization", status: "warn", completeness: 0, null_field_counts: {}, total_normalized: 0 };
 }
-console.log(`[harness] ✓ normalization: ${normalizationResult.status} (completeness: ${normalizationResult.completeness}%)`);
+phaseTimes.normalization_end = Date.now();
+const normalizationDurationMs = phaseTimes.normalization_end - phaseTimes.normalization_start;
+normalizationResult.duration_ms = normalizationDurationMs;
+console.log(`[harness] ✓ normalization: ${normalizationResult.status} (completeness: ${normalizationResult.completeness}%) — ${(normalizationDurationMs / 1000).toFixed(1)}s`);
 
 // ═══════════════════════════════════════════
 // Phase 4: Listing Quality
@@ -245,50 +259,70 @@ if (matcherOutput?.pairs) {
 } else {
   matchResult = { phase: "matching", status: "pass", auto_matched: 0, evaluator_promoted: 0, evaluator_demoted: 0, still_uncertain: 0, uncertain_pairs: [] };
 }
-console.log(`[harness] ✓ matching: ${matchResult.status} (auto: ${matchResult.auto_matched}, promoted: ${matchResult.evaluator_promoted}, uncertain: ${matchResult.still_uncertain})`);
+matchResult.duration_ms = matchingDurationMs;
+console.log(`[harness] ✓ matching: ${matchResult.status} (auto: ${matchResult.auto_matched}, promoted: ${matchResult.evaluator_promoted}, uncertain: ${matchResult.still_uncertain}) — ${(matchingDurationMs / 1000).toFixed(1)}s`);
 
 // ═══════════════════════════════════════════
 // Phase 6: 종료 매물 체크
 // ═══════════════════════════════════════════
+phaseTimes.status_check_start = Date.now();
 if (!hasArg(args, "--skip-status")) {
   try {
     const statusScript = path.resolve(import.meta.dirname, "check_listing_status.mjs");
     runPhase("listing status check", statusScript, ["--platform", "all"]);
-    console.log("[harness] ✓ listing status check complete");
+    const statusCheckDurationMs = Date.now() - phaseTimes.status_check_start;
+    console.log(`[harness] ✓ listing status check complete — ${(statusCheckDurationMs / 1000).toFixed(1)}s`);
   } catch (err) {
     console.error(`[harness] ⚠ listing status check error: ${err.message}`);
   }
 } else {
   console.log("[harness] ▶ skipping listing status check (--skip-status)");
 }
+phaseTimes.status_check_end = Date.now();
+const statusCheckDurationMs = phaseTimes.status_check_end - phaseTimes.status_check_start;
 
 // ═══════════════════════════════════════════
 // Phase 7: AI 배점 (scored_listings 저장)
 // ═══════════════════════════════════════════
+phaseTimes.scoring_start = Date.now();
 if (!hasArg(args, "--skip-score")) {
   try {
     const scoreScript = path.resolve(import.meta.dirname, "score_listings.mjs");
     runPhase("score listings", scoreScript, [
       "--interest-rate=0.04",
     ]);
-    console.log("[harness] ✓ score listings complete");
+    const scoringDurationMs = Date.now() - phaseTimes.scoring_start;
+    console.log(`[harness] ✓ score listings complete — ${(scoringDurationMs / 1000).toFixed(1)}s`);
   } catch (err) {
     console.error(`[harness] ⚠ score listings error: ${err.message}`);
   }
 } else {
   console.log("[harness] ▶ skipping score (--skip-score)");
 }
+phaseTimes.scoring_end = Date.now();
+const scoringDurationMs = phaseTimes.scoring_end - phaseTimes.scoring_start;
 
 // ═══════════════════════════════════════════
 // Phase 8: Build Final Report
 // ═══════════════════════════════════════════
 const durationMs = Date.now() - startTime;
+
+// attach status_check and scoring durations to report phases via extension
+const statusCheckPhase = { phase: "status_check", duration_ms: statusCheckDurationMs };
+const scoringPhase = { phase: "scoring", duration_ms: scoringDurationMs };
+
 const report = buildReport(runId, {
   collection: collectionResult,
   normalization: normalizationResult,
   quality: qualityResult,
   matching: matchResult,
 }, durationMs);
+
+// inject status_check + scoring phases into report
+report.phases.status_check = statusCheckPhase;
+report.phases.scoring = scoringPhase;
+
+console.log(`[harness] collection: ${(collectionDurationMs / 1000).toFixed(1)}s, normalization: ${(normalizationDurationMs / 1000).toFixed(1)}s, matching: ${(matchingDurationMs / 1000).toFixed(1)}s, status_check: ${(statusCheckDurationMs / 1000).toFixed(1)}s, scoring: ${(scoringDurationMs / 1000).toFixed(1)}s`);
 
 const reportPath = path.join(reportsDir, `harness-${runId}.json`);
 fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");

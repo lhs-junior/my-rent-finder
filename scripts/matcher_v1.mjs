@@ -327,6 +327,14 @@ function buildCandidates(items) {
     });
   });
 
+  // warn on large buckets
+  for (const [bucketKey, list] of buckets.entries()) {
+    if (list.length > 100) {
+      console.warn('[matcher] large bucket:', bucketKey, 'size:', list.length);
+    }
+  }
+
+  let totalComparisons = 0;
   const seen = new Set();
   const pairs = [];
   for (const list of buckets.values()) {
@@ -337,6 +345,7 @@ function buildCandidates(items) {
         if (a.l.id === b.l.id) continue;
         const idA = `${a.idx}:${b.idx}`;
         const idB = `${b.idx}:${a.idx}`;
+        totalComparisons += 1;
         if (seen.has(idA) || seen.has(idB)) continue;
         seen.add(idA);
         const result = scorePair(a.l, b.l);
@@ -360,6 +369,8 @@ function buildCandidates(items) {
       }
     }
   }
+
+  console.log(`[matcher] ${pairs.length} pairs from ${totalComparisons} comparisons`);
 
   return { pairs, normalized };
 }
