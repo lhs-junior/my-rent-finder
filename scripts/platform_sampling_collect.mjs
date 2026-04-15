@@ -947,7 +947,6 @@ const STEALTH_HOME_BY_CODE = {
   zigbang: 'https://www.zigbang.com',
   dabang: 'https://www.dabangapp.com',
   naver: 'https://new.land.naver.com',
-  r114: 'https://www.r114.com',
   peterpanz: 'https://www.peterpanz.com',
   nemo: 'https://www.nemoapp.kr',
   hogangnono: 'https://hogangnono.com',
@@ -1436,14 +1435,12 @@ function resolveStealthPlatformCode(name, sourceUrl) {
   if (['네이버', '네이버 부동산', 'naver', 'naver land', 'newland', 'new land', 'new.land'].includes(candidate)) return 'naver';
   if (['피터팬', 'peterpanz', '피터팬 부동산'].includes(candidate)) return 'peterpanz';
   if (['네모', 'nemo', 'nemoapp'].includes(candidate)) return 'nemo';
-  if (['부동산114', 'r114', 'r 114'].includes(candidate)) return 'r114';
   if (['호갱노노', 'hogangnono', '호갱노노닷컴'].includes(candidate)) return 'hogangnono';
   if (!sourceUrl) return '';
   const safeUrl = asText(sourceUrl).toLowerCase();
   if (safeUrl.includes('zigbang.com')) return 'zigbang';
   if (safeUrl.includes('dabangapp.com') || safeUrl.includes('dabang.com')) return 'dabang';
   if (safeUrl.includes('new.land.naver.com')) return 'naver';
-  if (safeUrl.includes('r114.com')) return 'r114';
   if (safeUrl.includes('peterpanz.com')) return 'peterpanz';
   if (safeUrl.includes('nemoapp.kr')) return 'nemo';
   if (safeUrl.includes('hogangnono.com')) return 'hogangnono';
@@ -1493,20 +1490,6 @@ function buildStealthSeedUrlCandidates(platformCode, sourceUrl, queryHint = {}) 
     list.push(`${home}/?search_text=${encoded}`, `${home}/search?search_text=${encoded}`, `${home}/?q=${encoded}`);
   } else if (platformCode === 'naver') {
     list.push(`${home}/houses?${new URLSearchParams({ keyword }).toString()}`, `${home}/houses`);
-  } else if (platformCode === 'r114') {
-    list.push(
-      `${home}/search/search.asp?search_word=${encodedSigungu}`,
-      `${home}/search/search.asp?q=${encodedSigungu}`,
-      `${home}/search/search.asp?search=${encodedSigungu}`,
-      `${home}/search/search.asp?keyword=${encodedSigungu}`,
-      `${home}/search/search.asp?searchType=2&search_word=${encodedSigungu}`,
-      `${home}/search/search.asp?search_word=${encodedSigungu}%20${encodedDong}`,
-      `${home}/search/search.asp?search_word=${encodedSigungu}&houseType=${encodedLease}`,
-      `${home}/search/search.asp` ,
-      `${home}/search?${new URLSearchParams({ keyword }).toString()}`,
-      `${home}/?q=${encoded}`,
-      `${home}/search?q=${encoded}`,
-    );
   } else if (platformCode === 'peterpanz') {
     const sourceParsed = parsePeterpanzSourceUrl(sourceUrl);
     const peterpanzSeedUrl = buildPeterpanzSeedUrlFromQueryHint(queryHint, home);
@@ -1576,7 +1559,6 @@ function isLikelyListingUrl(platformCode, url) {
     zigbang: ['zigbang.com'],
     dabang: ['dabangapp.com'],
     naver: ['new.land.naver.com'],
-    r114: ['r114.com'],
     peterpanz: ['peterpanz.com'],
     nemo: ['nemoapp.kr'],
     hogangnono: ['hogangnono.com'],
@@ -1587,12 +1569,8 @@ function isLikelyListingUrl(platformCode, url) {
 
   if (/(?:css|js|png|jpg|jpeg|gif|svg|woff|ico|woff2)(?:\?|#|$)/i.test(lower)) return false;
   const hasListingPath = /(\/(item|items|article|articles|room|rooms|house|houses|property|listing|detail|complex|apt|officetel|rent|deal|villa|officetel|aptdeal|house-detail|house_detail|apart)[/?#]|\?id=|item_id=|article_id=|item_no=|house_no=|house_id=|property_id=|no=)/i.test(lower);
-  const hasR114Path = /(\/(house|villa|officetel|rent|rent_room)\/((detail|house_detail|house-detail)\/?|\d+))/i.test(lower);
   const hasAnyId = /[/?#]\w*?(?:\d{4,}|[a-f0-9-]{10,})/.test(lower);
   const hasLegacyDetail = /\/(house|apt|officetel|villa|room)\//i.test(lower);
-  if (platformCode === 'r114') {
-    return hasR114Path || hasAnyId || hasListingPath;
-  }
   if (platformCode === 'peterpanz' || platformCode === 'nemo') {
     const hasNemoPath = /(\/(store|house|room|detail|property)\/(?:\d+|[^/?#]+)[/?#]?)/i.test(lower);
     if (hasNemoPath) return true;
@@ -2711,13 +2689,6 @@ async function collectPlatformApiCandidates(platformCode, home, queryHint = {}, 
 
   const peterpanzApiHost = resolvePeterpanzApiHost(home);
 
-  const r114Endpoints = [
-    `${home}/z/depot/search/search.keyword.info.ajax.asp`,
-    `${home}/search/search.asp`,
-    `${home}/search/search.ajax`,
-    `${home}/search/search.keyword.info.ajax.asp`,
-    `${home}/houses/search`,
-  ];
   const peterpanzEndpoints = [
     `${home}/api/geo/addr_dong`,
     `${peterpanzApiHost}/houses/area/pc`,
@@ -2747,20 +2718,14 @@ async function collectPlatformApiCandidates(platformCode, home, queryHint = {}, 
   ];
 
   const endpoints =
-    platformCode === 'r114' ? r114Endpoints
-        : platformCode === 'peterpanz' ? peterpanzEndpoints
-          : platformCode === 'nemo' ? nemoEndpoints
-            : genericEndpoints;
+    platformCode === 'peterpanz' ? peterpanzEndpoints
+      : platformCode === 'nemo' ? nemoEndpoints
+        : genericEndpoints;
 
   const queryTemplates = [
     { q: keyword, keyword, rentType: '월세', minAreaM2: minArea, depositMax, sido, sigungu },
     { keyword, query: keyword, trade_type: '월세', area_m2_min: minArea, deposit_max: depositMax, bnd: '126.764,37.479:127.183,37.703', sido, sigungu },
     { q: keyword, areaMin: minArea, page: 1, size: 30, sido, sigungu },
-  ];
-  const r114Templates = [
-    { q: geoKey, sido, sigungu, keyword, houseType: 'all', page: 1, size: 20 },
-    { keyword: keyword, search_word: geoKey, area: minArea || '', houseType: '월세', page: 1, size: 20, sido },
-    { searchTerm: `${keyword} ${geoKey}`.trim(), bnd: '126.764,37.479:127.183,37.703', sido, sigungu },
   ];
   const peterpanzTemplates = [
     { search: geoKey, sido: asText(queryHint.sigungu), dong: asText(queryHint.dong), sort: 'date' },
@@ -2814,10 +2779,9 @@ async function collectPlatformApiCandidates(platformCode, home, queryHint = {}, 
     { sido: sido, city: asText(queryHint.sigungu), area_min: minArea || '' },
   ];
   const templates =
-    platformCode === 'r114' ? r114Templates
-      : platformCode === 'peterpanz' ? peterpanzTemplates
-        : platformCode === 'nemo' ? nemoTemplates
-          : queryTemplates;
+    platformCode === 'peterpanz' ? peterpanzTemplates
+      : platformCode === 'nemo' ? nemoTemplates
+        : queryTemplates;
 
   const endpointProbe = async (method, requestUrl, body) => {
     const response = await fetchJsonPayload(requestUrl, body ? { method, headers: { 'content-type': 'application/x-www-form-urlencoded' }, body } : { method });
@@ -2857,14 +2821,6 @@ async function collectPlatformApiCandidates(platformCode, home, queryHint = {}, 
         (endpoint.includes('?') ? `${endpoint}&${queryString}` : `${endpoint}?${queryString}`)
         : endpoint;
       await endpointProbe('GET', requestUrl);
-      if (platformCode === 'r114' && endpoint.includes('search.keyword.info.ajax.asp')) {
-        const body = new URLSearchParams({
-          searchType: 'home',
-          searchWord: String(query.search_word || query.keyword || keyword || geoKey),
-          area: minArea || '',
-        }).toString();
-        await endpointProbe('POST', `${home}/z/depot/search/search.keyword.info.ajax.asp`, body);
-      }
     } catch {
       continue;
     }
@@ -3075,10 +3031,6 @@ async function collectStealthSeedUrl(target) {
         || responseUrl.includes('/api/v5/room-list/category/house-villa')
         || responseUrl.includes('/api/v5/markers/category/house-villa');
     }
-    if (platformCode === 'r114') {
-      if (responseUrl.includes('/search/search.asp') || responseUrl.includes('dq_common.js')) return true;
-      if (/search\.keyword\.info\.ajax\.asp/i.test(responseUrl)) return true;
-    }
     if (platformCode === 'zigbang') {
       return responseUrl.includes('/house/property/v1/items');
     }
@@ -3260,29 +3212,6 @@ async function collectStealthSeedUrl(target) {
           await targetInput.first().fill(keyword || '서울 월세');
           await targetInput.first().press('Enter');
           await page.waitForTimeout(1200);
-        }
-      }
-
-      if (platformCode === 'r114') {
-        const termInput = page.locator('#dqSearchTerm, #searchTerm, input[name="searchWord" i], input[name="search_word" i], input[placeholder*="지역" i], input[placeholder*="검색" i]');
-        if (await termInput.count()) {
-          await termInput.first().fill(keyword || '서울 월세');
-          const form = page.locator('#dqSearchForm');
-          if (await form.count()) {
-            try {
-              await form.first().evaluate((node) => {
-                if (node && node.reportValidity) {
-                  node.reportValidity();
-                }
-                node.submit();
-              });
-            } catch {
-              await termInput.first().press('Enter');
-            }
-          } else {
-            await termInput.first().press('Enter');
-          }
-          await page.waitForTimeout(1400);
         }
       }
 
