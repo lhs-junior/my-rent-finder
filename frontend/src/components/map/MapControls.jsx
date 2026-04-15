@@ -5,9 +5,10 @@ export default function MapControls({
   onToggleDrawing,
   onZoomIn,
   onZoomOut,
+  detailOpen,
 }) {
   return (
-    <div className="map-controls">
+    <div className={`map-controls${detailOpen ? " map-controls--detail-open" : ""}`}>
       <button
         className="map-ctrl-btn"
         type="button"

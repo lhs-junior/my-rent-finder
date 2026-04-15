@@ -3168,6 +3168,9 @@ pre {
     top: 8px;
     right: 8px;
   }
+  .map-controls--detail-open {
+    display: none;
+  }
 
   .map-ctrl-btn {
     width: 32px;

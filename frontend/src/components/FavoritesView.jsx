@@ -4,13 +4,17 @@ import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
-export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin, getFavoriteGrade, onViewOnMap }) {
+const PLATFORM_LABELS = { naver: "네이버", dabang: "다방", daangn: "당근", peterpanz: "피터팬", zigbang: "직방", kbland: "KB", serve: "써브" };
+
+export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, authenticated, pin, getFavoriteGrade, onViewOnMap, gradeFilter: externalGradeFilter, onGradeFilterChange }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [gradeFilter, setGradeFilter] = useState("");
+  const [localGradeFilter, setLocalGradeFilter] = useState("");
+  const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
+  const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -138,7 +142,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
               {(grade || item.platform_code || expired) && (
                 <div className="fav-card-header">
                   {grade && <span className={`fav-card-grade fav-card-grade--${grade}`}>{grade}</span>}
-                  {item.platform_code && <span className="fav-card-platform">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB"})[item.platform_code] || item.platform_code}</span>}
+                  {item.platform_code && <span className="fav-card-platform">{PLATFORM_LABELS[item.platform_code] || item.platform_code}</span>}
                   {expired && <span className="fav-card-expired">종료됨</span>}
                 </div>
               )}

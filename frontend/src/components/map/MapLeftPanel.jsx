@@ -99,7 +99,7 @@ export default function MapLeftPanel({
             type="button"
             className={`map-favorites-only-btn${filters.only_favorites ? " map-favorites-only-btn--active" : ""}`}
             aria-pressed={!!filters.only_favorites}
-            onClick={() => onFilterChange({ only_favorites: !filters.only_favorites, grade: "" })}
+            onClick={() => onFilterChange({ ...filters, only_favorites: !filters.only_favorites, only_ai: false, grade: "" })}
           >
             ♥ 찜만 보기
           </button>
@@ -107,7 +107,7 @@ export default function MapLeftPanel({
             type="button"
             className={`map-favorites-only-btn map-ai-only-btn${filters.only_ai ? " map-favorites-only-btn--active map-ai-only-btn--active" : ""}`}
             aria-pressed={!!filters.only_ai}
-            onClick={() => onFilterChange({ only_ai: !filters.only_ai, grade: "" })}
+            onClick={() => onFilterChange({ ...filters, only_ai: !filters.only_ai, only_favorites: false, grade: "" })}
           >
             ★ AI 추천
           </button>

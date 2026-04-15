@@ -72,12 +72,16 @@ function sortItems(items, sortBy) {
   return copy;
 }
 
-export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onViewOnMap }) {
+const PLATFORM_LABELS = { naver: "네이버", dabang: "다방", daangn: "당근", peterpanz: "피터팬", zigbang: "직방", kbland: "KB", serve: "써브" };
+
+export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onViewOnMap, gradeFilter: externalGradeFilter, onGradeFilterChange }) {
   const [rawItems, setRawItems] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [gradeFilter, setGradeFilter] = useState("");
+  const [localGradeFilter, setLocalGradeFilter] = useState("");
+  const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
+  const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
   const [sortBy, setSortBy] = useState("score");
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -196,7 +200,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
               <ScoreBadge grade={item.grade} score={item.total_score} />
               {item.platform_code && (
                 <span className="score-card-platform">
-                  {({ naver: "네이버", dabang: "다방", daangn: "당근", peterpanz: "피터팬", zigbang: "직방", kbland: "KB" })[item.platform_code] || item.platform_code}
+                  {PLATFORM_LABELS[item.platform_code] || item.platform_code}
                 </span>
               )}
               <EffectiveCost rent={item.rent_amount} deposit={item.deposit_amount} cost={item.effective_monthly_cost} />

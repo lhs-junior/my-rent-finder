@@ -105,11 +105,46 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const displayedMarkers = (() => {
     let result = markers;
-    if ((filters.only_favorites || filters.only_ai) && filters.grade) {
-      result = result.filter(m => {
-        const grade = m.grade || (getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null);
-        return grade === filters.grade;
-      });
+    if (filters.only_favorites || filters.only_ai) {
+      // AI/찜 모드: 서버 필터링 없이 로컬에서 모든 조건 적용
+      if (filters.grade) {
+        result = result.filter(m => {
+          const grade = m.grade || (getFavoriteGrade ? getFavoriteGrade(m.listing_id) : null);
+          return grade === filters.grade;
+        });
+      }
+      if (filters.min_rent) {
+        const minR = Number(filters.min_rent);
+        result = result.filter(m => m.rent_amount != null && m.rent_amount >= minR);
+      }
+      if (filters.max_rent) {
+        const maxR = Number(filters.max_rent);
+        result = result.filter(m => m.rent_amount != null && m.rent_amount <= maxR);
+      }
+      if (filters.min_area) {
+        const minA = Number(filters.min_area);
+        result = result.filter(m => {
+          const a = m.area_exclusive_m2 ?? m.area_m2;
+          return a != null && a >= minA;
+        });
+      }
+      if (filters.max_area) {
+        const maxA = Number(filters.max_area);
+        result = result.filter(m => {
+          const a = m.area_exclusive_m2 ?? m.area_m2;
+          return a != null && a <= maxA;
+        });
+      }
+      if (filters.platform_code) {
+        result = result.filter(m => m.platform_code === filters.platform_code);
+      }
+      if (filters.lease_type) {
+        result = result.filter(m => m.lease_type === filters.lease_type);
+      }
+      if (filters.min_floor) {
+        const minF = Number(filters.min_floor);
+        result = result.filter(m => m.floor != null && m.floor >= minF);
+      }
     }
     return result;
   })();
@@ -219,6 +254,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           onToggleHeatmap={() => setHeatmapOn(v => !v)}
           onZoomIn={() => mapRef.current?.zoomIn?.()}
           onZoomOut={() => mapRef.current?.zoomOut?.()}
+          detailOpen={Boolean(detailId)}
         />
         {loading && <div className="map-loading-bar" />}
       </div>
