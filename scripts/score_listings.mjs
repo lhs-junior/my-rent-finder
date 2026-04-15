@@ -216,7 +216,8 @@ scored AS (
 
     -- ① 탈락 판정
     CASE
-      WHEN n.floor IS NOT NULL AND n.floor <= 0 THEN -99  -- 반지하/지하
+      WHEN n.floor IS NOT NULL AND n.floor <= 0 THEN -99  -- 반지하/지하 (floor 값 있는 경우)
+      WHEN n.title ILIKE '%반지하%' OR n.description_text ILIKE '%반지하%' THEN -99  -- 반지하 (floor=NULL이어도 탈락)
       WHEN n.title ILIKE '%옥탑%' OR n.building_use ILIKE '%옥탑%' THEN -99
       WHEN n.building_use ILIKE '%근린생활%' OR n.building_use ILIKE '%제1종%' OR n.building_use ILIKE '%제2종%' THEN -99
       WHEN n.building_use ILIKE '%상가주택%' THEN -99

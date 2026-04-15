@@ -977,6 +977,14 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
+  // 반지하/지하 매물 skip (floor<=0 또는 반지하 키워드)
+  const _floor = normalizeFloorForDb(item?.floor ?? item?.floorNo ?? null);
+  const _title = toText(item?.title || item?.subject || item?.name, "");
+  const _desc = toText(item?.description_text || item?.description || "", "");
+  if ((_floor !== null && _floor <= 0) || /반지하/i.test(_title) || /반지하/i.test(_desc)) {
+    return null;
+  }
+
   let sourceRef = normalizePlatformSourceRef(platform, toText(item?.source_ref || item?.sourceRef, ""));
   const sourceUrl = normalizePlatformSourceUrl(
     platform,

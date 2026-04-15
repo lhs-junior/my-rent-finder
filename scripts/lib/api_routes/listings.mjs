@@ -193,7 +193,7 @@ export async function handleListings(req, res) {
     }
     if (minFloor !== null) {
       params.push(minFloor);
-      cond.push(`(nl.floor IS NULL OR nl.floor = 0 OR nl.floor >= $${params.length})`);
+      cond.push(`(nl.floor IS NULL OR nl.floor >= $${params.length})`);
     }
     const minSalePrice = url.searchParams.has("min_sale_price") ? parseQueryInt(url.searchParams.get("min_sale_price"), null) : null;
     const maxSalePrice = url.searchParams.has("max_sale_price") ? parseQueryInt(url.searchParams.get("max_sale_price"), null) : null;
@@ -862,7 +862,7 @@ export async function handleListingsGeo(req, res) {
     }
     if (minFloor !== null) {
       params.push(minFloor);
-      cond.push(`nl.floor >= $${params.length}`);
+      cond.push(`(nl.floor IS NULL OR nl.floor >= $${params.length})`);
     }
     const hasImage = safeText(url.searchParams.get("has_image"), null);
     if (hasImage === "true") {
