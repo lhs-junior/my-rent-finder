@@ -1093,13 +1093,14 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
     if (normalizedCode === "serve") {
       const serveSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
         [
           ...serveSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
-          ...(fallbackSigungu ? [fallbackSigungu] : ["성동구"]),
+          ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["성동구"]),
         ].filter(Boolean),
       ).slice(0, Math.max(1, naverMaxRegions));
 
