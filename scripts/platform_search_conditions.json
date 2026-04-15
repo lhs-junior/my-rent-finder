@@ -2,17 +2,10 @@
   "version": "query_probe_v0.1",
   "target": {
     "sido": "서울시",
-    "sigungu": "노원구",
+    "sigungu": "서울숲권역",
     "dong": "",
     "sigunguList": [
-      "노원구",
-      "중랑구",
-      "동대문구",
-      "광진구",
-      "성북구",
-      "성동구",
-      "중구",
-      "종로구"
+      "서울숲권역"
     ],
     "rentMin": 0,
     "rentMax": 100,

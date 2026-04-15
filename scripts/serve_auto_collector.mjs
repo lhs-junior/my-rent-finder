@@ -76,6 +76,9 @@ const TRIGGER_ATCL = "331096536";
 // ============================================================================
 
 const DISTRICT_BBOX = {
+  // 서울숲/뚝섬 기준 통합 권역 (구 경계 무관, 실거주 범위)
+  "서울숲권역": { minLa: 37.5300, maxLa: 37.6350, minLo: 126.9900, maxLo: 127.1200 },
+  // 개별 구 (하위 호환)
   "노원구":   { minLa: 37.6200, maxLa: 37.6900, minLo: 127.0200, maxLo: 127.1000 },
   "중랑구":   { minLa: 37.5800, maxLa: 37.6350, minLo: 127.0600, maxLo: 127.1200 },
   "동대문구": { minLa: 37.5550, maxLa: 37.5950, minLo: 127.0100, maxLo: 127.0700 },
@@ -256,7 +259,7 @@ async function collectServe() {
       const record = {
         platform_code: "serve",
         collected_at: new Date().toISOString(),
-        source_url: `https://www.serve.co.kr/good/map?m=2&atcl=${item.atclNo}`,
+        source_url: `https://www.serve.co.kr/map/?atcl=${item.atclNo}`,
         response_status: 200,
         sigungu,
         dong_name: dongName,

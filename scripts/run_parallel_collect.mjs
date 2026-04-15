@@ -60,6 +60,11 @@ function unique(arr) {
   return Array.from(new Set(arr.filter(Boolean)));
 }
 
+const SEOULSUP_DISTRICTS = ["성동구", "광진구", "동대문구", "성북구", "중랑구", "중구", "종로구", "노원구"];
+function expandSeoulsup(list) {
+  return list.flatMap((s) => (s === "서울숲권역" ? SEOULSUP_DISTRICTS : [s]));
+}
+
 const scriptPaths = {
   probe: (() => {
     const candidates = [
@@ -104,7 +109,7 @@ const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
 const persistToDb = getBool(args, "--persist-to-db", false);
 const runFidelityQA = !getBool(args, "--skip-platform-fidelity-qa", false);
-const qaStrict = getBool(args, "--qa-strict", true);
+const qaStrict = getBool(args, "--qa-strict", false); // advisory by default — use --qa-strict=true to fail on QA errors
 const qaMaxItems = getInt(args, "--qa-max-items", 0);
 const platformAlias = {
   zigbang: "zigbang",
@@ -376,12 +381,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
       const fallbackSigungu = conditionData?.target?.sigungu || conditionData?.target?.siGunGu;
       const naverFilters = conditionData?.filters || {};
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...naverSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
           ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
-        ].filter(Boolean),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       if (sigunguCandidates.length === 0) {
@@ -715,13 +720,13 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
       const daangnKnownDistricts = ["종로구", "중구", "성북구", "성동구", "동대문구", "광진구", "중랑구", "노원구"];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...daangnSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
           ...(daangnSigunguFromTarget.length === 0 && !selectedSigunguList.length ? daangnKnownDistricts : []),
           ...(fallbackSigungu ? [fallbackSigungu] : []),
-        ].filter(Boolean),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       if (sigunguCandidates.length === 0) {

@@ -84,7 +84,7 @@ export class ServeListingAdapter extends BaseListingAdapter {
     const item = {
       platform_code: "serve",
       source_ref: atclNo,
-      source_url: rawRecord?.source_url || `https://www.serve.co.kr/good/map?m=2&atcl=${atclNo}`,
+      source_url: rawRecord?.source_url || `https://www.serve.co.kr/map/?atcl=${atclNo}`,
       title: raw.atclSfeCn || null,
       address_text: addressText,
       lease_type: "월세",

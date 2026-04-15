@@ -65,6 +65,9 @@ export default function MapRightPanel({
         {!loading && !detail && open && <div className="map-right-loading">정보 없음</div>}
         {detail && (
           <>
+            {detail.is_expired && (
+              <div className="map-right-expired-banner">이 매물은 종료됐습니다</div>
+            )}
             {images.length > 0 && (
               <div className="map-right-gallery">
                 <img src={normalizeImageUrl(curImg)} alt="" loading="lazy" onClick={() => setLightbox(true)} style={{ cursor: "pointer" }} />

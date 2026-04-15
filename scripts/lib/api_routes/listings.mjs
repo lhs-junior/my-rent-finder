@@ -374,11 +374,12 @@ export async function handleListingDetail(req, res, id) {
   const listing = await withDbClient(async (client) => {
     const rows = await client.query(
       `
-      SELECT nl.*, rl.run_id, rl.payload_json
+      SELECT nl.*, rl.run_id, rl.payload_json,
+             nl.deleted_at IS NOT NULL AS is_expired
       FROM normalized_listings nl
       JOIN raw_listings rl ON rl.raw_id = nl.raw_id
-      WHERE nl.listing_id = $1 AND nl.deleted_at IS NULL
-    `,
+      WHERE nl.listing_id = $1
+`,
       [id],
     );
     if (!rows.rows?.length) return null;
@@ -460,6 +461,7 @@ export async function handleListingDetail(req, res, id) {
         lat: toNumber(row.lat, null),
         lng: toNumber(row.lng, null),
         geocode_status: safeText(row.geocode_status, null),
+        is_expired: row.is_expired === true,
         images: resolvedImages,
         quality_flags: (() => {
           try {

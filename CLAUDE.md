@@ -13,6 +13,7 @@ Collection (7 platforms) → Normalization → DB → Matching → Status Check 
 - **매칭**: `scripts/matcher_v1.mjs` — 가중 점수 (주소 30%, 거리 20%, 면적 25%, 가격 15%, 속성 10%)
 - **종료 체크**: `scripts/check_listing_status.mjs` — 플랫폼별 매물 활성/종료 확인 → `deleted_at` 설정
 - **배점**: `scripts/score_listings.mjs` — 가성비+환승 기반 배점 → SS/S/A/B 등급 → scored_listings 저장 (pin_favorites와 분리)
+- **써브 중복제거**: `scripts/serve_dedup_naver_kbland.mjs` — serve 우선 원칙: serve와 동일 매물인 naver/kbland를 deleted_at 마킹
 - **하네스**: `scripts/harness_runner.mjs` — 전체 파이프라인 (수집→정규화→매칭→종료체크→배점)
 - **API**: `scripts/api_server.mjs` — Express-like HTTP
 - **Frontend**: `frontend/` — React 18 + Vite + Kakao Map
@@ -75,6 +76,11 @@ node scripts/harness_runner.mjs --skip-score      # 배점 스킵
 node scripts/check_listing_status.mjs --platform all     # 종료 매물 체크
 node scripts/score_listings.mjs                           # AI 배점 → scored_listings 저장
 node scripts/score_listings.mjs --interest-rate=0.04      # 이자율 지정 (기본 4%)
+
+# serve 중복제거 (serve 우선 원칙 — naver/kbland 중복 삭제)
+# 매칭: naver=naverAtclNo 정확매칭, kbland=bascInfo API 제휴매물식별자 정확매칭
+node scripts/serve_dedup_naver_kbland.mjs           # dry-run
+node scripts/serve_dedup_naver_kbland.mjs --apply   # 실제 적용 후 재채점 필요
 
 # 리포트 확인
 cat reports/harness-*.json | jq '.overall, .next_actions'

@@ -71,6 +71,7 @@ const minPyeong = Math.max(1, Math.floor(minAreaM2 / 3.306));
 // ============================================================================
 
 const DISTRICT_COORDS = {
+  "서울숲권역": { lat: 37.5473, lng: 127.0490 },
   "노원구":   { lat: 37.6542, lng: 127.0568 },
   "중랑구":   { lat: 37.5953, lng: 127.0937 },
   "동대문구": { lat: 37.5744, lng: 127.0396 },
@@ -83,6 +84,7 @@ const DISTRICT_COORDS = {
 
 // Bounding boxes for location filtering (same as zigbang)
 const DISTRICT_BBOX = {
+  "서울숲권역": { sw_lat: 37.5300, sw_lng: 126.9900, ne_lat: 37.6350, ne_lng: 127.1200 },
   "노원구":   { sw_lat: 37.6200, sw_lng: 127.0200, ne_lat: 37.6900, ne_lng: 127.1000 },
   "중랑구":   { sw_lat: 37.5800, sw_lng: 127.0600, ne_lat: 37.6350, ne_lng: 127.1200 },
   "동대문구": { sw_lat: 37.5550, sw_lng: 127.0100, ne_lat: 37.5950, ne_lng: 127.0700 },

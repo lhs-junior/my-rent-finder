@@ -171,6 +171,9 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
 
         {displayDetail && (
           <>
+            {displayDetail.is_expired && (
+              <div className="mdl-expired-banner">이 매물은 종료됐습니다</div>
+            )}
             {hasImages && (
               <div className="mdl-gallery">
                 <div className="mdl-gallery-scroll" ref={galleryRef}>

@@ -45,6 +45,9 @@ const outputMeta = getArg("--output-meta", null);
 
 // ── 구별 좌표 + 바운딩박스 ──
 const DISTRICTS = {
+  // 서울숲/뚝섬 기준 통합 권역 (구 경계 무관, 실거주 범위)
+  서울숲권역: { lat: 37.5473, lng: 127.0490, bbox: { sLat: 37.53, sLng: 126.99, eLat: 37.635, eLng: 127.12 } },
+  // 개별 구 (하위 호환)
   노원구: { lat: 37.6542, lng: 127.0568, bbox: { sLat: 37.625, sLng: 127.03, eLat: 37.69, eLng: 127.085 } },
   중랑구: { lat: 37.6063, lng: 127.0925, bbox: { sLat: 37.58, sLng: 127.06, eLat: 37.63, eLng: 127.11 } },
   동대문구: { lat: 37.5744, lng: 127.0395, bbox: { sLat: 37.555, sLng: 127.015, eLat: 37.6, eLng: 127.065 } },

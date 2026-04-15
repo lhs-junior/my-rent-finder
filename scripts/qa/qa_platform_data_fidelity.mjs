@@ -728,8 +728,16 @@ function compareNormalizedItem(platform, item, candidate, context) {
   const expectedFields = extractExpectedFields(platform, candidate, item);
   const nRent = toNumber(item.rent_amount);
   const nDeposit = toNumber(item.deposit_amount);
-  const nArea = toNumber(item.area_exclusive_m2 ?? item.area_gross_m2 ?? item.area);
-  if (expectedFields.area !== null && !numericEquals(nArea, expectedFields.area)) {
+  const nAreaExclusive = toNumber(item.area_exclusive_m2);
+  const nAreaGross = toNumber(item.area_gross_m2);
+  const nArea = nAreaExclusive ?? nAreaGross ?? toNumber(item.area);
+  // 전용면적/공급면적 중 하나라도 raw 값과 일치하면 통과 (gross/exclusive 혼용 false-positive 방지)
+  if (
+    expectedFields.area !== null &&
+    !numericEquals(nAreaExclusive, expectedFields.area) &&
+    !numericEquals(nAreaGross, expectedFields.area) &&
+    !numericEquals(nArea, expectedFields.area)
+  ) {
     violations.push({
       field: "area",
       expected: expectedFields.area,

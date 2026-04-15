@@ -595,6 +595,7 @@ body {
 
 .map-right-body { flex: 1; overflow-y: auto; }
 .map-right-loading { padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+.map-right-expired-banner { background: #fff3cd; color: #856404; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; text-align: center; border-bottom: 1px solid #ffc107; }
 
 .map-right-img {
   width: 100%;
