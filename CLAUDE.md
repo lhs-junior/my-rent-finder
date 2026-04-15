@@ -63,18 +63,18 @@ Collection (7 platforms) → Normalization → DB → Matching → Status Check 
 ## Operation
 
 ```bash
-# 하네스 파이프라인 (권장 — 수집→정규화→매칭→종료체크→배점 전체 실행)
-node scripts/harness_runner.mjs
+# 하네스 파이프라인 (권장 — lock + 절전방지 포함)
+bash scripts/collect_wrapper.sh
+
+# 스킵 옵션이 필요할 때만 직접 실행 (lock/caffeinate 없음)
+node scripts/harness_runner.mjs --skip-collect    # 수집 스킵
+node scripts/harness_runner.mjs --skip-status     # 종료 체크 스킵
+node scripts/harness_runner.mjs --skip-score      # 배점 스킵
 
 # 개별 실행
 node scripts/check_listing_status.mjs --platform all     # 종료 매물 체크
 node scripts/score_listings.mjs                           # AI 배점 → scored_listings 저장
 node scripts/score_listings.mjs --interest-rate=0.04      # 이자율 지정 (기본 4%)
-
-# 스킵 옵션
-node scripts/harness_runner.mjs --skip-collect    # 수집 스킵
-node scripts/harness_runner.mjs --skip-status     # 종료 체크 스킵
-node scripts/harness_runner.mjs --skip-score      # 배점 스킵
 
 # 리포트 확인
 cat reports/harness-*.json | jq '.overall, .next_actions'
