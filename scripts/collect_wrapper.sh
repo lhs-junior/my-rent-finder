@@ -22,8 +22,8 @@ trap "rm -f $LOCK" EXIT INT TERM
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 수집 시작 (PID=$$)" >> "$LOG_DIR/collect.log"
 
 # caffeinate -i: 수집 중 절전 방지
-NODE_BIN="$(dirname "$0")/../../.nvm/versions/node/v20.11.0/bin/node"
-HARNESS="$(dirname "$0")/harness_runner.mjs"
+NODE_BIN="$HOME/.nvm/versions/node/v20.11.0/bin/node"
+HARNESS="$(cd "$(dirname "$0")" && pwd)/harness_runner.mjs"
 
 caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0
 
