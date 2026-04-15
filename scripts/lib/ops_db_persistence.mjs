@@ -1212,9 +1212,12 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
         loan_amount,
         building_year,
         description_text,
-        cross_ref
+        cross_ref,
+        monthly_management_cost,
+        walk_time_to_subway,
+        parking_possible
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41
       )
       ON CONFLICT (platform_code, external_id) DO UPDATE
       SET raw_id = EXCLUDED.raw_id,
@@ -1253,6 +1256,9 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
           building_year = EXCLUDED.building_year,
           description_text = EXCLUDED.description_text,
           cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
+          monthly_management_cost = EXCLUDED.monthly_management_cost,
+          walk_time_to_subway = EXCLUDED.walk_time_to_subway,
+          parking_possible = EXCLUDED.parking_possible,
           deleted_at = NULL,
           updated_at = NOW()
       RETURNING listing_id
@@ -1296,6 +1302,9 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
       toInt(item?.building_year ?? item?.buildingYear ?? null, null),
       toText(item?.description_text ?? item?.descriptionText ?? item?.memo ?? item?.description ?? null, null),
       toText(item?.cross_ref ?? item?.crossRef ?? null, null),
+      item?.monthly_management_cost != null ? Number(item.monthly_management_cost) : null,
+      item?.walk_time_to_subway != null ? Number(item.walk_time_to_subway) : null,
+      item?.parking_possible != null ? Boolean(item.parking_possible) : null,
     ],
   );
 

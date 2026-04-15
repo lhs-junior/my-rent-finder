@@ -85,6 +85,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       listed_at, available_date,
       lat, lng,
       quality_flags,
+      monthly_management_cost, walk_time_to_subway, parking_possible,
       created_at, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6,
@@ -100,6 +101,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       $28, $29,
       $30, $31,
       $32,
+      $33, $34, $35,
       NOW(), NOW()
     )
     ON CONFLICT (platform_code, external_id) DO UPDATE SET
@@ -132,6 +134,9 @@ async function upsertNormalizedItem(client, item, rawId) {
       lat = EXCLUDED.lat,
       lng = EXCLUDED.lng,
       quality_flags = COALESCE(EXCLUDED.quality_flags, '[]'::jsonb),
+      monthly_management_cost = EXCLUDED.monthly_management_cost,
+      walk_time_to_subway = EXCLUDED.walk_time_to_subway,
+      parking_possible = EXCLUDED.parking_possible,
       deleted_at = NULL,
       updated_at = NOW()
     RETURNING listing_id
@@ -163,6 +168,9 @@ async function upsertNormalizedItem(client, item, rawId) {
     item.lat ?? null,
     item.lng ?? null,
     item.validation?.length ? JSON.stringify(item.validation) : '[]',
+    item.monthly_management_cost ?? null,
+    item.walk_time_to_subway ?? null,
+    item.parking_possible ?? null,
   ]);
 
   return result.rows?.[0]?.listing_id ?? null;

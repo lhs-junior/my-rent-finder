@@ -144,6 +144,40 @@ function collectNaverImageCandidates(raw) {
     if (urls.length >= 24) break;
   }
 
+  // _detail.articlePhotos: imageSrc는 상대경로 → landthumb CDN prefix 붙이기
+  if (urls.length < 24 && raw._detail?.articlePhotos) {
+    const CDN = "https://landthumb-phinf.pstatic.net";
+    for (const photo of raw._detail.articlePhotos) {
+      if (urls.length >= 24) break;
+      const src = photo?.imageSrc;
+      if (typeof src !== "string" || !src) continue;
+      const absolute = src.startsWith("/") ? `${CDN}${src}` : src;
+      try {
+        const parsed = new URL(absolute);
+        if (parsed.protocol === "http:") parsed.protocol = "https:";
+        const normalized = parsed.toString();
+        if (!seen.has(normalized)) {
+          seen.add(normalized);
+          urls.push(normalized);
+        }
+      } catch {}
+    }
+  }
+  // _detail.articleAddition.representativeImgUrl도 처리
+  if (urls.length < 24 && raw._detail?.articleAddition?.representativeImgUrl) {
+    const CDN = "https://landthumb-phinf.pstatic.net";
+    const src = raw._detail.articleAddition.representativeImgUrl;
+    if (typeof src === "string" && src) {
+      const absolute = src.startsWith("/") ? `${CDN}${src}` : src;
+      try {
+        const parsed = new URL(absolute);
+        if (parsed.protocol === "http:") parsed.protocol = "https:";
+        const normalized = parsed.toString();
+        if (!seen.has(normalized)) { seen.add(normalized); urls.push(normalized); }
+      } catch {}
+    }
+  }
+
   return urls;
 }
 
@@ -1273,6 +1307,10 @@ function collectImageUrls(item, options = {}) {
 }
 
 function normalizeAddress(item) {
+  // Priority 0: _detail.articleDetail.exposureAddress (지번 포함 가장 상세한 주소)
+  const exposureAddr = normalizeText(item?._detail?.articleDetail?.exposureAddress || "");
+  if (exposureAddr) return exposureAddr;
+
   // Priority 1: enriched address from article detail API (has 동 name)
   const enriched = normalizeText(item?._enrichedAddress || "");
   if (enriched) return enriched;
@@ -1470,7 +1508,21 @@ export class NaverListingAdapter extends BaseListingAdapter {
       pick(item, ["area1", "spc1", "grossArea", "supplyArea", "공급면적", "supplyAreaM2", "areaGross"], null),
     );
 
-    const floorValue = parseFloorRaw(pick(item, ["flrInfo", "floorInfo", "floor", "floorInfoText", "floorText"], null));
+    const floorValue = (() => {
+      // _detail.articleFloor 우선 (correspondingFloorCount / totalFloorCount)
+      const af = item._detail?.articleFloor;
+      if (af) {
+        const floor = parseInt(String(af.correspondingFloorCount || ""), 10);
+        const total = parseInt(String(af.totalFloorCount || ""), 10);
+        if (Number.isFinite(floor) || Number.isFinite(total)) {
+          return {
+            floor: Number.isFinite(floor) ? floor : null,
+            total_floor: Number.isFinite(total) ? total : null,
+          };
+        }
+      }
+      return parseFloorRaw(pick(item, ["flrInfo", "floorInfo", "floor", "floorInfoText", "floorText"], null));
+    })();
 
     const leaseType = normalizeLeaseType(tradeTypeName, tradeTypeCode);
     if (!this.isLeaseTypeAllowed(leaseType)) {
@@ -1566,20 +1618,46 @@ export class NaverListingAdapter extends BaseListingAdapter {
       lease_type: leaseType,
       rent_amount: leaseType === "매매" ? null : rentAmount,
       deposit_amount: leaseType === "매매" ? null : depositAmount,
-      area_exclusive_m2: exclusive.value,
+      area_exclusive_m2: (() => {
+        const fromSpace = item._detail?.articleSpace?.exclusiveSpace;
+        if (fromSpace !== null && fromSpace !== undefined) {
+          const n = Number(fromSpace);
+          if (Number.isFinite(n) && n > 0) return n;
+        }
+        return exclusive.value;
+      })(),
       area_exclusive_m2_min: exclusive.min,
       area_exclusive_m2_max: exclusive.max,
-      area_gross_m2: gross.value,
+      area_gross_m2: (() => {
+        const fromSpace = item._detail?.articleSpace?.supplySpace;
+        if (fromSpace !== null && fromSpace !== undefined) {
+          const n = Number(fromSpace);
+          if (Number.isFinite(n) && n > 0) return n;
+        }
+        return gross.value;
+      })(),
       area_gross_m2_min: gross.min,
       area_gross_m2_max: gross.max,
       area_claimed: areaClaimed,
-      room_count: Number.isFinite(Number(roomRaw))
-        ? Number(roomRaw)
-        : parseRoom(
-            pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title"], null) ||
-              normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
-          ),
+      room_count: (() => {
+        const fromDetail = item._detail?.articleDetail?.roomCount;
+        if (fromDetail !== null && fromDetail !== undefined) {
+          const n = Number(fromDetail);
+          if (Number.isFinite(n) && n > 0) return n;
+        }
+        return Number.isFinite(Number(roomRaw))
+          ? Number(roomRaw)
+          : parseRoom(
+              pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title"], null) ||
+                normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
+            );
+      })(),
       bathroom_count: (() => {
+        const fromDetail = item._detail?.articleDetail?.bathroomCount;
+        if (fromDetail !== null && fromDetail !== undefined) {
+          const n = Number(fromDetail);
+          if (Number.isFinite(n) && n > 0) return n;
+        }
         const raw = pick(item, ["bathroomCount", "bathroomCnt", "bathroom_count", "bathroom", "bathCnt"], null);
         if (raw !== null && raw !== undefined) {
           const n = Number(raw);
@@ -1588,6 +1666,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
         return null;
       })(),
       direction: normalizeDirection(
+        item._detail?.articleFacility?.directionTypeName ||
         pick(item, ["facing", "direction", "directionText", "houseDirection", "houseDir", "dir"], null),
       ),
       building_use: normalizeBuildingUseValue(
@@ -1601,9 +1680,47 @@ export class NaverListingAdapter extends BaseListingAdapter {
       total_floor: floorValue.total_floor,
       building_name: pick(item, ["buildingName", "cntrName", "complexName", "complexNameKr"], null),
       agent_name: pick(item, ["agentName", "realtorName", "broker", "agent"], null),
-      agent_phone: pick(item, ["agentPhone", "realtorPhone", "tel", "phone", "contact"], null),
-      listed_at: pick(item, ["atclCrtYmd", "createdAt", "등록일", "등록일시"], null),
-      available_date: pick(item, ["useDate", "availableDate", "입주가능일"], null),
+      agent_phone: (() => {
+        const r = item._detail?.articleRealtor;
+        if (r) {
+          const cell = normalizeText(r.cellPhoneNo || "");
+          if (cell) return cell;
+          const tel = normalizeText(r.representativeTelNo || "");
+          if (tel) return tel;
+        }
+        return pick(item, ["agentPhone", "realtorPhone", "tel", "phone", "contact"], null);
+      })(),
+      listed_at: pick(item, ["atclCrtYmd", "articleConfirmYmd", "createdAt", "등록일", "등록일시"], null),
+      description_text: normalizeText(
+        item._detail?.articleDetail?.detailDescription ||
+        item.articleFeatureDesc ||
+        ""
+      ) || null,
+      monthly_management_cost: (() => {
+        const raw = item._detail?.articleDetail?.monthlyManagementCost;
+        if (raw === null || raw === undefined) return null;
+        const n = Number(raw);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      })(),
+      walk_time_to_subway: (() => {
+        const raw = item._detail?.articleDetail?.walkingTimeToNearSubway;
+        if (raw === null || raw === undefined) return null;
+        const n = Number(raw);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      })(),
+      parking_possible: (() => {
+        const raw = item._detail?.articleDetail?.parkingPossibleYN;
+        if (raw === null || raw === undefined) return null;
+        return raw === "Y";
+      })(),
+      available_date: (() => {
+        const fromDetail = item._detail?.articleDetail;
+        if (fromDetail) {
+          const ymd = normalizeText(fromDetail.moveInPossibleYmd || "");
+          if (ymd) return ymd;
+        }
+        return pick(item, ["useDate", "availableDate", "입주가능일"], null);
+      })(),
       lat: Number.isFinite(lat) ? lat : null,
       lng: Number.isFinite(lng) ? lng : null,
       sale_price: (() => {
@@ -1623,6 +1740,18 @@ export class NaverListingAdapter extends BaseListingAdapter {
         return Number.isFinite(n) && n > 0 ? n : null;
       })(),
       building_year: (() => {
+        // _detail.articleFacility.buildingUseAprvYmd 우선 (예: "20050613")
+        const fromFacility = item._detail?.articleFacility?.buildingUseAprvYmd;
+        if (fromFacility) {
+          const n = parseInt(String(fromFacility).slice(0, 4), 10);
+          if (Number.isFinite(n) && n > 1900 && n < 2100) return n;
+        }
+        // articleBuildingRegister.useAprDay (예: "2005.05")
+        const fromRegister = item._detail?.articleBuildingRegister?.useAprDay;
+        if (fromRegister) {
+          const n = parseInt(String(fromRegister).slice(0, 4), 10);
+          if (Number.isFinite(n) && n > 1900 && n < 2100) return n;
+        }
         const raw = pick(item, ["buildYear", "useApproveYmd", "builtYear"], null);
         if (!raw) return null;
         const n = parseInt(String(raw).slice(0, 4), 10);
@@ -1648,6 +1777,13 @@ export class NaverListingAdapter extends BaseListingAdapter {
         imageCount: pick(item, ["imageCount", "imgCount"], null),
         direction: pick(item, ["facing", "direction", "directionText", "houseDirection"], null),
         building_use: pick(item, ["houseType", "houseTypeNm", "buildingType", "buildingTypeNm", "atclType"], null),
+        tagList: item._detail?.articleDetail?.tagList || item.tagList || null,
+        heatMethod: item._detail?.articleFacility?.heatMethodTypeName || null,
+        heatFuel: item._detail?.articleFacility?.heatFuelTypeName || null,
+        securityFacilities: item._detail?.articleFacility?.securityFacilities || null,
+        illegalBuilding: item._detail?.articleDetail?.illegalBuildingYn || null,
+        householdCount: item._detail?.articleDetail?.householdCount || null,
+        exclusiveRate: item._detail?.articleSpace?.exclusiveRate || null,
       },
     };
 

@@ -888,6 +888,44 @@ async function captureNaverData() {
     }
   }
 
+  // ── Enrichment 2: article detail API (buildYear, exposureAddress, photos) ──
+  const DETAIL_ENRICH_MAX = 300;
+  const detailCandidates = [];
+  const seenDetailNos = new Set();
+  for (const resp of capturedResponses) {
+    const articles = resp.payload_json?.articleList || [];
+    for (const art of articles) {
+      const no = art.articleNo;
+      if (no && !seenDetailNos.has(no) && !art._detail) {
+        seenDetailNos.add(no);
+        detailCandidates.push(art);
+      }
+    }
+  }
+  const toEnrichDetail = detailCandidates.slice(0, DETAIL_ENRICH_MAX);
+  console.log(`\n🔍 매물 상세 보강: ${toEnrichDetail.length}개 API 호출 중...`);
+
+  let enrichedDetailCount = 0;
+  for (const art of toEnrichDetail) {
+    try {
+      const detailUrl = `https://new.land.naver.com/api/articles/${art.articleNo}?complexNo=`;
+      const detail = await page.evaluate(async ({ url, headers }) => {
+        try {
+          const res = await fetch(url, { headers, credentials: "include" });
+          if (!res.ok) return null;
+          return res.json();
+        } catch { return null; }
+      }, { url: detailUrl, headers: apiHeaders });
+
+      if (detail && typeof detail === "object") {
+        art._detail = detail;
+        enrichedDetailCount++;
+      }
+      await randomDelay(150, 350);
+    } catch {}
+  }
+  console.log(`  ✅ 상세 보강 완료: ${enrichedDetailCount}/${toEnrichDetail.length}`);
+
   // Rewrite raw file with enriched data
   rawStream.end();
   const enrichedStream = fs.createWriteStream(outputRaw, { flags: "w" });
