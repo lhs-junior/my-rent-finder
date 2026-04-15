@@ -9,13 +9,13 @@ import {
   normalizeAreaClaimed,
   normalizeLeaseType,
   normalizePlatform,
-  platformNameFromCode,
   toBool,
   toInt,
   toNumber,
   toText,
   withDbClient,
 } from "./db_client.mjs";
+import { platformNameFromCode } from "./api_helpers.mjs";
 import { recordPriceChanges } from "./price_tracker.mjs";
 
 const DAANGN_MIN_AREA_M2 = (() => {
@@ -757,7 +757,6 @@ async function upsertPlatformCode(client, platformCode) {
       naver: "https://new.land.naver.com",
       zigbang: "https://www.zigbang.com",
       dabang: "https://www.dabangapp.com",
-      r114: "https://www.r114.com",
       peterpanz: "https://www.peterpanz.com",
       daangn: "https://www.daangn.com",
       kbland: "https://www.kb.land",
@@ -1315,7 +1314,7 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
     .query(`UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = $1`, [
       rawId,
     ])
-    .catch(() => {});
+    .catch((err) => { console.error('[persist] raw_status update failed for raw_id=' + rawId + ': ' + err.message); });
 
   const imageUrls = normalizeImageList(item);
   for (let index = 0; index < imageUrls.length; index += 1) {
@@ -1497,7 +1496,7 @@ async function persistContractViolations(client, platformCode, rawId, listingId,
           violation.severity,
         ],
       )
-      .catch(() => {});
+      .catch((err) => { console.error('[persist] contract_violations insert failed: ' + err.message); });
   }
 }
 
@@ -1580,7 +1579,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
         const sourceRef = toText(rawLine?.source_ref || rawLine?.sourceRef || null, null);
         if (externalId) rawIdByExternal.set(externalId, rawId);
         if (sourceRef) rawIdByExternal.set(sourceRef, rawId);
-      }).catch(() => {});
+      }).catch((err) => { console.warn('[persist] non-critical error: ' + err.message); });
     }
 
     const normalizedPath = toText(result?.normalizedPath, null) || toText(result?.output, null);
@@ -1629,7 +1628,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
         "",
       );
       const rawId = rawIdByExternal.get(rawExternal);
-      await persistContractViolations(client, platform, rawId, listingId, item).catch(() => {});
+      await persistContractViolations(client, platform, rawId, listingId, item).catch((err) => { console.error('[persist] persistContractViolations failed: ' + err.message); });
 
       // Price change detection
       const extId = normalizePlatformSourceRef(
@@ -1774,9 +1773,7 @@ function resolvePairId(value, map) {
       ? map.get(`naver:${key}`)
       : map.has(`dabang:${key}`)
         ? map.get(`dabang:${key}`)
-        : map.has(`r114:${key}`)
-          ? map.get(`r114:${key}`)
-          : map.has(`peterpanz:${key}`)
+        : map.has(`peterpanz:${key}`)
             ? map.get(`peterpanz:${key}`)
             : null;
   if (withPlatformPrefix) return withPlatformPrefix;
@@ -1894,7 +1891,7 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
       .then(() => {
         storedPairs += 1;
       })
-      .catch(() => {});
+      .catch((err) => { console.warn('[persist] listing_matches insert failed: ' + err.message); });
   }
 
   let storedGroups = 0;
@@ -1936,7 +1933,7 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
         `,
           [groupId, memberListing, toNumber(memberId?.score, 100)],
         )
-        .catch(() => {});
+        .catch((err) => { console.warn('[persist] match_group_members insert failed: ' + err.message); });
     }
   }
 

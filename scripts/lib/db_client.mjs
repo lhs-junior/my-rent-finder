@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { Client } from "pg";
+import pg from "pg";
 
 const DB_ENV_KEYS = [
   "PGHOST",
@@ -235,39 +235,21 @@ export function getDbConfig() {
   return Object.fromEntries(Object.entries(cfg).filter(([, v]) => v !== null && v !== undefined));
 }
 
-export function createClient() {
-  return new Client(getDbConfig());
-}
+const pool = new pg.Pool({ ...getDbConfig(), max: 5 });
+
+process.on("SIGTERM", () => pool.end());
 
 export async function withDbClient(handler) {
-  const client = createClient();
-  // Prevent unhandled 'error' event from crashing the process
-  client.on("error", (err) => {
-    console.error(`[db] connection error: ${err.message}`);
-  });
-  await client.connect();
+  const client = await pool.connect();
   try {
     return await handler(client);
   } finally {
-    await client.end().catch(() => {});
+    client.release();
   }
 }
 
 export function sanitizeIdentifier(name, fallback = "value") {
   return toText(name, fallback).replace(/[^a-zA-Z0-9_\-]/g, "_");
-}
-
-export function platformNameFromCode(code) {
-  const names = {
-    naver: "네이버 부동산",
-    zigbang: "직방",
-    dabang: "다방",
-    r114: "부동산114",
-    peterpanz: "피터팬",
-    daangn: "당근부동산",
-    kbland: "KB부동산",
-  };
-  return names[normalizePlatform(code)] || toText(code, "unknown");
 }
 
 export const DB_CONNECTION_KEYS = DB_ENV_KEYS;

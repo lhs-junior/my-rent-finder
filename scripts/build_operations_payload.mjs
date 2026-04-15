@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { persistOperationsToDb } from "./lib/ops_db_persistence.mjs";
 import { getArg, getInt, getBool, toText } from "./lib/cli_utils.mjs";
+import { platformNameFromCode } from "./lib/api_helpers.mjs";
 
 const args = process.argv.slice(2);
 
@@ -66,17 +67,6 @@ function countJsonLines(filePath) {
 
 function normalizePlatform(raw) {
   return toText(raw).split(":")[0].toLowerCase();
-}
-
-function platformNameFromCode(code) {
-  const names = {
-    naver: "네이버 부동산",
-    zigbang: "직방",
-    dabang: "다방",
-    r114: "부동산114",
-    peterpanz: "피터팬",
-  };
-  return names[code] || toText(code) || "unknown";
 }
 
 function pickSummaryCandidates(runDir) {
