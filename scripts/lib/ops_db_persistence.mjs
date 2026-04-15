@@ -972,7 +972,20 @@ async function resolveRawExternalIdByRawId(client, rawId) {
   return toText(result.rows?.[0]?.external_id, null);
 }
 
-async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue, cleanedRawIds) {
+/**
+ * Prepares all per-item async work for a normalized listing (rawId resolution, cleanup,
+ * daangn area checks) and returns a ready-to-INSERT row descriptor.
+ * Returns null if the item should be skipped (반지하, missing rawId, etc.).
+ *
+ * The returned object has:
+ *   rowValues  — 41-element array matching NORMALIZED_COLUMNS order (used by upsertNormalizedBatch)
+ *   rawId      — resolved raw_listings.raw_id
+ *   externalId — resolved external identifier
+ *   sourceRef  — resolved source reference
+ *   rawExternalId — original raw external id (for rawIdByExternal map update)
+ *   imageUrls  — ordered image URLs for this item
+ */
+async function prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
@@ -1171,141 +1184,77 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
     areaExclusive,
   );
 
-  const result = await client.query(
-    `
-      INSERT INTO normalized_listings (
-        raw_id,
-        platform_code,
-        external_id,
-        canonical_key,
-        source_url,
-        title,
-        lease_type,
-        rent_amount,
-        deposit_amount,
-        area_exclusive_m2,
-        area_exclusive_m2_min,
-        area_exclusive_m2_max,
-        area_gross_m2,
-        area_gross_m2_min,
-        area_gross_m2_max,
-        area_claimed,
-        address_text,
-        address_code,
-        room_count,
-        bathroom_count,
-        floor,
-        total_floor,
-        direction,
-        building_use,
-        building_name,
-        agent_name,
-        agent_phone,
-        listed_at,
-        available_date,
-        source_ref,
-        quality_flags,
-        lat,
-        lng,
-        sale_price,
-        loan_amount,
-        building_year,
-        description_text,
-        cross_ref,
-        monthly_management_cost,
-        walk_time_to_subway,
-        parking_possible
-      ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41
-      )
-      ON CONFLICT (platform_code, external_id) DO UPDATE
-      SET raw_id = EXCLUDED.raw_id,
-          canonical_key = EXCLUDED.canonical_key,
-          source_url = EXCLUDED.source_url,
-          title = EXCLUDED.title,
-          lease_type = EXCLUDED.lease_type,
-          rent_amount = EXCLUDED.rent_amount,
-          deposit_amount = EXCLUDED.deposit_amount,
-          area_exclusive_m2 = EXCLUDED.area_exclusive_m2,
-          area_exclusive_m2_min = EXCLUDED.area_exclusive_m2_min,
-          area_exclusive_m2_max = EXCLUDED.area_exclusive_m2_max,
-          area_gross_m2 = EXCLUDED.area_gross_m2,
-          area_gross_m2_min = EXCLUDED.area_gross_m2_min,
-          area_gross_m2_max = EXCLUDED.area_gross_m2_max,
-          area_claimed = EXCLUDED.area_claimed,
-          address_text = EXCLUDED.address_text,
-          address_code = EXCLUDED.address_code,
-        room_count = EXCLUDED.room_count,
-        bathroom_count = EXCLUDED.bathroom_count,
-        floor = EXCLUDED.floor,
-        total_floor = EXCLUDED.total_floor,
-        direction = EXCLUDED.direction,
-        building_use = EXCLUDED.building_use,
-        building_name = EXCLUDED.building_name,
-        agent_name = EXCLUDED.agent_name,
-        agent_phone = EXCLUDED.agent_phone,
-        listed_at = EXCLUDED.listed_at,
-          available_date = EXCLUDED.available_date,
-          source_ref = EXCLUDED.source_ref,
-          quality_flags = EXCLUDED.quality_flags,
-          lat = COALESCE(EXCLUDED.lat, normalized_listings.lat),
-          lng = COALESCE(EXCLUDED.lng, normalized_listings.lng),
-          sale_price = EXCLUDED.sale_price,
-          loan_amount = EXCLUDED.loan_amount,
-          building_year = EXCLUDED.building_year,
-          description_text = EXCLUDED.description_text,
-          cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
-          monthly_management_cost = EXCLUDED.monthly_management_cost,
-          walk_time_to_subway = EXCLUDED.walk_time_to_subway,
-          parking_possible = EXCLUDED.parking_possible,
-          deleted_at = NULL,
-          updated_at = NOW()
-      RETURNING listing_id
-    `,
-    [
-      rawId,
-      platform,
-      externalId,
-      canonicalKey,
-      finalSourceUrl,
-      toText(item?.title || item?.subject || item?.name, null),
-      leaseType,
-      rentAmount,
-      depositAmount,
-      areaExclusive,
-      areaExclusiveMin,
-      areaExclusiveMax,
-      areaGross,
-      areaGrossMin,
-      areaGrossMax,
-      areaClaimed,
-      addressText,
-      addressCode,
-      toInt(item?.room_count ?? item?.roomCount ?? item?.roomCnt, null),
-      toInt(item?.bathroom_count ?? item?.bathroomCount ?? item?.bathroomCnt, null),
-      normalizeFloorForDb(item?.floor ?? item?.floorNo ?? null),
-      normalizeFloorForDb(item?.total_floor ?? item?.totalFloor ?? item?.totalFloorCount ?? null),
-      toText(item?.direction || item?.Direction || null, null),
-      toText(item?.building_use || item?.buildingUse || item?.buildingType || item?.houseType || null, null),
-      toText(item?.building_name || item?.buildingName, null),
-      toText(item?.agent_name || item?.agentName, null),
-      toText(item?.agent_phone || item?.agentPhone, null),
-      toText(item?.listed_at || item?.listedAt, null),
-      toText(item?.available_date || item?.availableDate, null),
-      sourceRef,
-      JSON.stringify(qualityPayload),
-      item?.lat != null && Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
-      item?.lng != null && Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
-      toInt(item?.sale_price ?? item?.salePrice ?? null, null),
-      toInt(item?.loan_amount ?? item?.loanAmount ?? null, null),
-      toInt(item?.building_year ?? item?.buildingYear ?? null, null),
-      toText(item?.description_text ?? item?.descriptionText ?? item?.memo ?? item?.description ?? null, null),
-      toText(item?.cross_ref ?? item?.crossRef ?? null, null),
-      item?.monthly_management_cost != null ? Number(item.monthly_management_cost) : null,
-      item?.walk_time_to_subway != null ? Number(item.walk_time_to_subway) : null,
-      item?.parking_possible != null ? Boolean(item.parking_possible) : null,
-    ],
-  );
+  // 41 values matching NORMALIZED_COLUMNS order
+  const rowValues = [
+    rawId,
+    platform,
+    externalId,
+    canonicalKey,
+    finalSourceUrl,
+    toText(item?.title || item?.subject || item?.name, null),
+    leaseType,
+    rentAmount,
+    depositAmount,
+    areaExclusive,
+    areaExclusiveMin,
+    areaExclusiveMax,
+    areaGross,
+    areaGrossMin,
+    areaGrossMax,
+    areaClaimed,
+    addressText,
+    addressCode,
+    toInt(item?.room_count ?? item?.roomCount ?? item?.roomCnt, null),
+    toInt(item?.bathroom_count ?? item?.bathroomCount ?? item?.bathroomCnt, null),
+    normalizeFloorForDb(item?.floor ?? item?.floorNo ?? null),
+    normalizeFloorForDb(item?.total_floor ?? item?.totalFloor ?? item?.totalFloorCount ?? null),
+    toText(item?.direction || item?.Direction || null, null),
+    toText(item?.building_use || item?.buildingUse || item?.buildingType || item?.houseType || null, null),
+    toText(item?.building_name || item?.buildingName, null),
+    toText(item?.agent_name || item?.agentName, null),
+    toText(item?.agent_phone || item?.agentPhone, null),
+    toText(item?.listed_at || item?.listedAt, null),
+    toText(item?.available_date || item?.availableDate, null),
+    sourceRef,
+    JSON.stringify(qualityPayload),
+    item?.lat != null && Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
+    item?.lng != null && Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
+    toInt(item?.sale_price ?? item?.salePrice ?? null, null),
+    toInt(item?.loan_amount ?? item?.loanAmount ?? null, null),
+    toInt(item?.building_year ?? item?.buildingYear ?? null, null),
+    toText(item?.description_text ?? item?.descriptionText ?? item?.memo ?? item?.description ?? null, null),
+    toText(item?.cross_ref ?? item?.crossRef ?? null, null),
+    item?.monthly_management_cost != null ? Number(item.monthly_management_cost) : null,
+    item?.walk_time_to_subway != null ? Number(item.walk_time_to_subway) : null,
+    item?.parking_possible != null ? Boolean(item.parking_possible) : null,
+  ];
+
+  // Update rawIdByExternal map so subsequent items in this batch can resolve this rawId
+  rawIdByExternal.set(externalId, rawId);
+  rawIdByExternal.set(sourceRef, rawId);
+  if (rawExternalId) {
+    rawIdByExternal.set(rawExternalId, rawId);
+  }
+
+  return {
+    rowValues,
+    rawId,
+    externalId,
+    sourceRef,
+    rawExternalId,
+    imageUrls: normalizeImageList(item),
+    item, // kept for contract violations
+  };
+}
+
+// Legacy single-row path — used internally when batch is not applicable.
+async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue, cleanedRawIds) {
+  const prepared = await prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds);
+  if (!prepared) return null;
+
+  const { rowValues, rawId, externalId, imageUrls } = prepared;
+  const singleSql = buildNormalizedBatchSql(1);
+  const result = await client.query(singleSql, rowValues);
 
   const listingId = toInt(result.rows?.[0]?.listing_id, null);
   if (!listingId) return null;
@@ -1316,27 +1265,167 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
     ])
     .catch((err) => { console.error('[persist] raw_status update failed for raw_id=' + rawId + ': ' + err.message); });
 
-  const imageUrls = normalizeImageList(item);
   for (let index = 0; index < imageUrls.length; index += 1) {
     const source = toText(imageUrls[index], "");
     if (!source) continue;
-    imageQueue.push({
-      listingId,
-      rawId,
-      sourceUrl: source,
-      isPrimary: index === 0,
-    });
+    imageQueue.push({ listingId, rawId, sourceUrl: source, isPrimary: index === 0 });
   }
 
-  rawIdByExternal.set(externalId, rawId);
-  rawIdByExternal.set(sourceRef, rawId);
-  if (rawExternalId) {
-    rawIdByExternal.set(rawExternalId, rawId);
-  }
   return listingId;
 }
 
 const IMAGE_BATCH_SIZE = 200;
+const NORMALIZED_BATCH_SIZE = 50;
+
+// Column list for normalized_listings INSERT (41 columns, order matches VALUES placeholders)
+const NORMALIZED_COLUMNS = [
+  "raw_id",
+  "platform_code",
+  "external_id",
+  "canonical_key",
+  "source_url",
+  "title",
+  "lease_type",
+  "rent_amount",
+  "deposit_amount",
+  "area_exclusive_m2",
+  "area_exclusive_m2_min",
+  "area_exclusive_m2_max",
+  "area_gross_m2",
+  "area_gross_m2_min",
+  "area_gross_m2_max",
+  "area_claimed",
+  "address_text",
+  "address_code",
+  "room_count",
+  "bathroom_count",
+  "floor",
+  "total_floor",
+  "direction",
+  "building_use",
+  "building_name",
+  "agent_name",
+  "agent_phone",
+  "listed_at",
+  "available_date",
+  "source_ref",
+  "quality_flags",
+  "lat",
+  "lng",
+  "sale_price",
+  "loan_amount",
+  "building_year",
+  "description_text",
+  "cross_ref",
+  "monthly_management_cost",
+  "walk_time_to_subway",
+  "parking_possible",
+];
+
+const NORMALIZED_ON_CONFLICT_UPDATE = `
+  ON CONFLICT (platform_code, external_id) DO UPDATE
+  SET raw_id = EXCLUDED.raw_id,
+      canonical_key = EXCLUDED.canonical_key,
+      source_url = EXCLUDED.source_url,
+      title = EXCLUDED.title,
+      lease_type = EXCLUDED.lease_type,
+      rent_amount = EXCLUDED.rent_amount,
+      deposit_amount = EXCLUDED.deposit_amount,
+      area_exclusive_m2 = EXCLUDED.area_exclusive_m2,
+      area_exclusive_m2_min = EXCLUDED.area_exclusive_m2_min,
+      area_exclusive_m2_max = EXCLUDED.area_exclusive_m2_max,
+      area_gross_m2 = EXCLUDED.area_gross_m2,
+      area_gross_m2_min = EXCLUDED.area_gross_m2_min,
+      area_gross_m2_max = EXCLUDED.area_gross_m2_max,
+      area_claimed = EXCLUDED.area_claimed,
+      address_text = EXCLUDED.address_text,
+      address_code = EXCLUDED.address_code,
+      room_count = EXCLUDED.room_count,
+      bathroom_count = EXCLUDED.bathroom_count,
+      floor = EXCLUDED.floor,
+      total_floor = EXCLUDED.total_floor,
+      direction = EXCLUDED.direction,
+      building_use = EXCLUDED.building_use,
+      building_name = EXCLUDED.building_name,
+      agent_name = EXCLUDED.agent_name,
+      agent_phone = EXCLUDED.agent_phone,
+      listed_at = EXCLUDED.listed_at,
+      available_date = EXCLUDED.available_date,
+      source_ref = EXCLUDED.source_ref,
+      quality_flags = EXCLUDED.quality_flags,
+      lat = COALESCE(EXCLUDED.lat, normalized_listings.lat),
+      lng = COALESCE(EXCLUDED.lng, normalized_listings.lng),
+      sale_price = EXCLUDED.sale_price,
+      loan_amount = EXCLUDED.loan_amount,
+      building_year = EXCLUDED.building_year,
+      description_text = EXCLUDED.description_text,
+      cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
+      monthly_management_cost = EXCLUDED.monthly_management_cost,
+      walk_time_to_subway = EXCLUDED.walk_time_to_subway,
+      parking_possible = EXCLUDED.parking_possible,
+      deleted_at = NULL,
+      updated_at = NOW()
+  RETURNING listing_id, external_id
+`;
+
+function buildNormalizedBatchSql(chunkSize) {
+  const colCount = NORMALIZED_COLUMNS.length;
+  const valueClauses = [];
+  for (let i = 0; i < chunkSize; i++) {
+    const off = i * colCount;
+    const placeholders = NORMALIZED_COLUMNS.map((col, j) => {
+      const p = `$${off + j + 1}`;
+      if (col === "quality_flags") return `${p}::jsonb`;
+      return p;
+    });
+    valueClauses.push(`(${placeholders.join(",")})`);
+  }
+  return `INSERT INTO normalized_listings (${NORMALIZED_COLUMNS.join(", ")}) VALUES ${valueClauses.join(", ")} ${NORMALIZED_ON_CONFLICT_UPDATE}`;
+}
+
+/**
+ * Batch-upsert normalized_listings rows.
+ * listings: array of 41-element value arrays (one per row, matching NORMALIZED_COLUMNS order).
+ * Returns a Map of external_id -> listing_id for all successfully upserted rows.
+ * On chunk failure, falls back to single-row upserts so no data is lost.
+ */
+export async function upsertNormalizedBatch(client, listings) {
+  const resultMap = new Map(); // external_id -> listing_id
+  if (!Array.isArray(listings) || listings.length === 0) return resultMap;
+
+  for (let i = 0; i < listings.length; i += NORMALIZED_BATCH_SIZE) {
+    const chunk = listings.slice(i, i + NORMALIZED_BATCH_SIZE);
+    const params = chunk.flat();
+    const sql = buildNormalizedBatchSql(chunk.length);
+
+    let rows;
+    try {
+      const result = await client.query(sql, params);
+      rows = result.rows;
+    } catch (chunkErr) {
+      // Fallback: process chunk row-by-row to avoid losing the entire chunk
+      console.warn(`[persist] normalized batch chunk failed (size=${chunk.length}), falling back to single-row upserts: ${chunkErr.message}`);
+      rows = [];
+      const singleSql = buildNormalizedBatchSql(1);
+      for (const rowValues of chunk) {
+        try {
+          const r = await client.query(singleSql, rowValues);
+          if (r.rows?.[0]) rows.push(r.rows[0]);
+        } catch (rowErr) {
+          console.error(`[persist] normalized single-row upsert failed: ${rowErr.message}`);
+        }
+      }
+    }
+
+    for (const row of rows) {
+      if (row?.listing_id && row?.external_id) {
+        resultMap.set(row.external_id, toInt(row.listing_id, null));
+      }
+    }
+  }
+
+  return resultMap;
+}
 
 function buildBatchUpsertSql(batchSize, onConflictClause) {
   const valuesClauses = [];
@@ -1612,33 +1701,45 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
     }
     const priceChangedItems = [];
 
+    // --- Batch INSERT path ---
+    // 1. Prepare all rows (per-item async: rawId resolution, cleanup, daangn checks)
+    const preparedRows = [];
     for (const item of normalizedItems) {
-      const listingId = await upsertNormalizedListing(
-        client,
-        item,
-        platform,
-        platformRunId,
-        rawIdByExternal,
-        imageQueue,
-        cleanedRawIds,
-      );
+      const prepared = await prepareNormalizedListingRow(client, item, platform, rawIdByExternal, cleanedRawIds);
+      if (prepared) preparedRows.push(prepared);
+    }
+
+    // 2. Batch-upsert all prepared rows into normalized_listings (chunks of 50)
+    const rowValuesList = preparedRows.map((p) => p.rowValues);
+    const batchResultMap = await upsertNormalizedBatch(client, rowValuesList);
+
+    // 3. Post-process: raw_status update, image queue, contract violations, price tracking
+    const rawIdsToMarkNormalized = new Set();
+    for (const prepared of preparedRows) {
+      const listingId = batchResultMap.get(prepared.externalId) ?? null;
       if (!listingId) continue;
-      const rawExternal = toText(
-        item?.raw_external_id || item?.raw_id || item?.source_ref || item?.external_id || item?.externalId,
-        "",
-      );
-      const rawId = rawIdByExternal.get(rawExternal);
-      await persistContractViolations(client, platform, rawId, listingId, item).catch((err) => { console.error('[persist] persistContractViolations failed: ' + err.message); });
+
+      rawIdsToMarkNormalized.add(prepared.rawId);
+
+      // Image queue
+      for (let index = 0; index < prepared.imageUrls.length; index += 1) {
+        const source = toText(prepared.imageUrls[index], "");
+        if (!source) continue;
+        imageQueue.push({ listingId, rawId: prepared.rawId, sourceUrl: source, isPrimary: index === 0 });
+      }
+
+      // Contract violations
+      await persistContractViolations(client, platform, prepared.rawId, listingId, prepared.item).catch((err) => { console.error('[persist] persistContractViolations failed: ' + err.message); });
 
       // Price change detection
       const extId = normalizePlatformSourceRef(
         platform,
-        toText(item?.external_id || item?.externalId || item?.source_ref || item?.sourceRef, null)
+        toText(prepared.item?.external_id || prepared.item?.externalId || prepared.item?.source_ref || prepared.item?.sourceRef, null)
       );
       const snap = extId ? priceSnapshot.get(extId) : null;
       if (snap) {
-        const newRent = item?.rent_amount != null ? parseFloat(item.rent_amount) : null;
-        const newDeposit = item?.deposit_amount != null ? parseFloat(item.deposit_amount) : null;
+        const newRent = prepared.item?.rent_amount != null ? parseFloat(prepared.item.rent_amount) : null;
+        const newDeposit = prepared.item?.deposit_amount != null ? parseFloat(prepared.item.deposit_amount) : null;
         const rentChanged = snap.rent_amount !== null && newRent !== null
           && Math.abs(snap.rent_amount - newRent) > 0.01;
         const depositChanged = snap.deposit_amount !== null && newDeposit !== null
@@ -1653,6 +1754,14 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
           });
         }
       }
+    }
+
+    // Bulk-update raw_status for all successfully inserted rows
+    if (rawIdsToMarkNormalized.size > 0) {
+      await client.query(
+        `UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = ANY($1::bigint[])`,
+        [Array.from(rawIdsToMarkNormalized)],
+      ).catch((err) => { console.error('[persist] bulk raw_status update failed: ' + err.message); });
     }
 
     if (priceChangedItems.length > 0) {
