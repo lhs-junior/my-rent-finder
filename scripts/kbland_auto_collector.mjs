@@ -173,6 +173,7 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
 }
 
 // ── 매물 이미지 URL 수집 (phtoList API) ──
+// returns { urls: string[], isServeOrigin: boolean }
 async function fetchImageUrls(page, listingId) {
   try {
     const url = `https://api.kbland.kr/land-property/property/phtoList?${encodeURIComponent("매물일련번호")}=${listingId}`;
@@ -181,10 +182,45 @@ async function fetchImageUrls(page, listingId) {
       return await r.json();
     }, url);
     const photos = result?.dataBody?.data?.psalePhtoList || [];
-    return photos.map((p) => p["전체이미지경로"]).filter((u) => typeof u === "string" && u.startsWith("http"));
+    // 파일명에 공백/특수문자 포함 가능 → 마지막 경로 세그먼트만 인코딩
+    const urls = photos
+      .map((p) => {
+        const raw = p["전체이미지경로"];
+        if (typeof raw !== "string" || !raw.startsWith("http")) return null;
+        const lastSlash = raw.lastIndexOf("/");
+        if (lastSlash === -1) return raw;
+        const base = raw.slice(0, lastSlash + 1);
+        const file = raw.slice(lastSlash + 1);
+        return base + encodeURIComponent(file);
+      })
+      .filter(Boolean);
+    return urls;
   } catch (e) {
     console.warn(`     ⚠ 이미지 조회 실패 (${listingId}): ${e.message}`);
     return [];
+  }
+}
+
+// ── bascInfo API — 제휴 매물 출처 확인 ──
+// 반환: { serveAtclNo: string|null, outLink: string|null }
+async function fetchKbBascInfo(page, listingId) {
+  try {
+    const url = `https://api.kbland.kr/land-property/property/bascInfo?${encodeURIComponent("매물일련번호")}=${listingId}&${encodeURIComponent("매물노출요청")}=Y`;
+    const result = await page.evaluate(async (u) => {
+      const r = await fetch(u);
+      return await r.json();
+    }, url);
+    const info = result?.dataBody?.data?.bascInfo;
+    if (!info) return { serveAtclNo: null, outLink: null };
+    const isServe = String(info["매물유입명"] || "").includes("써브") ||
+                    String(info["매물유입명"] || "").toLowerCase().includes("serve");
+    const serveAtclNo = isServe && info["제휴매물식별자내용"]
+      ? String(info["제휴매물식별자내용"])
+      : null;
+    const outLink = info["제휴매물아웃링크"] || null;
+    return { serveAtclNo, outLink };
+  } catch (e) {
+    return { serveAtclNo: null, outLink: null };
   }
 }
 
@@ -550,10 +586,28 @@ async function main() {
       }
     }
 
-    // 5단계: 상세 API로 방향/욕실/면적 보강
-    console.log(`  5) 상세 API 보강 (${capped.length}건)...`);
-    let detailOk = 0;
+    // 4-1단계: bascInfo로 serve-origin 감지 → 써브가 이미 수집한 매물 스킵
+    console.log(`  4-1) serve-origin 감지 (bascInfo)...`);
+    let serveOriginSkipped = 0;
     for (const r of capped) {
+      const { serveAtclNo, outLink } = await fetchKbBascInfo(page, r.매물일련번호);
+      if (serveAtclNo) {
+        r._isServeOrigin = true;
+        r._serveAtclNo = serveAtclNo;
+        r._serveOutLink = outLink;
+        serveOriginSkipped++;
+      }
+    }
+    if (serveOriginSkipped > 0) {
+      console.log(`     ↳ serve-origin ${serveOriginSkipped}건 감지 (써브 atclNo 보유)`);
+    }
+    // serve가 이미 수집한 매물이면 KB 중복 수집 제외
+    const finalRecords = capped.filter((r) => !r._isServeOrigin);
+
+    // 5단계: 상세 API로 방향/욕실/면적 보강 (serve-origin 제외 후)
+    console.log(`  5) 상세 API 보강 (${finalRecords.length}건, serve-origin ${serveOriginSkipped}건 제외)...`);
+    let detailOk = 0;
+    for (const r of finalRecords) {
       const detail = await fetchKbDetailInfo(r.매물일련번호);
       if (!detail) continue;
       detailOk++;
@@ -571,17 +625,17 @@ async function main() {
         r.공급면적 = detailSupply;
       }
     }
-    console.log(`     상세 보강 완료: ${detailOk}/${capped.length}건`);
+    console.log(`     상세 보강 완료: ${detailOk}/${finalRecords.length}건`);
 
     // 샘플 출력
-    for (const r of capped.slice(0, 3)) {
+    for (const r of finalRecords.slice(0, 3)) {
       console.log(
         `     • ${r.매물일련번호}: [${r.매물종별구분명}] ${r.읍면동명} ${r.건물명} | ${r.월세보증금}/${r.월세가}만 | ${r.전용면적}㎡ ${r.방수}방 ${r.방향명 || ""}`,
       );
     }
 
     // JSONL 레코드 생성
-    for (const r of capped) {
+    for (const r of finalRecords) {
       allRecords.push({ raw: toJsonlRecord(r, district), norm: toNormalizedRecord(r, district) });
     }
   }

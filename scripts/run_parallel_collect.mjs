@@ -132,7 +132,7 @@ const platformAlias = {
   serve: "serve",
   부동산써브: "serve",
 };
-const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn", "kbland", "serve"]);
+const selectedPlatforms = getList(args, "--platforms", ["zigbang", "dabang", "naver", "peterpanz", "daangn", "serve", "kbland"]);
 function normalizePlatform(raw) {
   return (
     platformAlias[raw] ||
