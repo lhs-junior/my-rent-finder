@@ -1,15 +1,10 @@
 import FavoriteButton from "../FavoriteButton.jsx";
-import { toPlatformLabel, PLATFORM_COLORS } from "../../utils/format.js";
+import { toPlatformLabel, PLATFORM_COLORS, toMoney } from "../../utils/format.js";
 
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
 const MONEY_SWAP_RENT_MIN = 500;
 const MONEY_SWAP_DEPOSIT_MAX = 200;
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
-
-function toMoney(v) {
-  if (v == null) return "-";
-  return v >= 10000 ? `${(v / 10000).toFixed(1)}억` : `${v}만`;
-}
 
 function normalizeDisplayMoney(item) {
   const rentAmount = Number(item?.rent_amount);

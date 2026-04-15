@@ -1,6 +1,6 @@
 // frontend/src/components/map/MapRightPanel.jsx
 import { useState, useEffect, useRef } from "react";
-import { toPlatformLabel, normalizeImageUrl, toArea } from "../../utils/format.js";
+import { toPlatformLabel, normalizeImageUrl, toArea, toMoney } from "../../utils/format.js";
 import { resolveExternalListingUrl } from "../../utils/listing-url.js";
 import FavoriteButton from "../FavoriteButton.jsx";
 import { AffordabilityBadge } from "../AffordabilityBadge.jsx";
@@ -81,8 +81,8 @@ export default function MapRightPanel({
               <div className="map-right-platform">
                 {toPlatformLabel(detail.platform_code || detail.platform || "")}
               </div>
-              <div className="map-right-price">{detail.rent_amount != null ? `월 ${detail.rent_amount}만원` : "가격 미정"}</div>
-              <div className="map-right-deposit">보증금 {detail.deposit_amount != null ? `${detail.deposit_amount}만원` : "-"}</div>
+              <div className="map-right-price">{detail.rent_amount != null ? `월 ${toMoney(detail.rent_amount)}` : "가격 미정"}</div>
+              <div className="map-right-deposit">보증금 {detail.deposit_amount != null ? toMoney(detail.deposit_amount) : "-"}</div>
               {detail.lease_type === "매매" && detail.sale_price && (
                 <AffordabilityBadge salePrice={detail.sale_price} />
               )}

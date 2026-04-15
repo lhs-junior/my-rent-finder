@@ -19,7 +19,13 @@ export const PLATFORM_OPTIONS = [
 export function toMoney(value) {
   const v = Number(value);
   if (!Number.isFinite(v)) return "-";
-  return `${Math.round(v).toLocaleString("ko-KR")}만원`;
+  const rounded = Math.round(v);
+  if (rounded >= 10000) {
+    const eok = Math.floor(rounded / 10000);
+    const man = rounded % 10000;
+    return man > 0 ? `${eok}억 ${man.toLocaleString("ko-KR")}만` : `${eok}억`;
+  }
+  return `${rounded.toLocaleString("ko-KR")}만`;
 }
 
 export function toIdText(value) {

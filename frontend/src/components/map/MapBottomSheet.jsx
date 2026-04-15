@@ -1,6 +1,6 @@
 // frontend/src/components/map/MapBottomSheet.jsx
 import { useRef, useState, useEffect } from "react";
-import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS } from "../../utils/format.js";
+import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney } from "../../utils/format.js";
 
 const STAGES = { peek: 64, half: 0.45, full: 0.92 };
 
@@ -207,8 +207,8 @@ export default function MapBottomSheet({
               className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
               onClick={() => { onCardClick(m); setStage("peek"); }}
             >
-              <div className="map-left-card-price">{m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}</div>
-              <div className="map-left-card-deposit">보증 {m.deposit_amount != null ? `${m.deposit_amount}만` : "-"}</div>
+              <div className="map-left-card-price">{m.rent_amount != null ? `월 ${toMoney(m.rent_amount)}` : "가격미정"}</div>
+              <div className="map-left-card-deposit">보증 {m.deposit_amount != null ? toMoney(m.deposit_amount) : "-"}</div>
               <div className="map-left-card-addr">{m.address_text || "-"}</div>
               <div className="map-left-card-tags">
                 {m.area_exclusive_m2 && <span>{m.area_exclusive_m2}㎡</span>}

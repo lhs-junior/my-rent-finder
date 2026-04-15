@@ -1,6 +1,6 @@
 // frontend/src/components/map/MapLeftPanel.jsx
 import { useRef, useEffect } from "react";
-import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS } from "../../utils/format.js";
+import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney } from "../../utils/format.js";
 
 export default function MapLeftPanel({
   filters,
@@ -155,10 +155,10 @@ export default function MapLeftPanel({
               <div className="map-left-card-price">
                 {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}{m.total_score != null ? ` ${m.total_score}` : ""}</span>}
                 {m.platform_code && <span className="map-left-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB",serve:"써브"})[m.platform_code] || m.platform_code}</span>}
-                {m.rent_amount != null ? `월 ${m.rent_amount}만` : "가격미정"}
+                {m.rent_amount != null ? `월 ${toMoney(m.rent_amount)}` : "가격미정"}
               </div>
               <div className="map-left-card-deposit">
-                보증 {m.deposit_amount != null ? `${m.deposit_amount}만` : "-"}
+                보증 {m.deposit_amount != null ? toMoney(m.deposit_amount) : "-"}
               </div>
               <div className="map-left-card-addr">{m.address_text || "-"}</div>
               <div className="map-left-card-tags">

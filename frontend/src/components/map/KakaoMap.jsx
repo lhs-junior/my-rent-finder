@@ -91,7 +91,14 @@ const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 
 function toMoney(v) {
   if (v == null) return "-";
-  return v >= 10000 ? `${(v / 10000).toFixed(1)}억` : `${v}만`;
+  const n = Math.round(Number(v));
+  if (!Number.isFinite(n)) return "-";
+  if (n >= 10000) {
+    const eok = Math.floor(n / 10000);
+    const man = n % 10000;
+    return man > 0 ? `${eok}억 ${man.toLocaleString("ko-KR")}만` : `${eok}억`;
+  }
+  return `${n.toLocaleString("ko-KR")}만`;
 }
 
 function shouldSwapMoneyForDisplay(platformCode, leaseType, rawText, rentAmount, depositAmount) {

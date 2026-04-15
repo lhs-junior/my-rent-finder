@@ -1,15 +1,10 @@
-import { toPlatformLabel, PLATFORM_COLORS, normalizeImageUrl } from "../utils/format.js";
+import { toPlatformLabel, PLATFORM_COLORS, normalizeImageUrl, toMoney } from "../utils/format.js";
 import FavoriteButton from "./FavoriteButton.jsx";
 
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
 const MONEY_SWAP_RENT_MIN = 500;
 const MONEY_SWAP_DEPOSIT_MAX = 200;
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
-
-function displayMoney(v) {
-  if (v == null) return "-";
-  return v >= 10000 ? `${(v / 10000).toFixed(1)}억` : `${v}만`;
-}
 
 function normalizePrice(item) {
   const rent = Number(item?.rent_amount);
@@ -119,11 +114,11 @@ export default function ListingCard({
           </div>
           <div className="listing-card-body">
             {item.lease_type === "매매" ? (
-              <div className="listing-card-rent">{item.sale_price != null ? displayMoney(item.sale_price) : "가격 미정"}</div>
+              <div className="listing-card-rent">{item.sale_price != null ? toMoney(item.sale_price) : "가격 미정"}</div>
             ) : (
               <>
                 <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
-                <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+                <div className="listing-card-deposit">보증금 {toMoney(price.deposit)}</div>
               </>
             )}
             <div className="listing-card-address">{item.address_text || "-"}</div>
@@ -184,11 +179,11 @@ export default function ListingCard({
             </div>
           )}
           {item.lease_type === "매매" ? (
-            <div className="listing-card-rent">{item.sale_price != null ? displayMoney(item.sale_price) : "가격 미정"}</div>
+            <div className="listing-card-rent">{item.sale_price != null ? toMoney(item.sale_price) : "가격 미정"}</div>
           ) : (
             <>
               <div className="listing-card-rent">{price.rent != null ? `${price.rent}만원` : "가격 미정"}</div>
-              <div className="listing-card-deposit">보증금 {displayMoney(price.deposit)}</div>
+              <div className="listing-card-deposit">보증금 {toMoney(price.deposit)}</div>
             </>
           )}
           {searchVariant && item.title ? (
