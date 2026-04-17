@@ -316,6 +316,8 @@ function applyFilters(records) {
 // ── JSONL 출력 형식 ──
 function toJsonlRecord(record, district) {
   const d = DISTRICTS[district];
+  // KB API 응답에 실제 시군구명이 있으면 우선 사용 (경계 근처에서 district 파라미터와 다를 수 있음)
+  const actualDistrict = record.시군구명 || record.법정동명 || district;
   return {
     platform_code: "kbland",
     external_id: String(record.매물일련번호),
@@ -323,13 +325,15 @@ function toJsonlRecord(record, district) {
     source_url: `https://kbland.kr/p/${record.매물일련번호}`,
     request_url: "https://api.kbland.kr/land-property/propList/filter",
     response_status: record._capturedStatus ?? 200,
-    sigungu: district,
+    sigungu: actualDistrict,
     payload_json: {
       매물일련번호: record.매물일련번호,
       propertyType: record.매물종별구분명,
       dealType: record.매물거래구분명,
-      address: `서울특별시 ${district} ${record.읍면동명} ${record.상세번지}`.trim(),
+      address: `서울특별시 ${actualDistrict} ${record.읍면동명} ${record.상세번지}`.trim(),
       dong: record.읍면동명,
+      시군구명: record.시군구명 || null,
+      법정동코드: record.법정동코드 || null,
       buildingName: record.건물명,
       deposit: record.월세보증금,
       rent: record.월세가,
@@ -364,7 +368,8 @@ function toJsonlRecord(record, district) {
 // ── 정규화 레코드 (normalized_listings 테이블 호환) ──
 function toNormalizedRecord(record, district) {
   const eid = String(record.매물일련번호);
-  const address = `서울특별시 ${district} ${record.읍면동명 || ""} ${record.상세번지 || ""}`.trim();
+  const actualDistrict = record.시군구명 || record.법정동명 || district;
+  const address = `서울특별시 ${actualDistrict} ${record.읍면동명 || ""} ${record.상세번지 || ""}`.trim();
   const buildingType = record.매물종별구분명 || "";
   let buildingUse = "기타";
   if (/빌라|연립/.test(buildingType)) buildingUse = "빌라/연립";

@@ -445,6 +445,14 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       if (normalizedAddress) item.address_text = normalizedAddress;
     }
 
+    // zigbang raw는 address_text가 "노원구 ..." 처럼 서울 prefix 없이 저장되는 경우가 있음.
+    // addressOrigin.local1 또는 address1에 "서울시" 있으면 그걸로 prefix 정규화.
+    if (item.address_text && !/^서울/.test(item.address_text) && /^[^ ]+구 /.test(item.address_text)) {
+      const sido = raw?.addressOrigin?.local1 || raw?.address1?.split(" ")[0] || "서울특별시";
+      const sidoNormalized = sido === "서울시" ? "서울특별시" : sido;
+      item.address_text = `${sidoNormalized} ${item.address_text}`;
+    }
+
     if (item.area_exclusive_m2 == null) {
       const area = toNumber(raw.size_m2);
       if (area != null) {
