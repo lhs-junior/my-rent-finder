@@ -11,6 +11,7 @@
  */
 
 import { withDbClient } from "./lib/db_client.mjs";
+import { TARGET_DISTRICTS } from "./lib/target_districts.mjs";
 
 const args = process.argv.slice(2);
 
@@ -454,8 +455,33 @@ async function checkPlatform(platformCode, client) {
 
 // ── 메인 ──
 
+async function expireOutOfScopeDistricts(client) {
+  const placeholders = TARGET_DISTRICTS.map((_, i) => `$${i + 1}`).join(",");
+  const sql = `
+    UPDATE normalized_listings
+    SET deleted_at = NOW()
+    WHERE deleted_at IS NULL
+      AND address_text LIKE '서울%'
+      AND SUBSTRING(address_text FROM '서울[특별시]* (\\S+구)') NOT IN (${placeholders})
+    RETURNING listing_id
+  `;
+  if (dryRun) {
+    const { rows } = await client.query(sql.replace("UPDATE normalized_listings\n    SET deleted_at = NOW()", "SELECT listing_id FROM normalized_listings").replace("RETURNING listing_id", ""), TARGET_DISTRICTS);
+    console.log(`[scope-check] DRY RUN: 수집 대상 밖 구 ${rows.length}건 soft-delete 예정`);
+    return rows.length;
+  }
+  const { rowCount } = await client.query(sql, TARGET_DISTRICTS);
+  if (rowCount > 0) console.log(`[scope-check] 수집 대상 밖 구 ${rowCount}건 soft-delete 완료`);
+  return rowCount;
+}
+
 async function main() {
   const platformList = platform === "all" ? Object.keys(CHECKERS) : [platform];
+
+  // 수집 대상 밖 구 매물 선제 정리 (all 모드에서만)
+  if (platform === "all") {
+    await withDbClient((client) => expireOutOfScopeDistricts(client));
+  }
 
   // Validate platforms
   for (const p of platformList) {

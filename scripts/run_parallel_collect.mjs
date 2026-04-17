@@ -12,6 +12,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { persistSummaryToDb } from "./lib/ops_db_persistence.mjs";
 import { buildFilterArgs, getArg, getBool, getInt, getList, normalizeCap } from "./lib/cli_utils.mjs";
+import { TARGET_DISTRICTS as SEOULSUP_DISTRICTS } from "./lib/target_districts.mjs";
 
 const args = process.argv.slice(2);
 
@@ -60,7 +61,6 @@ function unique(arr) {
   return Array.from(new Set(arr.filter(Boolean)));
 }
 
-const SEOULSUP_DISTRICTS = ["성동구", "광진구", "동대문구", "성북구", "중랑구", "중구", "종로구", "노원구"];
 function expandSeoulsup(list) {
   return list.flatMap((s) => (s === "서울숲권역" ? SEOULSUP_DISTRICTS : [s]));
 }
