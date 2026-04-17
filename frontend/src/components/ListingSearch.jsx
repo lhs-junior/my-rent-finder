@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toIdText } from "../utils/format.js";
 import { fetchJson } from "../hooks/useApi.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
@@ -65,10 +65,8 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [detail, setDetail] = useState(null);
+  const [detailId, setDetailId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [loadingDetailId, setLoadingDetailId] = useState(null);
   const [error, setError] = useState("");
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastLoadedAt, setLastLoadedAt] = useState("");
@@ -116,24 +114,11 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     }
   }, [apiBase, buildQuery]);
 
-  const loadDetail = useCallback(async (listingId) => {
+  const openDetail = useCallback((listingId) => {
     const normalizedId = toIdText(listingId);
     if (!normalizedId) return;
-    try {
-      setError("");
-      setDetail(null);
-      setLoadingDetail(true);
-      setLoadingDetailId(normalizedId);
-      const payload = await fetchJson(`${apiBase}/api/listings/${encodeURIComponent(normalizedId)}`);
-      if (payload?.error) throw new Error(`상세 오류: ${payload.message || "실패"}`);
-      setDetail(payload?.listing || null);
-    } catch (err) {
-      setError(String(err?.message || err));
-    } finally {
-      setLoadingDetail(false);
-      setLoadingDetailId(null);
-    }
-  }, [apiBase]);
+    setDetailId(normalizedId);
+  }, []);
 
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
@@ -141,9 +126,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   }, []);
 
   const closeDetail = useCallback(() => {
-    setDetail(null);
-    setLoadingDetail(false);
-    setLoadingDetailId(null);
+    setDetailId(null);
   }, []);
 
   const runSearch = useCallback((nextFilters) => {
@@ -153,7 +136,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setSubmittedFilters(nextFilters);
     setPage(1);
     setSearchToken(t => t + 1);
-    setDetail(null);
+    setDetailId(null);
     return true;
   }, []);
 
@@ -177,14 +160,14 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setSubmittedFilters(DEFAULT_FILTERS);
     setFormErrors({});
     setError("");
-    setDetail(null);
+    setDetailId(null);
     setPage(1);
     setSearchToken(t => t + 1);
   }, []);
 
   useEffect(() => { loadListings(); }, [loadListings, searchToken]);
 
-  const modalOpen = detail !== null || loadingDetail;
+  const modalOpen = detailId !== null;
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / Math.max(1, Number(submittedFilters.limit) || 40)) : 0;
   const favActive = submittedFilters.onlyFavorites;
   const favCount = favoriteIds?.size || 0;
@@ -405,19 +388,18 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             key={item.listing_id}
             item={item}
             variant="search"
-            onClick={() => item.listing_id && loadDetail(item.listing_id)}
+            onClick={() => item.listing_id && openDetail(item.listing_id)}
             isFavorite={isFavorite ? isFavorite(item.listing_id) : false}
             onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : null}
             onViewOnMap={onViewOnMap}
-            isLoadingDetail={loadingDetailId === toIdText(item.listing_id)}
+            isLoadingDetail={detailId === toIdText(item.listing_id)}
           />
         ))}
       </div>
 
       {modalOpen && (
         <DetailModal
-          detail={detail}
-          loading={loadingDetail}
+          detailId={detailId}
           onClose={closeDetail}
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}

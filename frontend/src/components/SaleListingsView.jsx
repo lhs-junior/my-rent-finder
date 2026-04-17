@@ -32,10 +32,7 @@ export function SaleListingsView({ apiBase = "", isFavorite, toggleFavorite }) {
   const [error, setError] = useState(null);
   const [loadedAt, setLoadedAt] = useState(null);
 
-  const [selectedId, setSelectedId] = useState(null);
-  const [detail, setDetail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [loadingDetailId, setLoadingDetailId] = useState(null);
+  const [detailId, setDetailId] = useState(null);
 
   const [feasibleIds, setFeasibleIds] = useState(new Set());
 
@@ -75,26 +72,13 @@ export function SaleListingsView({ apiBase = "", isFavorite, toggleFavorite }) {
     return () => clearTimeout(timer);
   }, [filters, apiBase, buildParams]);
 
-  const handleCardClick = useCallback(async (item) => {
-    const id = item.listing_id;
-    setSelectedId(id);
-    setDetail(null);
-    setLoadingDetail(true);
-    setLoadingDetailId(id);
-    try {
-      const data = await fetchJson(`${apiBase}/api/listings/${id}`);
-      setDetail(data.listing || data);
-    } catch {
-      setDetail(null);
-    } finally {
-      setLoadingDetail(false);
-      setLoadingDetailId(null);
-    }
-  }, [apiBase]);
+  const handleCardClick = useCallback((item) => {
+    if (!item?.listing_id) return;
+    setDetailId(String(item.listing_id));
+  }, []);
 
   const handleClose = useCallback(() => {
-    setSelectedId(null);
-    setDetail(null);
+    setDetailId(null);
   }, []);
 
   const handleAffordabilityResult = useCallback((listingId, result) => {
@@ -188,7 +172,7 @@ export function SaleListingsView({ apiBase = "", isFavorite, toggleFavorite }) {
               isFavorite={typeof isFavorite === "function" ? isFavorite(item.listing_id) : false}
               onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : undefined}
               variant="search"
-              isLoadingDetail={loadingDetailId === item.listing_id}
+              isLoadingDetail={detailId === String(item.listing_id)}
             />
             <div className="sale-card-afford">
               <AffordabilityBadge
@@ -206,10 +190,9 @@ export function SaleListingsView({ apiBase = "", isFavorite, toggleFavorite }) {
       </div>
 
       {/* Detail modal */}
-      {(selectedId || loadingDetail) && (
+      {detailId && (
         <DetailModal
-          detail={detail}
-          loading={loadingDetail}
+          detailId={detailId}
           onClose={handleClose}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}

@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { toMoney, toArea, toText, toPlatformLabel, normalizeImageUrl } from "../utils/format.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import FavoriteButton from "./FavoriteButton.jsx";
+import { AffordabilityBadge } from "./AffordabilityBadge.jsx";
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock.js";
+import { useListingDetail } from "../hooks/useListingDetail.js";
 
 const QUALITY_FLAG_LABELS = {
   missing_address: "주소 누락",
@@ -62,7 +64,7 @@ function Violations({ violations }) {
   );
 }
 
-export default function DetailModal({ detail, loading, onClose, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
+export default function DetailModal({ detailId, onClose, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
   const [imgIdx, setImgIdx] = useState(0);
@@ -70,18 +72,22 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   const [cachedDetail, setCachedDetail] = useState(null);
   const [verifyStatus, setVerifyStatus] = useState({ checking: false, alive: null });
 
-  // Cache detail when it's available to prevent flickering during loading
+  const { detail, loading } = useListingDetail(detailId, apiBase);
+
+  // detailId가 바뀌거나 닫힐 때 캐시 정리
   useEffect(() => {
-    if (detail) {
-      setCachedDetail(detail);
-    }
+    if (!detailId) setCachedDetail(null);
+  }, [detailId]);
+
+  // 로딩 깜빡임 방지를 위해 detail 도착 시 캐시에도 복제
+  useEffect(() => {
+    if (detail) setCachedDetail(detail);
   }, [detail]);
 
-  // Use cached detail during loading to maintain UI continuity
   const displayDetail = detail || cachedDetail;
   const imageCount = Array.isArray(displayDetail?.images) ? displayDetail.images.length : 0;
   const hasImages = imageCount > 0;
-  const modalOpen = Boolean(displayDetail || loading);
+  const modalOpen = Boolean(detailId);
 
   useBodyScrollLock(modalOpen);
 
@@ -134,7 +140,7 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
     if (item) item.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
   }, [imgIdx]);
 
-  if (!displayDetail && !loading) return null;
+  if (!modalOpen) return null;
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -226,6 +232,11 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
               <h2 className="mdl-title">{displayDetail.title || displayDetail.address_text || "-"}</h2>
               {displayDetail.title && displayDetail.address_text && (
                 <p className="mdl-address">{displayDetail.address_text}</p>
+              )}
+              {displayDetail.lease_type === "매매" && displayDetail.sale_price && (
+                <div style={{ marginTop: 8 }}>
+                  <AffordabilityBadge salePrice={displayDetail.sale_price} />
+                </div>
               )}
             </div>
 

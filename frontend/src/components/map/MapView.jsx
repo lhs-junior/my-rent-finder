@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import KakaoMap from "./KakaoMap.jsx";
 import MapLeftPanel from "./MapLeftPanel.jsx";
-import MapRightPanel from "./MapRightPanel.jsx";
 import MapBottomSheet from "./MapBottomSheet.jsx";
 import MapControls from "./MapControls.jsx";
+import DetailModal from "../DetailModal.jsx";
 import { useMapListings } from "../../hooks/useMapListings.js";
 
 const INITIAL_CENTER = { lat: 37.5665, lng: 126.978 };
@@ -275,19 +275,16 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         {loading && <div className="map-loading-bar" />}
       </div>
 
-      {/* 데스크탑: 우측 패널 / 모바일: 풀스크린 모달 */}
-      <div
-        className={`map-3panel-right${detailId ? " map-3panel-right--open" : ""}`}
-        onClick={(e) => { if (e.target === e.currentTarget) handleCloseDetail(); }}
-      >
-        <MapRightPanel
+      {/* 상세: 공용 DetailModal (데스크탑 centered modal / 모바일 bottom sheet) */}
+      {detailId && (
+        <DetailModal
           detailId={detailId}
           apiBase={apiBase}
           onClose={handleCloseDetail}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
         />
-      </div>
+      )}
 
       {/* 모바일: 하단 시트 */}
       <MapBottomSheet

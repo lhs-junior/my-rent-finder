@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchJson } from "../hooks/useApi.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
@@ -83,8 +82,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
   const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
   const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
   const [sortBy, setSortBy] = useState("score");
-  const [detail, setDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailId, setDetailId] = useState(null);
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -113,19 +111,10 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
       .catch(() => {});
   }, [normalizedApiBase]);
 
-  const loadDetail = useCallback(async (listingId) => {
+  const openDetail = useCallback((listingId) => {
     if (!listingId) return;
-    try {
-      setDetailLoading(true);
-      setDetail(null);
-      const payload = await fetchJson(`${normalizedApiBase}/api/listings/${encodeURIComponent(listingId)}`);
-      setDetail(payload?.listing || null);
-    } catch {
-      setDetail(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  }, [normalizedApiBase]);
+    setDetailId(String(listingId));
+  }, []);
 
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
@@ -136,7 +125,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
     return <div className="fav-view"><div className="fav-loading">AI 추천 불러오는 중...</div></div>;
   }
 
-  const modalOpen = detail !== null || detailLoading;
+  const modalOpen = detailId !== null;
 
   return (
     <div className="fav-view">
@@ -207,7 +196,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
             </div>
             <ListingCard
               item={item}
-              onClick={() => loadDetail(item.listing_id)}
+              onClick={() => openDetail(item.listing_id)}
               isFavorite={isFavorite?.(item.listing_id)}
               onToggleFavorite={toggleFavorite ? () => toggleFavorite(item.listing_id) : undefined}
               onViewOnMap={onViewOnMap}
@@ -219,9 +208,8 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
 
       {modalOpen && (
         <DetailModal
-          detail={detail}
-          loading={detailLoading}
-          onClose={() => { setDetail(null); setDetailLoading(false); }}
+          detailId={detailId}
+          onClose={() => setDetailId(null)}
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchJson } from "../hooks/useApi.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
@@ -10,8 +9,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [detail, setDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailId, setDetailId] = useState(null);
   const [localGradeFilter, setLocalGradeFilter] = useState("");
   const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
   const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
@@ -41,19 +39,10 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
     return () => controller.abort();
   }, [normalizedApiBase, favoriteIds.size, authenticated, pin]);
 
-  const loadDetail = useCallback(async (listingId) => {
+  const openDetail = useCallback((listingId) => {
     if (!listingId) return;
-    try {
-      setDetailLoading(true);
-      setDetail(null);
-      const payload = await fetchJson(`${normalizedApiBase}/api/listings/${encodeURIComponent(listingId)}`);
-      setDetail(payload?.listing || null);
-    } catch {
-      setDetail(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  }, [normalizedApiBase]);
+    setDetailId(String(listingId));
+  }, []);
 
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
@@ -85,7 +74,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
     return <div className="fav-view"><div className="fav-loading">불러오는 중...</div></div>;
   }
 
-  const modalOpen = detail !== null || detailLoading;
+  const modalOpen = detailId !== null;
 
   return (
     <div className="fav-view">
@@ -148,7 +137,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
               )}
               <ListingCard
                 item={item}
-                onClick={() => loadDetail(item.listing_id)}
+                onClick={() => openDetail(item.listing_id)}
                 isFavorite={isFavorite(item.listing_id)}
                 onToggleFavorite={() => toggleFavorite(item.listing_id)}
                 onViewOnMap={onViewOnMap}
@@ -160,9 +149,8 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
 
       {modalOpen && (
         <DetailModal
-          detail={detail}
-          loading={detailLoading}
-          onClose={() => { setDetail(null); setDetailLoading(false); }}
+          detailId={detailId}
+          onClose={() => setDetailId(null)}
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
