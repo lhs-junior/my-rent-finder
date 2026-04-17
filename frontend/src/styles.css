@@ -355,6 +355,7 @@ body {
   flex: 1;
   min-width: 0;
   position: relative;
+  isolation: isolate;
 }
 
 /* 우측 패널 */
