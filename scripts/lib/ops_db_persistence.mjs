@@ -27,7 +27,7 @@ const DAANGN_MIN_AREA_M2 = (() => {
 const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
 const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
 const IMAGE_PATH_BLACKLIST_RE =
-  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang/i;
+  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|member_profile|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang|agency[-_]profile|business[-_]?profile|bizplatform\/profile|img-profile-user/i;
 const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
 const IMAGE_CDN_HOST_RE = /cloudfront\.net|dabangimg|d1774jszgerdmk/i;
 
