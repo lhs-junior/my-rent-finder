@@ -1721,8 +1721,8 @@ export class NaverListingAdapter extends BaseListingAdapter {
         }
         return pick(item, ["useDate", "availableDate", "입주가능일"], null);
       })(),
-      lat: Number.isFinite(lat) ? lat : null,
-      lng: Number.isFinite(lng) ? lng : null,
+      lat: Number.isFinite(lat) && lat !== 0 ? lat : null,
+      lng: Number.isFinite(lng) && lng !== 0 ? lng : null,
       sale_price: (() => {
         const raw = pick(item, ["dealPrice", "salePrice", "price"], null);
         if (raw !== null && raw !== undefined) {

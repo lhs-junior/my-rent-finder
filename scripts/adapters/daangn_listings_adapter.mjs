@@ -1164,6 +1164,16 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
       item.source_url = payload.identifier;
     }
 
+    // 좌표 — raw payload에 lat/lng 직접 포함
+    if (item.lat == null && payload?.lat != null) {
+      const v = parseFloat(String(payload.lat));
+      if (Number.isFinite(v) && v !== 0) item.lat = v;
+    }
+    if (item.lng == null && payload?.lng != null) {
+      const v = parseFloat(String(payload.lng));
+      if (Number.isFinite(v) && v !== 0) item.lng = v;
+    }
+
     return item;
   }
 }

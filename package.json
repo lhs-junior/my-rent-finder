@@ -23,6 +23,8 @@
     "qa:platform-fidelity:gate": "node scripts/qa/qa_platform_fidelity_gate.mjs",
     "db:migrate": "node scripts/db_migrate.mjs",
     "db:init": "node scripts/db_bootstrap.mjs",
+    "db:cleanup": "node scripts/db_cleanup_stale.mjs",
+    "db:cleanup:apply": "node scripts/db_cleanup_stale.mjs --apply",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down -v",
     "db:logs": "docker compose logs -f postgres",
