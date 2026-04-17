@@ -41,6 +41,9 @@
     "front:build": "cd frontend && vite build",
     "front:preview": "cd frontend && vite preview"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
