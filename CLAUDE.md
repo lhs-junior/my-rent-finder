@@ -116,3 +116,45 @@ npm run db:up             # PostgreSQL Docker
 npm run db:migrate        # 마이그레이션
 npm run dev:local         # 로컬 개발 스택
 ```
+
+## Deploy
+
+프론트엔드는 Vercel 자동 배포 (main push 시). 수동 배포 불필요.
+
+```bash
+# lhs-junior 계정으로 push
+git -c credential.helper='!gh auth token --user lhs-junior' push origin main
+
+# 배포 확인
+curl https://<vercel-domain>/api/scores/summary
+```
+
+필요한 Vercel 환경변수: DATABASE_URL (Neon), SETTINGS_PIN (옵션)
+
+## Commit Policy
+
+- 작업 완료 = 커밋 완료. 커밋 없이 작업 완료 보고 금지.
+- 커밋 형식: `type: 한국어 설명` (feat/fix/chore/refactor/docs)
+- 관련 파일은 하나의 커밋에 포함 (API 변경 + 프론트엔드 호출부 = 같은 커밋)
+- 커밋 전 `npm test` 통과 확인
+
+## Work Completion Checklist
+
+작업 완료 전 반드시 확인:
+1. [ ] 변경 파일 전체 목록 확인 (빠뜨린 파일 없는지)
+2. [ ] API 변경 시 프론트엔드 호출부도 수정했는지
+3. [ ] DB 스키마 변경 시 db/migrations/ 파일 생성했는지
+4. [ ] `npm test` 통과
+5. [ ] `npm run lint` 경고 50개 이하
+6. [ ] git commit 완료
+7. [ ] CLAUDE.md/AGENTS.md 업데이트 필요 여부 확인
+
+## Codebase Exploration
+
+코드 탐색 시:
+- 전체 검색: `grep -r "패턴" scripts/ --include="*.mjs"`
+- 공통 유틸: `scripts/lib/`
+- 플랫폼 어댑터: `scripts/adapters/`
+- React 컴포넌트: `frontend/src/components/`
+- DB 스키마: `db/migrations/` (순번 파일 참조)
+- 기존 코드 패턴을 먼저 확인하고 따를 것

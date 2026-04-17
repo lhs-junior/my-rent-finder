@@ -26,7 +26,10 @@
 | 네이버 부동산 | STEALTH_AUTOMATION | READY (전용 adapter) |
 | 직방 | STEALTH_AUTOMATION | READY (범용 adapter) |
 | 다방 | STEALTH_AUTOMATION | READY (범용 adapter) |
-| 부동산114 | STEALTH_AUTOMATION | READY (범용 adapter) |
+| KB부동산 (kbland) | STEALTH_AUTOMATION (CDP) | READY (전용 adapter) |
+| 부동산써브 (serve) | STEALTH_AUTOMATION | READY (전용 adapter) |
+| 피터팬의 좋은방 구하기 (peterpanz) | API (직접 fetch) | READY (전용 adapter) |
+| 당근마켓 (daangn) | API | READY (전용 adapter) |
 
 ### 검색 조건 (현재 타겟)
 - 지역: 서울시 (노원구, 중랑구, 동대문구, 광진구, 성북구, 성동구, 중구, 종로구)
@@ -41,6 +44,9 @@
 |------|-------------|
 | `package.json` | Node.js 프로젝트 설정. 의존성: playwright, playwright-extra, puppeteer-extra-plugin-stealth |
 | `package-lock.json` | 의존성 lock 파일 |
+| `scripts/harness_runner.mjs` | 전체 파이프라인 실행 (수집→정규화→매칭→종료체크→배점) |
+| `scripts/score_listings.mjs` | AI 배점 (scored_listings 저장, SS/S/A 등급) |
+| `scripts/serve_auto_collector.mjs` | 부동산써브 Playwright collector |
 
 ## Subdirectories
 
@@ -63,7 +69,7 @@
 - **Runtime**: Node.js (ESM)
 - **Language**: JavaScript (.mjs)
 - **Browser Automation**: Playwright + stealth plugin
-- **Database**: PostgreSQL (스키마 정의됨, 아직 연동 코드 미구현)
+- **Database**: Neon PostgreSQL 연동 완료 (scripts/lib/db_client.mjs)
 - **Package Manager**: npm
 
 ### Data Pipeline Flow
@@ -88,7 +94,7 @@
 - area_claimed: exclusive, gross, range, estimated
 
 ### Testing Requirements
-- 현재 테스트 프레임워크 미설정 (`npm test`는 placeholder)
+- Vitest 사용, npm test로 실행 (tests/ 디렉토리, 20개 파일)
 - 스크립트별 `--input` 인자로 샘플 JSON을 넣어 수동 테스트
 
 ## Dependencies

@@ -301,12 +301,10 @@ npm run ops:full:stack
 node scripts/harness_runner.mjs
 
 # 배점만 수동 실행
-node scripts/score_and_pin_favorites.mjs --pin=1004 \
-  --threshold-ss=10 --threshold-s=8 --threshold-a=6
+node scripts/score_listings.mjs
 
-# 저장 안 하고 점수 분포만 확인 (dry run)
-node scripts/score_and_pin_favorites.mjs --pin=1004 --dry-run \
-  --threshold-ss=10 --threshold-s=8 --threshold-a=6
+# 이자율 지정 (기본 4%)
+node scripts/score_listings.mjs --interest-rate=0.04
 
 # 종료 매물 체크만 수동 실행
 node scripts/check_listing_status.mjs --platform all
