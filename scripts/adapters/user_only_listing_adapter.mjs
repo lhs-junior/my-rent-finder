@@ -1263,8 +1263,6 @@ function resolveUserOnlySourceUrl({ platformCode, sourceRef, rawSourceUrl, rawSo
     canonicalCandidates.push(`https://sp.zigbang.com/share/oneroom/${encodeURIComponent(normalizedRef)}?userNo=undefined&stamp=${Date.now()}`);
   } else if (platform === "dabang" && normalizedRef) {
     canonicalCandidates.push(`https://www.dabangapp.com/room/${encodeURIComponent(normalizedRef)}`);
-  } else if (platform === "r114" && normalizedRef) {
-    canonicalCandidates.push(`https://www.r114.com/?_c=memul&_m=p10&_a=goDetail&memulNo=${encodeURIComponent(normalizedRef)}`);
   } else if (platform === "naver" && normalizedRef) {
     canonicalCandidates.push(`https://fin.land.naver.com/articles/${encodeURIComponent(normalizedRef)}`);
   }

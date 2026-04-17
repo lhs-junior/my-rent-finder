@@ -11,12 +11,15 @@
 ### 클래스 계층 구조
 ```
 BaseListingAdapter (base_listing_adapter.mjs)
-├── NaverListingAdapter (naver_listings_adapter.mjs)     ← 네이버 전용, 직접 상속
-├── BaseUserOnlyAdapter (user_only_listing_adapter.mjs)  ← 범용 hint 기반 adapter
+├── NaverListingAdapter (naver_listings_adapter.mjs)         ← 네이버 전용, 직접 상속
+├── KblandListingAdapter (kbland_listings_adapter.mjs)       ← KB부동산 전용, 직접 상속
+├── ServeListingAdapter (serve_listings_adapter.mjs)         ← 부동산써브 전용, 직접 상속
+├── PeterpanzListingAdapter (peterpanz_listings_adapter.mjs) ← 피터팬 전용, 직접 상속
+├── DaangnListingAdapter (daangn_listings_adapter.mjs)       ← 당근마켓 전용, 직접 상속
+├── BaseUserOnlyAdapter (user_only_listing_adapter.mjs)      ← 범용 hint 기반 adapter
 │   ├── ZigbangListingAdapter (zigbang_listings_adapter.mjs)
-│   ├── DabangListingAdapter (dabang_listings_adapter.mjs)
-│   └── R114ListingAdapter (r114_listings_adapter.mjs)
-└── StubListingAdapter (stub_listing_adapter.mjs)        ← BLOCKED 플랫폼용 빈 구현
+│   └── DabangListingAdapter (dabang_listings_adapter.mjs)
+└── StubListingAdapter (stub_listing_adapter.mjs)            ← BLOCKED 플랫폼용 빈 구현
 ```
 
 ### 두 가지 어댑터 전략
@@ -43,7 +46,10 @@ BaseListingAdapter (base_listing_adapter.mjs)
 | `user_only_listing_adapter.mjs` | **범용 hint 기반 어댑터.** fieldHints 설정만으로 다양한 플랫폼 raw 구조를 파싱. hash11 기반 중복 제거, 가격쌍 파싱(보증금/월세), 차단 감지 |
 | `zigbang_listings_adapter.mjs` | 직방 어댑터. BaseUserOnlyAdapter 상속, 직방 고유 필드명 hint만 정의 |
 | `dabang_listings_adapter.mjs` | 다방 어댑터. BaseUserOnlyAdapter 상속, 다방 고유 필드명 hint만 정의 |
-| `r114_listings_adapter.mjs` | 부동산114 어댑터. BaseUserOnlyAdapter 상속, 부동산114 고유 필드명 hint만 정의 |
+| `kbland_listings_adapter.mjs` | KB부동산 어댑터. BaseListingAdapter 직접 상속, CDP 캡처 응답 파싱 |
+| `serve_listings_adapter.mjs` | 부동산써브 어댑터. BaseListingAdapter 직접 상속, getAtclList 응답 파싱 |
+| `peterpanz_listings_adapter.mjs` | 피터팬 어댑터. BaseListingAdapter 직접 상속, 직접 fetch API 응답 파싱 |
+| `daangn_listings_adapter.mjs` | 당근마켓 어댑터. BaseListingAdapter 직접 상속 |
 | `stub_listing_adapter.mjs` | BLOCKED 플랫폼용 빈 어댑터. normalizeFromRawRecord()이 항상 빈 배열 반환 |
 | `adapter_registry.mjs` | 어댑터 레지스트리. platformCode → adapterFactory 매핑, getAdapter()/listAdapters() export |
 
@@ -58,7 +64,7 @@ BaseListingAdapter (base_listing_adapter.mjs)
 모든 어댑터는 다음 필드를 출력해야 한다:
 ```javascript
 {
-  platform_code: string,      // "naver", "zigbang", "dabang", "r114"
+  platform_code: string,      // "naver", "zigbang", "dabang", "kbland", "serve", "peterpanz", "daangn"
   collected_at: ISO8601,
   source_url: string,
   source_ref: string,          // 플랫폼 고유 매물 ID
@@ -105,7 +111,7 @@ BaseListingAdapter (base_listing_adapter.mjs)
 ## Dependencies
 
 ### Internal
-- 서로 간 의존: base → naver/user_only → zigbang/dabang/r114
+- 서로 간 의존: base → naver/kbland/serve/peterpanz/daangn/user_only → zigbang/dabang
 - `adapter_registry.mjs`가 모든 구현체를 import
 
 ### External

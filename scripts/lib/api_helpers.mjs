@@ -50,7 +50,6 @@ export function platformNameFromCode(code) {
     naver: "\uB124\uC774\uBC84 \uBD80\uB3D9\uC0B0",
     zigbang: "\uC9C1\uBC29",
     dabang: "\uB2E4\uBC29",
-    r114: "\uBD80\uB3D9\uC0B0114",
     peterpanz: "\uD53C\uD130\uD32C",
     daangn: "\uB2F9\uADFC\uBD80\uB3D9\uC0B0",
     kbland: "KB\uBD80\uB3D9\uC0B0",

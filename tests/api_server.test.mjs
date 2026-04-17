@@ -19,7 +19,6 @@ describe("api_server utility functions", () => {
       expect(platformNameFromCode("zigbang")).toBe("직방");
       expect(platformNameFromCode("dabang")).toBe("다방");
       expect(platformNameFromCode("kbland")).toBe("KB부동산");
-      expect(platformNameFromCode("r114")).toBe("부동산114");
       expect(platformNameFromCode("peterpanz")).toBe("피터팬");
       expect(platformNameFromCode("daangn")).toBe("당근부동산");
     });

@@ -5,7 +5,6 @@ VALUES
   ('zigbang', '직방', 'STEALTH_AUTOMATION', 'https://www.zigbang.com'),
   ('dabang', '다방', 'STEALTH_AUTOMATION', 'https://www.dabangapp.com'),
   ('naver', '네이버 부동산', 'STEALTH_AUTOMATION', 'https://new.land.naver.com'),
-  ('r114', '부동산114', 'STEALTH_AUTOMATION', 'https://www.r114.com'),
   ('serve', '부동산써브', 'DIRECT_FETCH', 'https://www.serve.co.kr')
 ON CONFLICT (platform_code) DO UPDATE
 SET platform_name = EXCLUDED.platform_name,

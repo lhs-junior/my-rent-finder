@@ -2549,9 +2549,7 @@ function pickListingUrl(home, platformCode, item) {
   const pathTemplates =
     platformCode === 'dabang'
         ? ['/room/', '/rooms/', '/article/', '/articles/', '/house/', '/detail/']
-        : platformCode === 'r114'
-          ? ['/house-detail.asp', '/house_detail.asp', '/house-detail/', '/house_detail/', '/house/', '/villa/', '/officetel/', '/detail/', '/apartments/', '/apt/']
-          : platformCode === 'peterpanz'
+        : platformCode === 'peterpanz'
             ? ['/house/', '/house-detail/', '/room/', '/detail/', '/property/', '/item/', '/items/', '/apt/']
             : platformCode === 'nemo'
               ? ['/room/', '/rooms/', '/house/', '/house-detail/', '/item/', '/detail/', '/property/', '/search/detail/', '/apart/']

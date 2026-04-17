@@ -3,7 +3,6 @@
 import { NaverListingAdapter } from "./naver_listings_adapter.mjs";
 import { DabangListingAdapter } from "./dabang_listings_adapter.mjs";
 import { ZigbangListingAdapter } from "./zigbang_listings_adapter.mjs";
-import { R114ListingAdapter } from "./r114_listings_adapter.mjs";
 import { DaangnListingAdapter } from "./daangn_listings_adapter.mjs";
 import { PeterpanzListingAdapter } from "./peterpanz_listings_adapter.mjs";
 import { KblandListingAdapter } from "./kbland_listings_adapter.mjs";
@@ -33,14 +32,6 @@ export const ADAPTER_REGISTRY = {
     adapterFactory: () => new DabangListingAdapter(),
     readiness: "READY",
     notes: "STEALTH raw 정규화 파서 연결 완료(다방)",
-  },
-  r114: {
-    platformCode: "r114",
-    platformName: "부동산114",
-    collectionMode: "STEALTH_AUTOMATION",
-    adapterFactory: () => new R114ListingAdapter(),
-    readiness: "BLOCKED",
-    notes: "비활성화 유지. 원인: HTML 클래스명 regex 파싱(tit_a, tag_comm2 등) 취약 — 구조화 API 없음. deposit/rent/address 정규화 실패율 높음. 재활성화 조건: r114 구조화 API 엔드포인트 발견 또는 HTML 파싱 완전 재작성 필요. 노력 수준: HIGH.",
   },
   daangn: {
     platformCode: "daangn",

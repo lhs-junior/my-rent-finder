@@ -189,17 +189,6 @@ const PLATFORM_CONFIG = {
     sourceUrlKeys: ["source_url", "sourceUrl", "url", "detail_url", "detailUrl", "houseUrl", "house_url"],
     nestedAddressKeys: ["location.address", "location.text", "location.dong", "location.sigungu", "location.sido"],
   },
-  r114: {
-    platform: "r114",
-    hostSuffixes: ["r114.com", "11400.org", "114", "r114", "realestate"],
-    sourceRefKeys: ["articleId", "article_id", "id", "_id", "propertyId", "property_id", "listingId", "listing_id"],
-    rentKeys: ["rent", "monthlyRent", "rent_price", "rentPrice", "월세", "월세금액", "rentMoney"],
-    depositKeys: ["deposit", "depositPrice", "deposit_price", "보증금", "보증금금액", "보증금Price"],
-    areaKeys: ["area", "area_exclusive_m2", "area_gross_m2", "spc1", "spc2", "exclusiveArea", "grossArea", "size", "size_m2", "면적"],
-    areaTextKeys: ["areaText", "text", "desc", "description", "sizeText"],
-    addressKeys: ["address", "address_text", "addressText", "fullAddress", "addr", "jibunAddress", "roadAddress", "sido", "gu", "sigungu", "dong", "읍면동"],
-    sourceUrlKeys: ["source_url", "sourceUrl", "url", "detail_url", "detailUrl", "articleUrl"],
-  },
 };
 
 const OPTIONS = {

@@ -78,7 +78,6 @@ const scriptPaths = {
   naverNormalize: path.resolve(process.cwd(), "scripts/naver_normalize.mjs"),
   zigbangCollect: path.resolve(process.cwd(), "scripts/zigbang_auto_collector.mjs"),
   dabangCollect: path.resolve(process.cwd(), "scripts/dabang_auto_collector.mjs"),
-  r114Collect: path.resolve(process.cwd(), "scripts/r114_auto_collector.mjs"),
   listingAdapters: path.resolve(process.cwd(), "scripts/run_listing_adapters.mjs"),
   platformFidelityQa: path.resolve(process.cwd(), "scripts/qa/qa_platform_data_fidelity.mjs"),
   peterpanzCollect: path.resolve(process.cwd(), "scripts/peterpanz_auto_collector.mjs"),
@@ -119,8 +118,6 @@ const platformAlias = {
   naver: "naver",
   "네이버 부동산": "naver",
   네이버부동산: "naver",
-  r114: "r114",
-  부동산114: "r114",
   피터팬: "peterpanz",
   peterpanz: "peterpanz",
   네모: "nemo",
@@ -146,12 +143,10 @@ function normalizePlatform(raw) {
       .toLowerCase()
   );
 }
-const disabledPlatforms = new Set(["r114"]);
 // kbland는 기본 목록에 없지만 --platforms=kbland로 명시적 지정 시 실행 가능 (점진적 활성화)
 const normalizedRequestedPlatforms = selectedPlatforms
   .map((p) => normalizePlatform(p))
-  .filter(Boolean)
-  .filter((p) => !disabledPlatforms.has(p));
+  .filter(Boolean);
 
 if (normalizedRequestedPlatforms.length === 0) {
   console.error("[WARN] 실행 대상 플랫폼이 없습니다. 기본/요청된 플랫폼이 비활성화되었을 수 있습니다.");
@@ -998,101 +993,6 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
           };
         },
       });
-      continue;
-    }
-
-    if (normalizedCode === "r114") {
-      const r114SigunguFromTarget = extractSigunguCandidates(targets);
-      const fallbackSigungu = conditionData?.target?.sigungu;
-      const sigunguCandidates = unique(
-        [
-          ...r114SigunguFromTarget,
-          ...selectedSigunguList,
-          ...(overrideSigungu ? [overrideSigungu] : []),
-          ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
-        ].filter(Boolean),
-      ).slice(0, Math.max(1, naverMaxRegions));
-
-      if (sigunguCandidates.length === 0) {
-        jobs.push({
-          name: "r114",
-          run: async () => ({
-            platform: "r114",
-            success: true,
-            skipped: true,
-            reason: "sigungu target missing",
-          }),
-        });
-        continue;
-      }
-
-      const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
-      for (const sigungu of sigunguCandidates) {
-        jobs.push({
-          name: `r114:${sigungu}`,
-          run: async () => {
-            const safe = sanitizeFileToken(sigungu);
-            const rawFile = path.join(workspace, `r114_raw_${runId}_${safe}.jsonl`);
-            const metaFile = path.join(workspace, `r114_meta_${runId}_${safe}.json`);
-            const r114Args = [
-              "--sigungu",
-              sigungu,
-              "--sample-cap",
-              asSampleCapArg(perSigunguCap),
-              "--output-raw",
-              rawFile,
-              "--output-meta",
-              metaFile,
-            ];
-
-            const r114Filters = conditionData?.filters || {};
-            const r114FilterArgs = buildFilterArgs({
-              rentMax: r114Filters.rentMax,
-              depositMax: r114Filters.depositMax,
-              minAreaM2: r114Filters.minAreaM2,
-            });
-            r114Args.push(...r114FilterArgs);
-
-            const collectResult = await runNode(`r114_auto:${sigungu}`, scriptPaths.r114Collect, r114Args, {
-              stream: true,
-            });
-
-            let normalizedPath = null;
-            let normalizeResult = null;
-            if (runNormalize) {
-              normalizedPath = path.join(workspace, `r114_normalized_${runId}_${safe}.json`);
-              normalizeResult = await runNode(
-                `r114_adapter:${sigungu}`,
-                scriptPaths.listingAdapters,
-                [
-                  "--platform",
-                  "r114",
-                  "--input",
-                  rawFile,
-                  "--out",
-                  normalizedPath,
-                  "--max-items",
-                  asAdapterMaxArg(perSigunguCap),
-                  ...r114FilterArgs,
-                ],
-                { stream: false },
-              );
-            }
-
-            return {
-              platform: "r114",
-              sigungu,
-              rawFile,
-              metaFile,
-              normalizedPath,
-              collectResult,
-              normalizeResult,
-              targetCap: perSigunguCap,
-              success: true,
-            };
-          },
-        });
-      }
       continue;
     }
 

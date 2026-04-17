@@ -102,13 +102,6 @@ export function extractCoordsFromRaw(platformCode, payloadJson) {
         || toNumber(payloadJson?.longitude, null);
       break;
 
-    case "r114":
-      lat = toNumber(payloadJson?.lat, null)
-        || toNumber(payloadJson?.location?.lat, null);
-      lng = toNumber(payloadJson?.lng, null)
-        || toNumber(payloadJson?.location?.lng, null);
-      break;
-
     default:
       // Generic fallback: try common field names
       lat = toNumber(payloadJson?.lat, null)
