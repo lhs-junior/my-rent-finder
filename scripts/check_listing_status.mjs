@@ -457,20 +457,34 @@ async function checkPlatform(platformCode, client) {
 
 async function expireOutOfScopeDistricts(client) {
   const placeholders = TARGET_DISTRICTS.map((_, i) => `$${i + 1}`).join(",");
-  const sql = `
-    UPDATE normalized_listings
-    SET deleted_at = NOW()
+  // address_text 포맷 두 가지 모두 처리:
+  //   1) "서울특별시 X구 동" (naver/kbland/dabang 등)
+  //   2) "X구 동" — prefix 없음 (zigbang)
+  const whereClause = `
     WHERE deleted_at IS NULL
-      AND address_text LIKE '서울%'
-      AND SUBSTRING(address_text FROM '서울[특별시]* (\\S+구)') NOT IN (${placeholders})
-    RETURNING listing_id
+      AND address_text IS NOT NULL
+      AND (
+        -- 서울 접두어 O: 구가 대상 밖
+        (address_text LIKE '서울%'
+         AND SUBSTRING(address_text FROM '서울[특별시]* ([^ ]+구)') NOT IN (${placeholders}))
+        -- 서울 접두어 X, 첫 토큰이 구: 대상 밖
+        OR (address_text !~ '^서울'
+            AND address_text ~ '^[^ ]+구 '
+            AND SUBSTRING(address_text FROM '^([^ ]+구)') NOT IN (${placeholders}))
+        -- 그 외 지역 (경기도 등) — 수집 대상 아님
+        OR (address_text NOT LIKE '서울%'
+            AND address_text !~ '^[^ ]+구 ')
+      )
   `;
   if (dryRun) {
-    const { rows } = await client.query(sql.replace("UPDATE normalized_listings\n    SET deleted_at = NOW()", "SELECT listing_id FROM normalized_listings").replace("RETURNING listing_id", ""), TARGET_DISTRICTS);
+    const { rows } = await client.query(`SELECT listing_id FROM normalized_listings ${whereClause}`, TARGET_DISTRICTS);
     console.log(`[scope-check] DRY RUN: 수집 대상 밖 구 ${rows.length}건 soft-delete 예정`);
     return rows.length;
   }
-  const { rowCount } = await client.query(sql, TARGET_DISTRICTS);
+  const { rowCount } = await client.query(
+    `UPDATE normalized_listings SET deleted_at = NOW() ${whereClause} RETURNING listing_id`,
+    TARGET_DISTRICTS,
+  );
   if (rowCount > 0) console.log(`[scope-check] 수집 대상 밖 구 ${rowCount}건 soft-delete 완료`);
   return rowCount;
 }
