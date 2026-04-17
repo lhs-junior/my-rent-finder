@@ -4,6 +4,23 @@ import { toPlatformLabel, normalizeImageUrl, toArea, toMoney } from "../../utils
 import { resolveExternalListingUrl } from "../../utils/listing-url.js";
 import FavoriteButton from "../FavoriteButton.jsx";
 import { AffordabilityBadge } from "../AffordabilityBadge.jsx";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock.js";
+
+const MOBILE_BREAKPOINT = 767;
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+    const onChange = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isMobile;
+}
 
 export default function MapRightPanel({
   detailId,
@@ -17,6 +34,10 @@ export default function MapRightPanel({
   const [imgIdx, setImgIdx] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const controllerRef = useRef(null);
+  const isMobile = useIsMobile();
+
+  // 모바일에서만 body scroll lock (데스크탑은 우측 패널이라 본문 스크롤이 막히면 오히려 불편)
+  useBodyScrollLock(isMobile && Boolean(detailId));
 
   // images는 useEffect보다 먼저 선언 (TDZ 방지)
   // detail이 null이면 [] — useEffect 의존성 배열에서 images.length 참조 가능

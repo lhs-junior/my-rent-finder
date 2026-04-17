@@ -38,8 +38,11 @@ export default function MapBottomSheet({
     else if (dy < -40) setStage(s => s === "full" ? "half" : "peek");
   };
 
-  // 핀 선택 시 peek로
-  useEffect(() => { if (selectedId) setStage("peek"); }, [selectedId]);
+  // 핀 선택 시 시트가 전체를 덮고 있으면 half로 내려서 상세 모달이 보이도록 하고,
+  // peek/half 였으면 그대로 둔다 (사용자가 수동으로 올려놓은 상태를 강제 리셋하지 않음).
+  useEffect(() => {
+    if (selectedId) setStage((s) => (s === "full" ? "half" : s));
+  }, [selectedId]);
 
   return (
     <>
@@ -205,7 +208,7 @@ export default function MapBottomSheet({
             <div
               key={m.listing_id}
               className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
-              onClick={() => { onCardClick(m); setStage("peek"); }}
+              onClick={() => { onCardClick(m); setStage((s) => (s === "full" ? "half" : s)); }}
             >
               <div className="map-left-card-price">{m.rent_amount != null ? `월 ${toMoney(m.rent_amount)}` : "가격미정"}</div>
               <div className="map-left-card-deposit">보증 {m.deposit_amount != null ? toMoney(m.deposit_amount) : "-"}</div>

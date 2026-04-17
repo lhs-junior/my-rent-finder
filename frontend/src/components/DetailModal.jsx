@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toMoney, toArea, toText, toPlatformLabel, normalizeImageUrl } from "../utils/format.js";
 import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import FavoriteButton from "./FavoriteButton.jsx";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock.js";
 
 const QUALITY_FLAG_LABELS = {
   missing_address: "주소 누락",
@@ -80,9 +81,12 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
   const displayDetail = detail || cachedDetail;
   const imageCount = Array.isArray(displayDetail?.images) ? displayDetail.images.length : 0;
   const hasImages = imageCount > 0;
+  const modalOpen = Boolean(displayDetail || loading);
+
+  useBodyScrollLock(modalOpen);
 
   useEffect(() => {
-    if (!displayDetail && !loading) return;
+    if (!modalOpen) return undefined;
     const handleKey = (e) => {
       if (e.key === "Escape") {
         if (lightbox) { setLightbox(false); return; }
@@ -94,12 +98,10 @@ export default function DetailModal({ detail, loading, onClose, onOpenExternal, 
       }
     };
     document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
     };
-  }, [displayDetail, loading, onClose, hasImages, imageCount, lightbox]);
+  }, [modalOpen, onClose, hasImages, imageCount, lightbox]);
 
   useEffect(() => { setImgIdx(0); }, [displayDetail?.listing_id]);
 
