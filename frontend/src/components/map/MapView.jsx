@@ -10,6 +10,21 @@ const INITIAL_CENTER = { lat: 37.5665, lng: 126.978 };
 const INITIAL_ZOOM = 13;
 const MAP_CARD_FOCUS_ZOOM = 4;
 
+const SEOUL_WIDE_BOUNDS = {
+  sw: { lat: 37.40, lng: 126.75 },
+  ne: { lat: 37.72, lng: 127.25 },
+};
+
+function hasNonModeFilters(f) {
+  return !!(
+    f.lease_type || f.platform_code ||
+    f.min_rent || f.max_rent ||
+    f.min_deposit || f.max_deposit ||
+    f.min_area || f.max_area ||
+    f.min_floor || f.has_image
+  );
+}
+
 function toFiniteCoordinate(value) {
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
@@ -100,13 +115,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       .finally(() => setAiLoading(false));
   }, [filters.only_ai, apiBase]);
 
-  const hasNonModeFilters = !!(
-    filters.lease_type || filters.platform_code ||
-    filters.min_rent || filters.max_rent ||
-    filters.min_area || filters.max_area ||
-    filters.min_floor || filters.has_image
-  );
-  const isLocalMode = filters.only_favorites || filters.only_ai || hasNonModeFilters;
+  const hasActiveFilters = hasNonModeFilters(filters);
+  const isLocalMode = filters.only_favorites || filters.only_ai || hasActiveFilters;
 
   const markers = filters.only_ai ? aiMarkers : filters.only_favorites ? favMarkers : geoMarkers;
   const loading = filters.only_ai ? aiLoading : filters.only_favorites ? favLoading : geoLoading;
@@ -164,21 +174,16 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const handleBoundsChange = useCallback((bounds) => {
     boundsRef.current = bounds;
-    const localMode = !!(
-      filters.only_favorites || filters.only_ai ||
-      filters.lease_type || filters.platform_code ||
-      filters.min_rent || filters.max_rent ||
-      filters.min_area || filters.max_area ||
-      filters.min_floor || filters.has_image
-    );
+    const localMode = filters.only_favorites || filters.only_ai || hasNonModeFilters(filters);
     if (!localMode) fetchMarkers(bounds, filters);
   }, [fetchMarkers, filters]);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
-    if (!newFilters.only_favorites && !newFilters.only_ai && boundsRef.current) {
-      fetchMarkers(boundsRef.current, newFilters);
-    }
+    if (newFilters.only_favorites || newFilters.only_ai) return;
+    // 필터 활성 시 지도 뷰포트 제한 없이 서울 전체에서 조회
+    const bounds = hasNonModeFilters(newFilters) ? SEOUL_WIDE_BOUNDS : boundsRef.current;
+    if (bounds) fetchMarkers(bounds, newFilters);
   }, [fetchMarkers]);
 
   const handleMarkerClick = useCallback((marker) => {
