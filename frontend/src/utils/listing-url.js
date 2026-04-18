@@ -174,7 +174,28 @@ function resolveNaver(listing, sourceRef) {
   return `https://fin.land.naver.com/articles/${encodeURIComponent(candidateArticleNo)}`;
 }
 
+function buildServeUrl(listing, sourceRef) {
+  if (!sourceRef) {
+    const fallback = normalizeUrl(listing?.source_url);
+    return isHttpUrl(fallback) ? fallback : "";
+  }
+  const lat = normalizeText(listing?.lat);
+  const lng = normalizeText(listing?.lng);
+  const params = new URLSearchParams();
+  params.set("m", "2");
+  if (lat && lng) {
+    params.set("lat", lat);
+    params.set("lng", lng);
+  }
+  params.set("atcl", sourceRef);
+  return `https://www.serve.co.kr/good/map?${params.toString()}`;
+}
+
 function resolveByPattern(platform, listing, sourceRef) {
+  if (platform === "serve") {
+    return buildServeUrl(listing, sourceRef);
+  }
+
   const sourceUrl = normalizeUrl(listing?.source_url);
   if (isHttpUrl(sourceUrl)) return sourceUrl;
 
@@ -194,9 +215,6 @@ function resolveByPattern(platform, listing, sourceRef) {
   }
   if (platform === "kbland") {
     return `https://www.kbland.kr/p/${encodeURIComponent(sourceRef)}`;
-  }
-  if (platform === "serve") {
-    return `https://www.serve.co.kr/good/map?m=2&atcl=${encodeURIComponent(sourceRef)}`;
   }
 
   return "";

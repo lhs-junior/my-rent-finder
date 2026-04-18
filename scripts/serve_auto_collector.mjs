@@ -259,7 +259,9 @@ async function collectServe() {
       const record = {
         platform_code: "serve",
         collected_at: new Date().toISOString(),
-        source_url: `https://www.serve.co.kr/map/?atcl=${item.atclNo}`,
+        source_url: (item.laCrd && item.loCrd)
+          ? `https://www.serve.co.kr/good/map?m=2&lat=${item.laCrd}&lng=${item.loCrd}&atcl=${item.atclNo}`
+          : `https://www.serve.co.kr/good/map?m=2&atcl=${item.atclNo}`,
         response_status: 200,
         sigungu,
         dong_name: dongName,

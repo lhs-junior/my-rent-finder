@@ -81,10 +81,14 @@ export class ServeListingAdapter extends BaseListingAdapter {
     // 관리비
     const maintenanceCost = parseIntSafe(raw.mmMcost);
 
+    const fallbackUrl = (lat && lng)
+      ? `https://www.serve.co.kr/good/map?m=2&lat=${lat}&lng=${lng}&atcl=${atclNo}`
+      : `https://www.serve.co.kr/good/map?m=2&atcl=${atclNo}`;
+
     const item = {
       platform_code: "serve",
       source_ref: atclNo,
-      source_url: rawRecord?.source_url || `https://www.serve.co.kr/map/?atcl=${atclNo}`,
+      source_url: rawRecord?.source_url || fallbackUrl,
       title: raw.atclSfeCn || null,
       address_text: addressText,
       lease_type: "월세",
