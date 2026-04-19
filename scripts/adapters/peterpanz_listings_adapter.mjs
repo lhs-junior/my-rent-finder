@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 function dedupeStrings(values) {
   const seen = new Set();
@@ -100,6 +101,7 @@ export class PeterpanzListingAdapter extends BaseUserOnlyAdapter {
       lat: (() => { const n = parseFloat(raw.location?.coordinate?.latitude); return Number.isFinite(n) ? n : null; })(),
       lng: (() => { const n = parseFloat(raw.location?.coordinate?.longitude); return Number.isFinite(n) ? n : null; })(),
       image_urls: imageUrls,
+      listed_at: normalizeListedAt(raw.info?.live_start_date || raw.attribute?.naverUpdatedAt || null),
     };
 
     return [item];

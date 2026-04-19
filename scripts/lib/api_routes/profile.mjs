@@ -99,6 +99,11 @@ export async function handleProfileFavorites(req, res) {
   const pinHash = getPinHash(body);
   if (!pinHash) { sendJson(res, 401, { error: "PIN required" }); return; }
 
+  const sort = typeof body?.sort === "string" ? body.sort.trim() : "";
+  const orderBy = sort === "newest"
+    ? "nl.deleted_at NULLS FIRST, nl.listed_at DESC NULLS LAST, pf.added_at DESC"
+    : "nl.deleted_at NULLS FIRST, pf.added_at DESC";
+
   try {
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
@@ -107,13 +112,13 @@ export async function handleProfileFavorites(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
                nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
-               nl.lat, nl.lng, nl.quality_flags, nl.created_at, rl.payload_json,
+               nl.lat, nl.lng, nl.quality_flags, nl.listed_at, nl.created_at, rl.payload_json,
                nl.deleted_at IS NOT NULL AS is_expired
         FROM pin_favorites pf
         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
         WHERE pf.pin_hash = $1
-        ORDER BY nl.deleted_at NULLS FIRST, pf.added_at DESC
+        ORDER BY ${orderBy}
       `, [pinHash]);
 
       const listingIds = rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
@@ -169,6 +174,7 @@ export async function handleProfileFavorites(req, res) {
           is_expired: row.is_expired === true,
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
+          listed_at: safeText(row.listed_at, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
         };
       });

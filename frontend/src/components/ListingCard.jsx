@@ -1,4 +1,4 @@
-import { toPlatformLabel, PLATFORM_COLORS, normalizeImageUrl, toMoney } from "../utils/format.js";
+import { toPlatformLabel, PLATFORM_COLORS, normalizeImageUrl, toMoney, toRelativeListedAt } from "../utils/format.js";
 import FavoriteButton from "./FavoriteButton.jsx";
 
 const MONEY_SWAP_PLATFORMS = new Set(["dabang", "daangn"]);
@@ -83,6 +83,7 @@ export default function ListingCard({
       ? item.images[0]?.source_url || item.images[0]?.thumbnail_url
       : null),
   );
+  const listedRelative = toRelativeListedAt(item.listed_at);
 
   if (compact) {
     return (
@@ -125,6 +126,11 @@ export default function ListingCard({
             {tags.length > 0 && (
               <div className="listing-card-meta">
                 {tags.map((t) => <span key={t} className="listing-card-tag">{t}</span>)}
+              </div>
+            )}
+            {listedRelative && (
+              <div className="listing-card-listed-at" title={item.listed_at || ""}>
+                {listedRelative}
               </div>
             )}
           </div>
@@ -193,6 +199,11 @@ export default function ListingCard({
           {tags.length > 0 && (
             <div className="listing-card-meta">
               {tags.map((t) => <span key={t} className="listing-card-tag">{t}</span>)}
+            </div>
+          )}
+          {listedRelative && (
+            <div className="listing-card-listed-at" title={item.listed_at || ""}>
+              {listedRelative}
             </div>
           )}
           {searchVariant && (

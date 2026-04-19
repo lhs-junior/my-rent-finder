@@ -24,8 +24,8 @@ export async function handleScores(req, res) {
 
   const grades = gradeFilter ? gradeFilter.split(",").map((g) => g.trim().toUpperCase()) : null;
 
-  // 캐시 키 — sort는 클라이언트 처리이므로 grade+limit만
-  const cacheKey = `scores:${gradeFilter || "all"}:${limit}`;
+  // 캐시 키 — 서버 정렬 지원 확장 (sort별 분리)
+  const cacheKey = `scores:${gradeFilter || "all"}:${limit}:${sort}`;
   const cached = cacheGet(cacheKey);
   if (cached) {
     sendJson(res, 200, cached);
@@ -43,7 +43,9 @@ export async function handleScores(req, res) {
 
       const orderBy = sort === "cost"
         ? "sl.effective_monthly_cost ASC NULLS LAST, sl.total_score DESC"
-        : "sl.total_score DESC, sl.effective_monthly_cost ASC NULLS LAST";
+        : sort === "newest"
+          ? "nl.listed_at DESC NULLS LAST, nl.created_at DESC"
+          : "sl.total_score DESC, sl.effective_monthly_cost ASC NULLS LAST";
 
       params.push(limit);
       const query = `
@@ -51,7 +53,8 @@ export async function handleScores(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text,
                nl.room_count, nl.floor, nl.total_floor, nl.building_year,
-               nl.lat, nl.lng, nl.deleted_at IS NOT NULL AS is_expired,
+               nl.lat, nl.lng, nl.listed_at, nl.created_at,
+               nl.deleted_at IS NOT NULL AS is_expired,
                rl.payload_json
         FROM scored_listings sl
         JOIN normalized_listings nl ON nl.listing_id = sl.listing_id
@@ -118,6 +121,8 @@ export async function handleScores(req, res) {
           building_year: toInt(row.building_year, null),
           lat: toNumber(row.lat, null),
           lng: toNumber(row.lng, null),
+          listed_at: safeText(row.listed_at, null),
+          created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
           is_expired: row.is_expired === true,
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,

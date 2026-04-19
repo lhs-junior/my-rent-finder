@@ -15,6 +15,7 @@ const DEFAULT_FILTERS = {
   minFloor: "",
   hasImage: "",
   onlyFavorites: false,
+  sort: "",
   limit: "40",
 };
 
@@ -90,6 +91,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     if (targetFilters.onlyFavorites && favoriteIds?.size > 0) {
       params.set("favorite_ids", Array.from(favoriteIds).join(","));
     }
+    if (targetFilters.sort) params.set("sort", targetFilters.sort);
     return params.toString();
   }, [page, runId, submittedFilters, favoriteIds]);
 
@@ -311,6 +313,23 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             >
               ♥ 찜만{favCount > 0 ? ` (${favCount})` : ""}
             </button>
+          </div>
+
+          {/* 정렬 */}
+          <div className="ls-field">
+            <span className="ls-field-label">정렬</span>
+            <div className="ls-chip-group">
+              {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
+                  onClick={() => set("sort", opt.v)}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 표시 건수 */}

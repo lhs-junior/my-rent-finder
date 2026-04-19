@@ -45,13 +45,14 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       return;
     }
     setFavLoading(true);
+    const sortParam = filters.sort || "";
     const fetchFav = authenticated && pin
       ? fetch(`${apiBase}/api/profile/favorites`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pin }),
+          body: JSON.stringify({ pin, sort: sortParam }),
         })
-      : fetch(`${apiBase}/api/favorites`);
+      : fetch(`${apiBase}/api/favorites${sortParam ? `?sort=${sortParam}` : ""}`);
 
     fetchFav
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
@@ -73,12 +74,13 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               lease_type: it.lease_type,
               platform_code: it.platform_code || null,
               grade: it.grade || null,
+              listed_at: it.listed_at || null,
             }))
         );
       })
       .catch(() => setFavMarkers([]))
       .finally(() => setFavLoading(false));
-  }, [filters.only_favorites, authenticated, pin, apiBase]);
+  }, [filters.only_favorites, authenticated, pin, apiBase, filters.sort]);
 
   // AI 추천만 보기 활성화 시 scores API에서 마커 로드
   useEffect(() => {
@@ -87,7 +89,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       return;
     }
     setAiLoading(true);
-    fetch(`${apiBase}/api/scores?grade=SS,S,A&limit=500`)
+    const sortQs = filters.sort ? `&sort=${filters.sort}` : "";
+    fetch(`${apiBase}/api/scores?grade=SS,S,A&limit=500${sortQs}`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
       .then(data => {
         const items = data.items || [];
@@ -108,12 +111,13 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               platform_code: it.platform_code || null,
               grade: it.grade || null,
               total_score: it.total_score || null,
+              listed_at: it.listed_at || null,
             }))
         );
       })
       .catch(() => setAiMarkers([]))
       .finally(() => setAiLoading(false));
-  }, [filters.only_ai, apiBase]);
+  }, [filters.only_ai, apiBase, filters.sort]);
 
   const hasActiveFilters = hasNonModeFilters(filters);
   const isLocalMode = filters.only_favorites || filters.only_ai || hasActiveFilters;

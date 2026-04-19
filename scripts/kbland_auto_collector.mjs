@@ -19,6 +19,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
+import { normalizeListedAt } from "./lib/listed_at_normalizer.mjs";
 
 // ── CLI 인자 ──
 const args = process.argv.slice(2);
@@ -397,7 +398,7 @@ function toNormalizedRecord(record, district) {
     direction: record.방향명 || null,
     bathroom_count: record.욕실수 || null,
     agent_name: record.중개업소명 || null,
-    listed_at: record.등록년월일 || null,
+    listed_at: normalizeListedAt(record.registeredDate || record.등록년월일 || null),
     image_urls: record._imageUrls || [],
   };
 }

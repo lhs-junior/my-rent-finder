@@ -45,6 +45,34 @@ export function toArea(value) {
   return `${v.toFixed(1)}㎡`;
 }
 
+// listed_at (YYYY-MM-DD HH:MM:SS, KST 가정) → "오늘" / "어제" / "N일 전" / "YYYY-MM-DD"
+export function toRelativeListedAt(value) {
+  if (!value) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/.exec(String(value));
+  if (!m) return null;
+  const [, y, mo, d, hh, mm, ss] = m;
+  const listed = new Date(Date.UTC(+y, +mo - 1, +d, +(hh || 0), +(mm || 0), +(ss || 0)));
+  const nowUtc = new Date(Date.now());
+  const nowKst = new Date(Date.UTC(
+    nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate(),
+    nowUtc.getUTCHours() + 9, nowUtc.getUTCMinutes(), nowUtc.getUTCSeconds(),
+  ));
+  const dayDiff = Math.floor((Date.UTC(nowKst.getUTCFullYear(), nowKst.getUTCMonth(), nowKst.getUTCDate())
+                             - Date.UTC(+y, +mo - 1, +d)) / 86400000);
+  if (dayDiff < 0) return `${y}-${mo}-${d}`;
+  if (dayDiff === 0) {
+    if (!hh) return "오늘 등록";
+    const hrs = Math.floor((nowKst.getTime() - listed.getTime()) / 3600000);
+    if (hrs <= 0) return "방금 등록";
+    if (hrs < 24) return `${hrs}시간 전 등록`;
+    return "오늘 등록";
+  }
+  if (dayDiff === 1) return "어제 등록";
+  if (dayDiff <= 7) return `${dayDiff}일 전 등록`;
+  if (dayDiff <= 30) return `${Math.floor(dayDiff / 7)}주 전 등록`;
+  return `${y}-${mo}-${d} 등록`;
+}
+
 export function toPercent(value, digits = 1) {
   const v = Number(value);
   if (!Number.isFinite(v)) return "-";

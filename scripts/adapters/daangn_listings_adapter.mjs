@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 const DAANGN_IMAGE_URL_HOST_HINTS = [
   /(^|\.)kr\.gcp-karroter\.net$/i,
@@ -1172,6 +1173,10 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
     if (item.lng == null && payload?.lng != null) {
       const v = parseFloat(String(payload.lng));
       if (Number.isFinite(v) && v !== 0) item.lng = v;
+    }
+
+    if (!item.listed_at) {
+      item.listed_at = normalizeListedAt(payload?._detail?.createdAt || null);
     }
 
     return item;

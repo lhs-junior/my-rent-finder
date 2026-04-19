@@ -7,6 +7,7 @@ import {
   BaseListingAdapter,
   normalizeDirection,
 } from "./base_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 const BUILDING_TYPE_NAMES = new Set([
   "단독",
@@ -1690,7 +1691,7 @@ export class NaverListingAdapter extends BaseListingAdapter {
         }
         return pick(item, ["agentPhone", "realtorPhone", "tel", "phone", "contact"], null);
       })(),
-      listed_at: pick(item, ["atclCrtYmd", "articleConfirmYmd", "createdAt", "등록일", "등록일시"], null),
+      listed_at: normalizeListedAt(pick(item, ["atclCrtYmd", "articleConfirmYmd", "createdAt", "등록일", "등록일시"], null)),
       description_text: normalizeText(
         item._detail?.articleDetail?.detailDescription ||
         item.articleFeatureDesc ||

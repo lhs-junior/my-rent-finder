@@ -60,6 +60,15 @@ function sortItems(items, sortBy) {
       if (ca !== cb) return ca - cb;
       return (b.total_score ?? 0) - (a.total_score ?? 0);
     });
+  } else if (sortBy === "newest") {
+    copy.sort((a, b) => {
+      const la = a.listed_at || "";
+      const lb = b.listed_at || "";
+      if (la !== lb) return la < lb ? 1 : -1;
+      const ca = a.created_at || "";
+      const cb = b.created_at || "";
+      return ca < cb ? 1 : ca > cb ? -1 : 0;
+    });
   } else {
     copy.sort((a, b) => {
       if ((b.total_score ?? 0) !== (a.total_score ?? 0)) return (b.total_score ?? 0) - (a.total_score ?? 0);
@@ -170,6 +179,13 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
           onClick={() => setSortBy("cost")}
         >
           실질비용순
+        </button>
+        <button
+          type="button"
+          className={`fav-grade-btn${sortBy === "newest" ? " fav-grade-btn--active" : ""}`}
+          onClick={() => setSortBy("newest")}
+        >
+          최신순
         </button>
       </div>
 

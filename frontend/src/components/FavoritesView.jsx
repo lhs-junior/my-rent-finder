@@ -13,6 +13,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
   const [localGradeFilter, setLocalGradeFilter] = useState("");
   const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
   const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
+  const [sortBy, setSortBy] = useState("");
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -20,14 +21,15 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
     const controller = new AbortController();
     setLoading(true);
     setError(null);
+    const sortParam = sortBy ? sortBy : "";
     const fetchFavorites = authenticated && pin
       ? fetch(`${normalizedApiBase}/api/profile/favorites`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pin }),
+          body: JSON.stringify({ pin, sort: sortParam }),
           signal: controller.signal,
         })
-      : fetch(`${normalizedApiBase}/api/favorites`, { signal: controller.signal });
+      : fetch(`${normalizedApiBase}/api/favorites${sortParam ? `?sort=${sortParam}` : ""}`, { signal: controller.signal });
     fetchFavorites
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
@@ -37,7 +39,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
       .catch((err) => { if (err.name !== "AbortError") setError(err.message); })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [normalizedApiBase, favoriteIds.size, authenticated, pin]);
+  }, [normalizedApiBase, favoriteIds.size, authenticated, pin, sortBy]);
 
   const openDetail = useCallback((listingId) => {
     if (!listingId) return;
@@ -100,6 +102,31 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
               onClick={() => setGradeFilter(opt.v)}
             >
               {opt.v ? `${opt.l}(${gradeCounts[opt.v]})` : `전체(${activeItems.length})`}
+            </button>
+          ))}
+          <span className="score-sort-separator">|</span>
+          {[{ v: "", l: "최근찜순" }, { v: "newest", l: "최신매물순" }].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`fav-grade-btn${sortBy === opt.v ? " fav-grade-btn--active" : ""}`}
+              onClick={() => setSortBy(opt.v)}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      )}
+      {!hasGrades && items.length > 0 && (
+        <div className="fav-grade-filter">
+          {[{ v: "", l: "최근찜순" }, { v: "newest", l: "최신매물순" }].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`fav-grade-btn${sortBy === opt.v ? " fav-grade-btn--active" : ""}`}
+              onClick={() => setSortBy(opt.v)}
+            >
+              {opt.l}
             </button>
           ))}
         </div>

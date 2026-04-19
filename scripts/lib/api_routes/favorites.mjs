@@ -9,6 +9,12 @@ const ANON_PIN_HASH = "__anon__";
 
 export async function handleFavorites(req, res) {
   try {
+    const url = new URL(req.url, "http://localhost");
+    const sort = (url.searchParams.get("sort") || "").trim();
+    const orderBy = sort === "newest"
+      ? "nl.listed_at DESC NULLS LAST, pf.added_at DESC"
+      : "pf.added_at DESC";
+
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
         SELECT pf.listing_id, pf.added_at AS favorited_at, pf.grade,
@@ -16,12 +22,12 @@ export async function handleFavorites(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
                nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
-               nl.lat, nl.lng, nl.quality_flags, nl.created_at, rl.payload_json
+               nl.lat, nl.lng, nl.quality_flags, nl.listed_at, nl.created_at, rl.payload_json
         FROM pin_favorites pf
         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
         WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
-        ORDER BY pf.added_at DESC
+        ORDER BY ${orderBy}
       `, [ANON_PIN_HASH]);
 
       const listingIds = rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
@@ -76,6 +82,7 @@ export async function handleFavorites(req, res) {
           lng: toNumber(row.lng, null),
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
+          listed_at: safeText(row.listed_at, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
         };
       });

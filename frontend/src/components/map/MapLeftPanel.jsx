@@ -1,6 +1,6 @@
 // frontend/src/components/map/MapLeftPanel.jsx
 import { useRef, useEffect } from "react";
-import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney } from "../../utils/format.js";
+import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney, toRelativeListedAt } from "../../utils/format.js";
 
 export default function MapLeftPanel({
   filters,
@@ -134,6 +134,18 @@ export default function MapLeftPanel({
             ))}
           </div>
         )}
+        <div className="map-sort-filter">
+          {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`map-grade-btn${(filters.sort || "") === opt.v ? " map-grade-btn--active" : ""}`}
+              onClick={() => onFilterChange({ ...filters, sort: opt.v })}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 목록 */}
@@ -169,6 +181,7 @@ export default function MapLeftPanel({
                 {m.lease_type && m.lease_type !== "월세" && (
                   <span className="map-left-card-tag--lease">{m.lease_type}</span>
                 )}
+                {(() => { const rel = toRelativeListedAt(m.listed_at); return rel ? <span className="map-left-card-tag--listed">{rel}</span> : null; })()}
               </div>
             </div>
           );

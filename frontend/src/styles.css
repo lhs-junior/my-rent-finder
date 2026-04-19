@@ -3120,6 +3120,7 @@ pre {
 /* 찜 등급 필터 */
 .fav-grade-filter {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 8px 0 4px;
 }
@@ -3131,6 +3132,7 @@ pre {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .fav-grade-btn--all { color: var(--text-muted); }
@@ -4426,4 +4428,23 @@ pre {
 .score-sort-separator {
   color: var(--muted, #6b7280);
   padding: 0 4px;
+}
+
+/* listed_at 상대 시간 표시 (ListingCard, MapLeftPanel) */
+.listing-card-listed-at {
+  font-size: 12px;
+  color: #2563eb;
+  margin-top: 6px;
+  font-weight: 500;
+}
+.map-left-card-tag--listed {
+  color: #2563eb;
+  font-weight: 500;
+}
+.map-sort-filter {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border, #e5e7eb);
 }

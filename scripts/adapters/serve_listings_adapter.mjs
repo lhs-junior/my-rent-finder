@@ -8,6 +8,7 @@
  */
 
 import { BaseListingAdapter, normalizeDirection } from "./base_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 export class ServeListingAdapter extends BaseListingAdapter {
   constructor(options = {}) {
@@ -108,6 +109,7 @@ export class ServeListingAdapter extends BaseListingAdapter {
       image_urls: imageUrls,
       built_date: builtDate,
       cross_ref: raw.naverAtclNo ? String(raw.naverAtclNo) : null,
+      listed_at: normalizeListedAt(raw.atclRegDttm || null),
       meta: {
         naverAtclNo: raw.naverAtclNo || null,
         ctgryCd1: raw.ctgryCd1 || null,

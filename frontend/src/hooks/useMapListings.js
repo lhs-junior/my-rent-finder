@@ -40,6 +40,7 @@ export function useMapListings(apiBase) {
       if (filters.min_floor) params.set("min_floor", filters.min_floor);
       if (filters.has_image !== "" && filters.has_image != null) params.set("has_image", filters.has_image);
       if (filters.lease_type) params.set("lease_type", filters.lease_type);
+      if (filters.sort) params.set("sort", filters.sort);
 
       const res = await fetch(`${apiBase}/api/listings/geo?${params}`, {
         signal: controller.signal,

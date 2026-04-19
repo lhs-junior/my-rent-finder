@@ -2,6 +2,7 @@
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
 import { normalizeDirection } from "./base_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 const URL_IMAGE_RE = /\.(jpg|jpeg|png|webp|gif|avif|bmp|svg)(\?|$)/i;
 
@@ -518,6 +519,10 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
         ?? toNumber(raw?.lng);
       if (lat != null) item.lat = lat;
       if (lng != null) item.lng = lng;
+    }
+
+    if (!item.listed_at) {
+      item.listed_at = normalizeListedAt(raw.reg_date || raw.updatedAt || null);
     }
 
     return item;

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { BaseUserOnlyAdapter, parseMoneyPair } from "./user_only_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 const DEFAULT_CITY = "서울특별시";
 
@@ -417,6 +418,12 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
         const m = /(\d+)/.exec(String(bfs));
         if (m) normalized.total_floor = Number(m[1]);
       }
+    }
+
+    if (!normalized.listed_at) {
+      normalized.listed_at = normalizeListedAt(
+        mergedRow?.saved_time_str || mergedRow?.confirm_date_str || mergedRow?.naver_verify_date_str || null,
+      );
     }
 
     // 다방 image_list: [{id, prefix_url}, ...] → URL 조합 (base adapter가 객체 배열을 제대로 못 풀어서 덮어쓰기)
