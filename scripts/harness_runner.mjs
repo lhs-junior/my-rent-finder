@@ -282,6 +282,21 @@ phaseTimes.status_check_end = Date.now();
 const statusCheckDurationMs = phaseTimes.status_check_end - phaseTimes.status_check_start;
 
 // ═══════════════════════════════════════════
+// Phase 6.5: 지하철 거리 계산 (신규/좌표 반영된 매물 대상)
+// ═══════════════════════════════════════════
+if (!hasArg(args, "--skip-subway")) {
+  try {
+    const subwayScript = path.resolve(import.meta.dirname, "compute_subway_distance.mjs");
+    runPhase("compute subway distance", subwayScript, []);
+    console.log("[harness] ✓ subway distance complete");
+  } catch (err) {
+    console.error(`[harness] ⚠ subway distance error: ${err.message}`);
+  }
+} else {
+  console.log("[harness] ▶ skipping subway distance (--skip-subway)");
+}
+
+// ═══════════════════════════════════════════
 // Phase 7: AI 배점 (scored_listings 저장)
 // ═══════════════════════════════════════════
 phaseTimes.scoring_start = Date.now();

@@ -146,6 +146,19 @@ export default function MapLeftPanel({
             </button>
           ))}
         </div>
+        <div className="map-sort-filter">
+          <span className="map-subway-label">🚇 역세권</span>
+          {[{v:"",l:"전체"},{v:"500",l:"500m"},{v:"1000",l:"1km"},{v:"2000",l:"2km"}].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`map-grade-btn${(filters.max_subway_m || "") === opt.v ? " map-grade-btn--active" : ""}`}
+              onClick={() => onFilterChange({ ...filters, max_subway_m: opt.v })}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 목록 */}

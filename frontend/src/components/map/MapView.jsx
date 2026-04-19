@@ -21,7 +21,8 @@ function hasNonModeFilters(f) {
     f.min_rent || f.max_rent ||
     f.min_deposit || f.max_deposit ||
     f.min_area || f.max_area ||
-    f.min_floor || f.has_image
+    f.min_floor || f.has_image ||
+    f.max_subway_m
   );
 }
 
@@ -75,6 +76,10 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               platform_code: it.platform_code || null,
               grade: it.grade || null,
               listed_at: it.listed_at || null,
+              nearest_subway_station: it.nearest_subway_station || null,
+              nearest_subway_line: it.nearest_subway_line || null,
+              subway_distance_m: it.subway_distance_m ?? null,
+              subway_walk_min: it.subway_walk_min ?? null,
             }))
         );
       })
@@ -112,6 +117,10 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               grade: it.grade || null,
               total_score: it.total_score || null,
               listed_at: it.listed_at || null,
+              nearest_subway_station: it.nearest_subway_station || null,
+              nearest_subway_line: it.nearest_subway_line || null,
+              subway_distance_m: it.subway_distance_m ?? null,
+              subway_walk_min: it.subway_walk_min ?? null,
             }))
         );
       })
@@ -166,6 +175,10 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       if (filters.min_floor) {
         const minF = Number(filters.min_floor);
         result = result.filter(m => m.floor != null && m.floor >= minF);
+      }
+      if (filters.max_subway_m) {
+        const maxSw = Number(filters.max_subway_m);
+        result = result.filter(m => m.subway_distance_m != null && m.subway_distance_m <= maxSw);
       }
     }
     return result;

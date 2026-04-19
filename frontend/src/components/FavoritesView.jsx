@@ -14,6 +14,7 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
   const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
   const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
   const [sortBy, setSortBy] = useState("");
+  const [maxSubwayM, setMaxSubwayM] = useState("");
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -53,8 +54,11 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
 
   const isFavorite = useCallback((id) => favoriteIds.has(id), [favoriteIds]);
 
-  const activeItems = items.filter(item => !item.is_expired);
-  const expiredItems = items.filter(item => item.is_expired);
+  const subwayFiltered = maxSubwayM
+    ? items.filter(it => it.subway_distance_m != null && it.subway_distance_m <= Number(maxSubwayM))
+    : items;
+  const activeItems = subwayFiltered.filter(item => !item.is_expired);
+  const expiredItems = subwayFiltered.filter(item => item.is_expired);
   const expiredCount = expiredItems.length;
 
   const hasGrades = activeItems.some(item => item.grade);
@@ -125,6 +129,21 @@ export default function FavoritesView({ apiBase, favoriteIds, toggleFavorite, au
               type="button"
               className={`fav-grade-btn${sortBy === opt.v ? " fav-grade-btn--active" : ""}`}
               onClick={() => setSortBy(opt.v)}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      )}
+      {items.length > 0 && (
+        <div className="fav-grade-filter">
+          <span className="score-sort-separator">🚇 역세권</span>
+          {[{v:"",l:"전체"},{v:"500",l:"500m"},{v:"1000",l:"1km"},{v:"2000",l:"2km"}].map(opt => (
+            <button
+              key={opt.v}
+              type="button"
+              className={`fav-grade-btn${maxSubwayM === opt.v ? " fav-grade-btn--active" : ""}`}
+              onClick={() => setMaxSubwayM(opt.v)}
             >
               {opt.l}
             </button>

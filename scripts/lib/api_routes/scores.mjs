@@ -54,6 +54,8 @@ export async function handleScores(req, res) {
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text,
                nl.room_count, nl.floor, nl.total_floor, nl.building_year,
                nl.lat, nl.lng, nl.listed_at, nl.created_at,
+               nl.nearest_subway_station, nl.nearest_subway_line,
+               nl.subway_distance_m, nl.subway_walk_min,
                nl.deleted_at IS NOT NULL AS is_expired,
                rl.payload_json
         FROM scored_listings sl
@@ -123,6 +125,10 @@ export async function handleScores(req, res) {
           lng: toNumber(row.lng, null),
           listed_at: safeText(row.listed_at, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+          nearest_subway_station: safeText(row.nearest_subway_station, null),
+          nearest_subway_line: safeText(row.nearest_subway_line, null),
+          subway_distance_m: toInt(row.subway_distance_m, null),
+          subway_walk_min: toInt(row.subway_walk_min, null),
           is_expired: row.is_expired === true,
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,

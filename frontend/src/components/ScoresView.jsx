@@ -91,6 +91,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
   const gradeFilter = externalGradeFilter !== undefined ? externalGradeFilter : localGradeFilter;
   const setGradeFilter = (v) => { setLocalGradeFilter(v); onGradeFilterChange?.(v); };
   const [sortBy, setSortBy] = useState("score");
+  const [maxSubwayM, setMaxSubwayM] = useState("");
   const [detailId, setDetailId] = useState(null);
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
@@ -111,7 +112,10 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
     return () => controller.abort();
   }, [normalizedApiBase, gradeFilter]);
 
-  const items = sortItems(rawItems, sortBy);
+  const filtered = maxSubwayM
+    ? rawItems.filter(i => i.subway_distance_m != null && i.subway_distance_m <= Number(maxSubwayM))
+    : rawItems;
+  const items = sortItems(filtered, sortBy);
 
   useEffect(() => {
     fetch(`${normalizedApiBase}/api/scores/summary`)
@@ -187,6 +191,17 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
         >
           최신순
         </button>
+        <span className="score-sort-separator">| 🚇</span>
+        {[{v:"",l:"전체"},{v:"500",l:"500m"},{v:"1000",l:"1km"},{v:"2000",l:"2km"}].map(opt => (
+          <button
+            key={opt.v}
+            type="button"
+            className={`fav-grade-btn${maxSubwayM === opt.v ? " fav-grade-btn--active" : ""}`}
+            onClick={() => setMaxSubwayM(opt.v)}
+          >
+            {opt.l}
+          </button>
+        ))}
       </div>
 
       {error && <div className="error-box">{error}</div>}

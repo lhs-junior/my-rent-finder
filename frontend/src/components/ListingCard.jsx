@@ -84,6 +84,9 @@ export default function ListingCard({
       : null),
   );
   const listedRelative = toRelativeListedAt(item.listed_at);
+  const subwayBadge = (item.nearest_subway_station && item.subway_distance_m != null)
+    ? `${item.nearest_subway_station}${item.nearest_subway_line ? `(${item.nearest_subway_line})` : ""} ${item.subway_walk_min ? `도보 ${item.subway_walk_min}분` : `${item.subway_distance_m}m`}`
+    : null;
 
   if (compact) {
     return (
@@ -199,6 +202,11 @@ export default function ListingCard({
           {tags.length > 0 && (
             <div className="listing-card-meta">
               {tags.map((t) => <span key={t} className="listing-card-tag">{t}</span>)}
+            </div>
+          )}
+          {subwayBadge && (
+            <div className="listing-card-subway" title={`최근접 지하철역까지 추정 도보 ${item.subway_distance_m}m`}>
+              🚇 {subwayBadge}
             </div>
           )}
           {listedRelative && (

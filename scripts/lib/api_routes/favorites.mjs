@@ -22,7 +22,10 @@ export async function handleFavorites(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text, nl.address_code,
                nl.room_count, nl.floor, nl.total_floor, nl.direction, nl.building_use,
-               nl.lat, nl.lng, nl.quality_flags, nl.listed_at, nl.created_at, rl.payload_json
+               nl.lat, nl.lng, nl.quality_flags, nl.listed_at, nl.created_at,
+               nl.nearest_subway_station, nl.nearest_subway_line,
+               nl.subway_distance_m, nl.subway_walk_min,
+               rl.payload_json
         FROM pin_favorites pf
         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
@@ -83,6 +86,10 @@ export async function handleFavorites(req, res) {
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
           listed_at: safeText(row.listed_at, null),
+          nearest_subway_station: safeText(row.nearest_subway_station, null),
+          nearest_subway_line: safeText(row.nearest_subway_line, null),
+          subway_distance_m: toInt(row.subway_distance_m, null),
+          subway_walk_min: toInt(row.subway_walk_min, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
         };
       });

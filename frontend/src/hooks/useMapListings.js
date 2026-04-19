@@ -41,6 +41,7 @@ export function useMapListings(apiBase) {
       if (filters.has_image !== "" && filters.has_image != null) params.set("has_image", filters.has_image);
       if (filters.lease_type) params.set("lease_type", filters.lease_type);
       if (filters.sort) params.set("sort", filters.sort);
+      if (filters.max_subway_m) params.set("max_subway_m", filters.max_subway_m);
 
       const res = await fetch(`${apiBase}/api/listings/geo?${params}`, {
         signal: controller.signal,

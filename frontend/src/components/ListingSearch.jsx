@@ -16,8 +16,16 @@ const DEFAULT_FILTERS = {
   hasImage: "",
   onlyFavorites: false,
   sort: "",
+  maxSubwayM: "",
   limit: "40",
 };
+
+const SUBWAY_DISTANCE_OPTIONS = [
+  { v: "", l: "전체" },
+  { v: "500", l: "500m" },
+  { v: "1000", l: "1km" },
+  { v: "2000", l: "2km" },
+];
 
 function toTrimmedText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -92,6 +100,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
       params.set("favorite_ids", Array.from(favoriteIds).join(","));
     }
     if (targetFilters.sort) params.set("sort", targetFilters.sort);
+    if (targetFilters.maxSubwayM) params.set("max_subway_m", targetFilters.maxSubwayM);
     return params.toString();
   }, [page, runId, submittedFilters, favoriteIds]);
 
@@ -325,6 +334,23 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
                   type="button"
                   className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
                   onClick={() => set("sort", opt.v)}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 역세권 */}
+          <div className="ls-field">
+            <span className="ls-field-label">역세권</span>
+            <div className="ls-chip-group">
+              {SUBWAY_DISTANCE_OPTIONS.map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  className={`ls-chip${(filters.maxSubwayM || "") === opt.v ? " ls-chip--active" : ""}`}
+                  onClick={() => set("maxSubwayM", opt.v)}
                 >
                   {opt.l}
                 </button>

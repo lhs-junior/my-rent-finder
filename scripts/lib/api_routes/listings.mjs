@@ -153,6 +153,7 @@ export async function handleListings(req, res) {
   const offset = Math.max(0, parseQueryInt(url.searchParams.get("offset"), 0));
   const leaseType = safeText(url.searchParams.get("lease_type"), null);
   const sort = safeText(url.searchParams.get("sort"), null);
+  const maxSubwayM = url.searchParams.has("max_subway_m") ? parseQueryInt(url.searchParams.get("max_subway_m"), null) : null;
   const favoriteIdsParam = safeText(url.searchParams.get("favorite_ids"), null);
   const favoriteIdsList = favoriteIdsParam
     ? favoriteIdsParam.split(",").map(s => parseInt(s.trim(), 10)).filter(n => Number.isFinite(n) && n > 0)
@@ -225,6 +226,10 @@ export async function handleListings(req, res) {
       params.push(favoriteIdsList);
       cond.push(`nl.listing_id = ANY($${params.length})`);
     }
+    if (maxSubwayM !== null) {
+      params.push(maxSubwayM);
+      cond.push(`nl.subway_distance_m IS NOT NULL AND nl.subway_distance_m <= $${params.length}`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const DEDUP_RK = dedupRankExpression("nl");
@@ -263,6 +268,8 @@ export async function handleListings(req, res) {
                nl.quality_flags, nl.lat, nl.lng,
                nl.sale_price, nl.loan_amount, nl.building_year,
                nl.listed_at,
+               nl.nearest_subway_station, nl.nearest_subway_line,
+               nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at, rl.run_id, rl.payload_json AS raw_payload_json,
                ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
@@ -350,6 +357,10 @@ export async function handleListings(req, res) {
         run_id: safeText(row.run_id, ""),
         created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
         listed_at: safeText(row.listed_at, null),
+        nearest_subway_station: safeText(row.nearest_subway_station, null),
+        nearest_subway_line: safeText(row.nearest_subway_line, null),
+        subway_distance_m: toInt(row.subway_distance_m, null),
+        subway_walk_min: toInt(row.subway_walk_min, null),
       };
     });
 
@@ -819,6 +830,7 @@ export async function handleListingsGeo(req, res) {
   const minFloor = url.searchParams.has("min_floor") ? parseQueryInt(url.searchParams.get("min_floor"), null) : null;
   const limit = Math.min(500, Math.max(1, parseQueryInt(url.searchParams.get("limit"), 500)));
   const sort = safeText(url.searchParams.get("sort"), null);
+  const maxSubwayM = url.searchParams.has("max_subway_m") ? parseQueryInt(url.searchParams.get("max_subway_m"), null) : null;
 
   const result = await withDbClient(async (client) => {
     const cond = ["nl.lat IS NOT NULL", "nl.lng IS NOT NULL", "nl.deleted_at IS NULL"];
@@ -881,6 +893,10 @@ export async function handleListingsGeo(req, res) {
       params.push(leaseType);
       cond.push(`nl.lease_type = $${params.length}`);
     }
+    if (maxSubwayM !== null) {
+      params.push(maxSubwayM);
+      cond.push(`nl.subway_distance_m IS NOT NULL AND nl.subway_distance_m <= $${params.length}`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const GEO_DEDUP_RK = dedupRankExpression("nl");
@@ -896,6 +912,8 @@ export async function handleListingsGeo(req, res) {
                COALESCE(nl.area_exclusive_m2, nl.area_gross_m2) AS area_m2,
                nl.address_text, nl.room_count, nl.floor, nl.building_use,
                nl.listed_at,
+               nl.nearest_subway_station, nl.nearest_subway_line,
+               nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at,
                ${GEO_DEDUP_RK} AS _rk
         FROM normalized_listings nl
@@ -942,6 +960,10 @@ export async function handleListingsGeo(req, res) {
           floor: toInt(row.floor, null),
           building_use: safeText(row.building_use, null),
           listed_at: safeText(row.listed_at, null),
+          nearest_subway_station: safeText(row.nearest_subway_station, null),
+          nearest_subway_line: safeText(row.nearest_subway_line, null),
+          subway_distance_m: toInt(row.subway_distance_m, null),
+          subway_walk_min: toInt(row.subway_walk_min, null),
         };
       }),
       total_in_bounds: parseInt(countResult.rows?.[0]?.total || "0", 10),
