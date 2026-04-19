@@ -115,7 +115,7 @@ export default function DetailModal({ detailId, onClose, onOpenExternal, isFavor
   useEffect(() => {
     const platform = (displayDetail?.platform_code || displayDetail?.platform || "").toLowerCase();
     const listingId = displayDetail?.listing_id;
-    const verifiable = ["zigbang", "kbland"];
+    const verifiable = ["zigbang", "kbland", "dabang"];
     if (!verifiable.includes(platform) || !listingId) {
       setVerifyStatus({ checking: false, alive: null });
       return;
