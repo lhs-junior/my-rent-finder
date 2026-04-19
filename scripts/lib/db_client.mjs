@@ -248,6 +248,57 @@ export async function withDbClient(handler) {
   }
 }
 
+const TRANSIENT_ERROR_CODES = new Set([
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "EAI_AGAIN",
+  "EPIPE",
+  "53300", // too_many_connections
+  "57P01", // admin_shutdown (Neon scaledown)
+  "57P02", // crash_shutdown
+  "57P03", // cannot_connect_now (Neon cold start)
+  "08000", // connection_exception
+  "08003", // connection_does_not_exist
+  "08006", // connection_failure
+  "08001", // sqlclient_unable_to_establish_sqlconnection
+  "08004", // sqlserver_rejected_establishment
+]);
+
+function isTransientDbError(err) {
+  if (!err) return false;
+  const msg = String(err.message || "").toLowerCase();
+  if (msg.includes("query read timeout")) return true;
+  if (msg.includes("connection terminated")) return true;
+  if (msg.includes("connection reset")) return true;
+  if (msg.includes("connect etimedout")) return true;
+  if (msg.includes("server closed the connection unexpectedly")) return true;
+  if (err.code && TRANSIENT_ERROR_CODES.has(String(err.code))) return true;
+  return false;
+}
+
+/**
+ * Run a DB query with bounded retry on transient errors (Neon cold-start, pooler hiccups,
+ * connection resets, query timeouts). Permanent errors (constraint violations, syntax) are
+ * thrown immediately. Default: up to 2 retries with 500ms / 1500ms backoff.
+ */
+export async function queryWithRetry(client, sql, params, options = {}) {
+  const maxAttempts = Math.max(1, options.maxAttempts ?? 3);
+  const baseDelayMs = options.baseDelayMs ?? 500;
+  let lastErr;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await client.query(sql, params);
+    } catch (err) {
+      lastErr = err;
+      if (attempt >= maxAttempts || !isTransientDbError(err)) throw err;
+      const delay = baseDelayMs * (3 ** (attempt - 1));
+      console.warn(`[db] transient error (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms: ${err.message}`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw lastErr;
+}
+
 export function sanitizeIdentifier(name, fallback = "value") {
   return toText(name, fallback).replace(/[^a-zA-Z0-9_\-]/g, "_");
 }

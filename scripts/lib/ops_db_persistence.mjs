@@ -9,6 +9,7 @@ import {
   normalizeAreaClaimed,
   normalizeLeaseType,
   normalizePlatform,
+  queryWithRetry,
   toBool,
   toInt,
   toNumber,
@@ -863,7 +864,8 @@ async function upsertRawListing(client, rawLine, platformCode, runId) {
   if (!platform || !externalId || !sourceUrl) return null;
   const fingerprint = toText(rawLine?.fingerprint || rawLine?.idempotency_key || rawLine?.request_id, null);
   const parsedAt = extractParsedAt(rawLine);
-  const result = await client.query(
+  const result = await queryWithRetry(
+    client,
     `
       INSERT INTO raw_listings (
         platform_code,
@@ -1412,7 +1414,7 @@ export async function upsertNormalizedBatch(client, listings) {
 
     let rows;
     try {
-      const result = await client.query(sql, params);
+      const result = await queryWithRetry(client, sql, params);
       rows = result.rows;
     } catch (chunkErr) {
       // Fallback: process chunk row-by-row to avoid losing the entire chunk
@@ -1421,7 +1423,7 @@ export async function upsertNormalizedBatch(client, listings) {
       const singleSql = buildNormalizedBatchSql(1);
       for (const rowValues of chunk) {
         try {
-          const r = await client.query(singleSql, rowValues);
+          const r = await queryWithRetry(client, singleSql, rowValues);
           if (r.rows?.[0]) rows.push(r.rows[0]);
         } catch (rowErr) {
           console.error(`[persist] normalized single-row upsert failed: ${rowErr.message}`);
