@@ -263,7 +263,7 @@ matchResult.duration_ms = matchingDurationMs;
 console.log(`[harness] ✓ matching: ${matchResult.status} (auto: ${matchResult.auto_matched}, promoted: ${matchResult.evaluator_promoted}, uncertain: ${matchResult.still_uncertain}) — ${(matchingDurationMs / 1000).toFixed(1)}s`);
 
 // ═══════════════════════════════════════════
-// Phase 6: 종료 매물 체크
+// Phase 6: 종료 매물 체크 (HTTP 기반)
 // ═══════════════════════════════════════════
 phaseTimes.status_check_start = Date.now();
 if (!hasArg(args, "--skip-status")) {
@@ -274,6 +274,17 @@ if (!hasArg(args, "--skip-status")) {
     console.log(`[harness] ✓ listing status check complete — ${(statusCheckDurationMs / 1000).toFixed(1)}s`);
   } catch (err) {
     console.error(`[harness] ⚠ listing status check error: ${err.message}`);
+  }
+
+  // Phase 6.2: 수집 누락 기반 stale 판정 (HTTP 체크로 못 잡힌 매물 보완)
+  try {
+    const { detectStaleListings } = await import("./lib/stale_detector.mjs");
+    const staleResult = await detectStaleListings({ threshold: 3, hardDeleteThreshold: 6 });
+    console.log(
+      `[harness] ✓ stale detection — stale=${staleResult.marked_stale} cleared=${staleResult.cleared} hard_deleted=${staleResult.hard_deleted}`,
+    );
+  } catch (err) {
+    console.error(`[harness] ⚠ stale detection error: ${err.message}`);
   }
 } else {
   console.log("[harness] ▶ skipping listing status check (--skip-status)");

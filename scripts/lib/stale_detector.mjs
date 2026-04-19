@@ -47,16 +47,23 @@ export async function detectStaleListings(options = {}) {
 
       results.checked += staleResult.rows.length;
 
-      for (const listing of staleResult.rows) {
-        const flags = Array.isArray(listing.quality_flags) ? listing.quality_flags : [];
-        if (!flags.includes("STALE_SUSPECT")) {
-          const updatedFlags = [...flags, "STALE_SUSPECT"];
-          await client.query(
-            `UPDATE normalized_listings SET quality_flags = $1::jsonb, updated_at = NOW() WHERE listing_id = $2`,
-            [JSON.stringify(updatedFlags), listing.listing_id]
-          );
-          results.marked_stale++;
-        }
+      const toMark = staleResult.rows
+        .filter((l) => {
+          const flags = Array.isArray(l.quality_flags) ? l.quality_flags : [];
+          return !flags.includes("STALE_SUSPECT");
+        })
+        .map((l) => l.listing_id);
+
+      if (toMark.length > 0) {
+        const markResult = await client.query(
+          `UPDATE normalized_listings
+              SET quality_flags = COALESCE(quality_flags, '[]'::jsonb) || '["STALE_SUSPECT"]'::jsonb,
+                  updated_at = NOW()
+            WHERE listing_id = ANY($1::bigint[])
+              AND NOT (quality_flags::text LIKE '%STALE_SUSPECT%')`,
+          [toMark],
+        );
+        results.marked_stale += markResult.rowCount || 0;
       }
 
       // Clear stale flag for listings that WERE seen recently
