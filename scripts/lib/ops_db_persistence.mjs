@@ -1393,8 +1393,20 @@ export async function upsertNormalizedBatch(client, listings) {
   const resultMap = new Map(); // external_id -> listing_id
   if (!Array.isArray(listings) || listings.length === 0) return resultMap;
 
-  for (let i = 0; i < listings.length; i += NORMALIZED_BATCH_SIZE) {
-    const chunk = listings.slice(i, i + NORMALIZED_BATCH_SIZE);
+  // Dedup by conflict key (platform_code, external_id) — keep last occurrence so latest scrape wins.
+  // Prevents Postgres "ON CONFLICT DO UPDATE command cannot affect row a second time" errors
+  // when the same listing appears multiple times within a single batch (e.g. cross-district hits).
+  const dedupedByKey = new Map();
+  for (const row of listings) {
+    const platformCode = row?.[1];
+    const externalId = row?.[2];
+    if (platformCode == null || externalId == null) continue;
+    dedupedByKey.set(`${platformCode}\u0000${externalId}`, row);
+  }
+  const deduped = Array.from(dedupedByKey.values());
+
+  for (let i = 0; i < deduped.length; i += NORMALIZED_BATCH_SIZE) {
+    const chunk = deduped.slice(i, i + NORMALIZED_BATCH_SIZE);
     const params = chunk.flat();
     const sql = buildNormalizedBatchSql(chunk.length);
 
