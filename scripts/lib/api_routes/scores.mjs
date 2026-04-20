@@ -53,6 +53,7 @@ export async function handleScores(req, res) {
                nl.title, nl.lease_type, nl.rent_amount, nl.deposit_amount,
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text,
                nl.room_count, nl.floor, nl.total_floor, nl.building_year,
+               nl.description_text,
                nl.lat, nl.lng, nl.listed_at, nl.created_at,
                nl.quality_flags,
                nl.nearest_subway_station, nl.nearest_subway_line,
