@@ -235,16 +235,32 @@ export function getDbConfig() {
   return Object.fromEntries(Object.entries(cfg).filter(([, v]) => v !== null && v !== undefined));
 }
 
-const pool = new pg.Pool({ ...getDbConfig(), max: 5 });
+const pool = new pg.Pool({
+  ...getDbConfig(),
+  max: 5,
+  // Neon은 ~5분 idle 후 서버 사이드에서 연결을 끊음. 그 전에 pool이 먼저 정리.
+  idleTimeoutMillis: 120_000,
+  // TCP keepalive로 죽은 연결을 빠르게 감지
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 30_000,
+});
+
+pool.on("error", (err) => {
+  console.error("[db] pool background error:", err.message);
+});
 
 process.on("SIGTERM", () => pool.end());
 
 export async function withDbClient(handler) {
   const client = await pool.connect();
   try {
-    return await handler(client);
-  } finally {
+    const result = await handler(client);
     client.release();
+    return result;
+  } catch (err) {
+    // transient 에러(죽은 커넥션)는 pool에 폐기 신호를 전달해 재사용 방지
+    client.release(isTransientDbError(err) ? err : undefined);
+    throw err;
   }
 }
 
