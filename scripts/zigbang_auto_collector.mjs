@@ -234,8 +234,9 @@ function extractListingFields(item) {
  */
 function filterListings(listings) {
   const before = listings.length;
-  const reasons = { rent: 0, deposit: 0, area: 0, location: 0 };
+  const reasons = { rent: 0, deposit: 0, area: 0, location: 0, status: 0 };
   const filtered = listings.filter((item) => {
+    if (item.status === false) { reasons.status++; return false; }
     const f = extractListingFields(item);
 
     // Rent filter (in 만원)

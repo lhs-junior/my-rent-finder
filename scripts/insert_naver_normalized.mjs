@@ -137,7 +137,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       monthly_management_cost = EXCLUDED.monthly_management_cost,
       walk_time_to_subway = EXCLUDED.walk_time_to_subway,
       parking_possible = EXCLUDED.parking_possible,
-      deleted_at = NULL,
+      deleted_at = normalized_listings.deleted_at,
       updated_at = NOW()
     RETURNING listing_id
   `, [
