@@ -1280,6 +1280,11 @@ const IMAGE_BATCH_SIZE = 200;
 const NORMALIZED_BATCH_SIZE = 50;
 
 // Column list for normalized_listings INSERT (41 columns, order matches VALUES placeholders)
+// Intentionally excluded — populated via UPDATE by post-processing scripts, never by INSERT:
+//   nearest_subway_station, nearest_subway_line, subway_distance_m, subway_walk_min
+//     → compute_subway_distance.mjs (runs after normalize, UPDATE only)
+//   geocode_status → backfill_coordinates.mjs (UPDATE only)
+//   listing_id, created_at, updated_at, deleted_at → DB-managed
 const NORMALIZED_COLUMNS = [
   "raw_id",
   "platform_code",

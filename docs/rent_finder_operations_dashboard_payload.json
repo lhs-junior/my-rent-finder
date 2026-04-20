@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-20T14:18:23.157Z",
+  "generated_at": "2026-04-20T15:50:43.427Z",
   "run": {
-    "run_id": "2026-04-20-13-42-25-528Z",
-    "workspace": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z",
-    "started_at": "2026-04-20T13:42:25.611Z",
-    "finished_at": "2026-04-20T14:10:27.989Z",
-    "duration_ms": 1682378,
+    "run_id": "2026-04-20-14-50-55-159Z",
+    "workspace": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z",
+    "started_at": "2026-04-20T14:50:55.253Z",
+    "finished_at": "2026-04-20T15:39:53.771Z",
+    "duration_ms": 2938518,
     "selected_platforms": [
       "zigbang",
       "dabang",
@@ -15,14 +15,14 @@
       "serve",
       "kbland"
     ],
-    "source_summary_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/parallel_collect_summary_2026-04-20-13-42-25-528Z.json",
+    "source_summary_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/parallel_collect_summary_2026-04-20-14-50-55-159Z.json",
     "summary_jobs": {
       "jobs": 21,
       "succeeded": 21,
       "skipped": 0,
       "failed": 0,
-      "qualityGood": 12,
-      "qualityPartial": 4,
+      "qualityGood": 13,
+      "qualityPartial": 3,
       "qualityFail": 5
     }
   },
@@ -31,8 +31,8 @@
     "succeeded_jobs": 21,
     "skipped_jobs": 0,
     "failed_jobs": 0,
-    "raw_count": 1709,
-    "normalized_count": 697,
+    "raw_count": 2211,
+    "normalized_count": 913,
     "required_quality_rate": 1
   },
   "platform_rows": [
@@ -43,8 +43,8 @@
       "succeeded": 8,
       "skipped": 0,
       "failed": 0,
-      "raw_count": 1439,
-      "normalized_count": 506,
+      "raw_count": 1944,
+      "normalized_count": 723,
       "quality_grades": {
         "GOOD": 6,
         "PARTIAL": 0,
@@ -57,7 +57,7 @@
       "metrics": {
         "required_fields_rate": 1,
         "address_rate": 1,
-        "image_rate": 0.6290613718411552,
+        "image_rate": 0.6363636363636364,
         "area_rate": 1,
         "price_rate": 1
       }
@@ -121,37 +121,11 @@
       "succeeded": 8,
       "skipped": 0,
       "failed": 0,
-      "raw_count": 42,
-      "normalized_count": 35,
+      "raw_count": 48,
+      "normalized_count": 41,
       "quality_grades": {
-        "GOOD": 4,
+        "GOOD": 5,
         "PARTIAL": 3,
-        "EMPTY": 1,
-        "FAIL": 0,
-        "SKIP": 0,
-        "UNKNOWN": 0
-      },
-      "success_rate": 1,
-      "metrics": {
-        "required_fields_rate": 1,
-        "address_rate": 1,
-        "image_rate": 1,
-        "area_rate": 1,
-        "price_rate": 1
-      }
-    },
-    {
-      "platform_code": "kbland",
-      "platform_name": "KB부동산",
-      "jobs": 1,
-      "succeeded": 1,
-      "skipped": 0,
-      "failed": 0,
-      "raw_count": 9,
-      "normalized_count": 7,
-      "quality_grades": {
-        "GOOD": 0,
-        "PARTIAL": 1,
         "EMPTY": 0,
         "FAIL": 0,
         "SKIP": 0,
@@ -161,7 +135,7 @@
       "metrics": {
         "required_fields_rate": 1,
         "address_rate": 1,
-        "image_rate": 0.3333333333333333,
+        "image_rate": 1,
         "area_rate": 1,
         "price_rate": 1
       }
@@ -217,6 +191,32 @@
         "area_rate": 0,
         "price_rate": 0
       }
+    },
+    {
+      "platform_code": "kbland",
+      "platform_name": "KB부동산",
+      "jobs": 1,
+      "succeeded": 1,
+      "skipped": 0,
+      "failed": 0,
+      "raw_count": 0,
+      "normalized_count": 0,
+      "quality_grades": {
+        "GOOD": 0,
+        "PARTIAL": 0,
+        "EMPTY": 1,
+        "FAIL": 0,
+        "SKIP": 0,
+        "UNKNOWN": 0
+      },
+      "success_rate": 1,
+      "metrics": {
+        "required_fields_rate": 0,
+        "address_rate": 0,
+        "image_rate": 0,
+        "area_rate": 0,
+        "price_rate": 0
+      }
     }
   ],
   "jobs": [
@@ -227,14 +227,14 @@
       "sigungu": "서울숲권역",
       "status": "DONE",
       "grade": "EMPTY",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/serve_raw_2026-04-20-13-42-25-528Z_서울숲권역.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/serve_meta_2026-04-20-13-42-25-528Z_서울숲권역.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/serve_normalized_2026-04-20-13-42-25-528Z_서울숲권역.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/serve_raw_2026-04-20-14-50-55-159Z_서울숲권역.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/serve_meta_2026-04-20-14-50-55-159Z_서울숲권역.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/serve_normalized_2026-04-20-14-50-55-159Z_서울숲권역.json",
       "raw_count": 0,
       "normalized_count": 0,
-      "started_at": "2026-04-20T13:42:27.327Z",
-      "finished_at": "2026-04-20T13:42:27.991Z",
-      "duration_ms": 664
+      "started_at": "2026-04-20T14:50:56.891Z",
+      "finished_at": "2026-04-20T14:50:57.527Z",
+      "duration_ms": 636
     },
     {
       "name": "zigbang:서울숲권역",
@@ -243,14 +243,14 @@
       "sigungu": "서울숲권역",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/zigbang_raw_2026-04-20-13-42-25-528Z_서울숲권역.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/zigbang_meta_2026-04-20-13-42-25-528Z_서울숲권역.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/zigbang_normalized_2026-04-20-13-42-25-528Z_서울숲권역.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/zigbang_raw_2026-04-20-14-50-55-159Z_서울숲권역.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/zigbang_meta_2026-04-20-14-50-55-159Z_서울숲권역.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/zigbang_normalized_2026-04-20-14-50-55-159Z_서울숲권역.json",
       "raw_count": 114,
       "normalized_count": 48,
-      "started_at": "2026-04-20T13:42:27.997Z",
-      "finished_at": "2026-04-20T13:44:05.975Z",
-      "duration_ms": 97978
+      "started_at": "2026-04-20T14:50:57.533Z",
+      "finished_at": "2026-04-20T14:53:09.620Z",
+      "duration_ms": 132087
     },
     {
       "name": "dabang:서울숲권역",
@@ -259,14 +259,14 @@
       "sigungu": "서울숲권역",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/dabang_raw_2026-04-20-13-42-25-528Z_서울숲권역.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/dabang_meta_2026-04-20-13-42-25-528Z_서울숲권역.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/dabang_normalized_2026-04-20-13-42-25-528Z_서울숲권역.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/dabang_raw_2026-04-20-14-50-55-159Z_서울숲권역.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/dabang_meta_2026-04-20-14-50-55-159Z_서울숲권역.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/dabang_normalized_2026-04-20-14-50-55-159Z_서울숲권역.json",
       "raw_count": 105,
       "normalized_count": 101,
-      "started_at": "2026-04-20T13:42:27.998Z",
-      "finished_at": "2026-04-20T13:45:14.652Z",
-      "duration_ms": 166654
+      "started_at": "2026-04-20T14:50:57.534Z",
+      "finished_at": "2026-04-20T14:53:36.378Z",
+      "duration_ms": 158844
     },
     {
       "name": "naver:성동구",
@@ -275,14 +275,14 @@
       "sigungu": "성동구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_성동구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_성동구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_성동구.json",
-      "raw_count": 234,
-      "normalized_count": 67,
-      "started_at": "2026-04-20T13:42:27.999Z",
-      "finished_at": "2026-04-20T13:55:35.039Z",
-      "duration_ms": 787040
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_성동구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_성동구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_성동구.json",
+      "raw_count": 391,
+      "normalized_count": 187,
+      "started_at": "2026-04-20T14:50:57.535Z",
+      "finished_at": "2026-04-20T15:21:15.949Z",
+      "duration_ms": 1818414
     },
     {
       "name": "naver:광진구",
@@ -291,14 +291,14 @@
       "sigungu": "광진구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_광진구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_광진구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_광진구.json",
-      "raw_count": 454,
-      "normalized_count": 205,
-      "started_at": "2026-04-20T13:44:05.976Z",
-      "finished_at": "2026-04-20T14:08:56.826Z",
-      "duration_ms": 1490850
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_광진구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_광진구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_광진구.json",
+      "raw_count": 339,
+      "normalized_count": 173,
+      "started_at": "2026-04-20T14:53:09.621Z",
+      "finished_at": "2026-04-20T15:12:03.353Z",
+      "duration_ms": 1133732
     },
     {
       "name": "naver:동대문구",
@@ -307,14 +307,14 @@
       "sigungu": "동대문구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_동대문구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_동대문구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_동대문구.json",
-      "raw_count": 241,
-      "normalized_count": 133,
-      "started_at": "2026-04-20T13:45:14.653Z",
-      "finished_at": "2026-04-20T14:02:12.896Z",
-      "duration_ms": 1018243
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_동대문구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_동대문구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_동대문구.json",
+      "raw_count": 288,
+      "normalized_count": 138,
+      "started_at": "2026-04-20T14:53:36.379Z",
+      "finished_at": "2026-04-20T15:11:19.972Z",
+      "duration_ms": 1063593
     },
     {
       "name": "naver:성북구",
@@ -323,14 +323,14 @@
       "sigungu": "성북구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_성북구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_성북구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_성북구.json",
-      "raw_count": 273,
-      "normalized_count": 80,
-      "started_at": "2026-04-20T13:55:35.044Z",
-      "finished_at": "2026-04-20T14:07:55.593Z",
-      "duration_ms": 740549
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_성북구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_성북구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_성북구.json",
+      "raw_count": 689,
+      "normalized_count": 204,
+      "started_at": "2026-04-20T15:11:19.982Z",
+      "finished_at": "2026-04-20T15:39:53.757Z",
+      "duration_ms": 1713775
     },
     {
       "name": "naver:중랑구",
@@ -339,14 +339,14 @@
       "sigungu": "중랑구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_중랑구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_중랑구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_중랑구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_중랑구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_중랑구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_중랑구.json",
       "raw_count": 57,
       "normalized_count": 3,
-      "started_at": "2026-04-20T14:02:12.912Z",
-      "finished_at": "2026-04-20T14:04:04.226Z",
-      "duration_ms": 111314
+      "started_at": "2026-04-20T15:12:03.356Z",
+      "finished_at": "2026-04-20T15:15:54.978Z",
+      "duration_ms": 231622
     },
     {
       "name": "naver:중구",
@@ -355,14 +355,14 @@
       "sigungu": "중구",
       "status": "DONE",
       "grade": "EMPTY",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_중구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_중구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_중구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_중구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_중구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_중구.json",
       "raw_count": 60,
       "normalized_count": 0,
-      "started_at": "2026-04-20T14:04:04.229Z",
-      "finished_at": "2026-04-20T14:04:53.065Z",
-      "duration_ms": 48836
+      "started_at": "2026-04-20T15:15:54.980Z",
+      "finished_at": "2026-04-20T15:16:44.217Z",
+      "duration_ms": 49237
     },
     {
       "name": "naver:종로구",
@@ -371,14 +371,14 @@
       "sigungu": "종로구",
       "status": "DONE",
       "grade": "EMPTY",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_종로구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_종로구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_종로구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_종로구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_종로구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_종로구.json",
       "raw_count": 60,
       "normalized_count": 0,
-      "started_at": "2026-04-20T14:04:53.066Z",
-      "finished_at": "2026-04-20T14:05:42.403Z",
-      "duration_ms": 49337
+      "started_at": "2026-04-20T15:16:44.218Z",
+      "finished_at": "2026-04-20T15:17:31.853Z",
+      "duration_ms": 47635
     },
     {
       "name": "naver:노원구",
@@ -387,14 +387,14 @@
       "sigungu": "노원구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_raw_2026-04-20-13-42-25-528Z_노원구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_meta_2026-04-20-13-42-25-528Z_노원구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/naver_normalized_2026-04-20-13-42-25-528Z_노원구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_raw_2026-04-20-14-50-55-159Z_노원구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_meta_2026-04-20-14-50-55-159Z_노원구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/naver_normalized_2026-04-20-14-50-55-159Z_노원구.json",
       "raw_count": 60,
       "normalized_count": 18,
-      "started_at": "2026-04-20T14:05:42.404Z",
-      "finished_at": "2026-04-20T14:08:42.529Z",
-      "duration_ms": 180125
+      "started_at": "2026-04-20T15:17:31.854Z",
+      "finished_at": "2026-04-20T15:22:25.001Z",
+      "duration_ms": 293147
     },
     {
       "name": "peterpanz:서울숲권역",
@@ -403,14 +403,14 @@
       "sigungu": "서울숲권역",
       "status": "DONE",
       "grade": "EMPTY",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/peterpanz_raw_2026-04-20-13-42-25-528Z_서울숲권역.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/peterpanz_meta_2026-04-20-13-42-25-528Z_서울숲권역.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/peterpanz_normalized_2026-04-20-13-42-25-528Z_서울숲권역.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/peterpanz_raw_2026-04-20-14-50-55-159Z_서울숲권역.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/peterpanz_meta_2026-04-20-14-50-55-159Z_서울숲권역.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/peterpanz_normalized_2026-04-20-14-50-55-159Z_서울숲권역.json",
       "raw_count": 0,
       "normalized_count": 0,
-      "started_at": "2026-04-20T14:07:55.595Z",
-      "finished_at": "2026-04-20T14:08:03.529Z",
-      "duration_ms": 7934
+      "started_at": "2026-04-20T15:21:15.951Z",
+      "finished_at": "2026-04-20T15:21:23.189Z",
+      "duration_ms": 7238
     },
     {
       "name": "daangn:종로구",
@@ -419,14 +419,14 @@
       "sigungu": "종로구",
       "status": "DONE",
       "grade": "PARTIAL",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_종로구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_종로구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_종로구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_종로구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_종로구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_종로구.json",
       "raw_count": 3,
       "normalized_count": 1,
-      "started_at": "2026-04-20T14:08:03.530Z",
-      "finished_at": "2026-04-20T14:08:09.003Z",
-      "duration_ms": 5473
+      "started_at": "2026-04-20T15:21:23.190Z",
+      "finished_at": "2026-04-20T15:23:24.504Z",
+      "duration_ms": 121314
     },
     {
       "name": "daangn:중구",
@@ -435,14 +435,14 @@
       "sigungu": "중구",
       "status": "DONE",
       "grade": "PARTIAL",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_중구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_중구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_중구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_중구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_중구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_중구.json",
       "raw_count": 3,
       "normalized_count": 2,
-      "started_at": "2026-04-20T14:08:09.003Z",
-      "finished_at": "2026-04-20T14:08:16.328Z",
-      "duration_ms": 7325
+      "started_at": "2026-04-20T15:22:25.003Z",
+      "finished_at": "2026-04-20T15:24:27.009Z",
+      "duration_ms": 122006
     },
     {
       "name": "daangn:성북구",
@@ -451,14 +451,14 @@
       "sigungu": "성북구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_성북구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_성북구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_성북구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_성북구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_성북구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_성북구.json",
       "raw_count": 7,
       "normalized_count": 5,
-      "started_at": "2026-04-20T14:08:16.328Z",
-      "finished_at": "2026-04-20T14:08:31.599Z",
-      "duration_ms": 15271
+      "started_at": "2026-04-20T15:23:24.505Z",
+      "finished_at": "2026-04-20T15:25:26.760Z",
+      "duration_ms": 122255
     },
     {
       "name": "daangn:성동구",
@@ -467,14 +467,14 @@
       "sigungu": "성동구",
       "status": "DONE",
       "grade": "PARTIAL",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_성동구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_성동구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_성동구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_성동구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_성동구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_성동구.json",
       "raw_count": 2,
       "normalized_count": 2,
-      "started_at": "2026-04-20T14:08:31.601Z",
-      "finished_at": "2026-04-20T14:08:46.472Z",
-      "duration_ms": 14871
+      "started_at": "2026-04-20T15:24:27.010Z",
+      "finished_at": "2026-04-20T15:26:28.213Z",
+      "duration_ms": 121203
     },
     {
       "name": "daangn:동대문구",
@@ -483,14 +483,14 @@
       "sigungu": "동대문구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_동대문구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_동대문구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_동대문구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_동대문구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_동대문구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_동대문구.json",
       "raw_count": 9,
       "normalized_count": 9,
-      "started_at": "2026-04-20T14:08:42.530Z",
-      "finished_at": "2026-04-20T14:09:05.024Z",
-      "duration_ms": 22494
+      "started_at": "2026-04-20T15:25:26.761Z",
+      "finished_at": "2026-04-20T15:27:29.329Z",
+      "duration_ms": 122568
     },
     {
       "name": "daangn:광진구",
@@ -499,14 +499,14 @@
       "sigungu": "광진구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_광진구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_광진구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_광진구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_광진구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_광진구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_광진구.json",
       "raw_count": 8,
       "normalized_count": 8,
-      "started_at": "2026-04-20T14:08:46.473Z",
-      "finished_at": "2026-04-20T14:09:28.466Z",
-      "duration_ms": 41993
+      "started_at": "2026-04-20T15:26:28.214Z",
+      "finished_at": "2026-04-20T15:28:30.899Z",
+      "duration_ms": 122685
     },
     {
       "name": "daangn:중랑구",
@@ -515,14 +515,14 @@
       "sigungu": "중랑구",
       "status": "DONE",
       "grade": "GOOD",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_중랑구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_중랑구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_중랑구.json",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_중랑구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_중랑구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_중랑구.json",
       "raw_count": 10,
       "normalized_count": 8,
-      "started_at": "2026-04-20T14:08:56.827Z",
-      "finished_at": "2026-04-20T14:09:26.948Z",
-      "duration_ms": 30121
+      "started_at": "2026-04-20T15:27:29.330Z",
+      "finished_at": "2026-04-20T15:29:31.916Z",
+      "duration_ms": 122586
     },
     {
       "name": "daangn:노원구",
@@ -530,15 +530,15 @@
       "platform_name": "당근부동산",
       "sigungu": "노원구",
       "status": "DONE",
-      "grade": "EMPTY",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_raw_2026-04-20-13-42-25-528Z_노원구.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_meta_2026-04-20-13-42-25-528Z_노원구.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/daangn_normalized_2026-04-20-13-42-25-528Z_노원구.json",
-      "raw_count": 0,
-      "normalized_count": 0,
-      "started_at": "2026-04-20T14:09:05.024Z",
-      "finished_at": "2026-04-20T14:09:05.225Z",
-      "duration_ms": 201
+      "grade": "GOOD",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_raw_2026-04-20-14-50-55-159Z_노원구.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_meta_2026-04-20-14-50-55-159Z_노원구.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/daangn_normalized_2026-04-20-14-50-55-159Z_노원구.json",
+      "raw_count": 6,
+      "normalized_count": 6,
+      "started_at": "2026-04-20T15:28:30.900Z",
+      "finished_at": "2026-04-20T15:30:32.821Z",
+      "duration_ms": 121921
     },
     {
       "name": "kbland",
@@ -546,20 +546,20 @@
       "platform_name": "KB부동산",
       "sigungu": "서울숲권역",
       "status": "DONE",
-      "grade": "PARTIAL",
-      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/kbland_raw_2026-04-20-13-42-25-528Z.jsonl",
-      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/kbland_meta_2026-04-20-13-42-25-528Z.json",
-      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-13-42-25-528Z/kbland_normalized_2026-04-20-13-42-25-528Z.json",
-      "raw_count": 9,
-      "normalized_count": 7,
-      "started_at": "2026-04-20T14:09:05.226Z",
-      "finished_at": "2026-04-20T14:10:27.956Z",
-      "duration_ms": 82730
+      "grade": "EMPTY",
+      "raw_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/kbland_raw_2026-04-20-14-50-55-159Z.jsonl",
+      "meta_file": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/kbland_meta_2026-04-20-14-50-55-159Z.json",
+      "normalized_path": "/Users/hyunsoo/personal-projects/my-rent-finder/scripts/parallel_collect_runs/2026-04-20-14-50-55-159Z/kbland_normalized_2026-04-20-14-50-55-159Z.json",
+      "raw_count": 0,
+      "normalized_count": 0,
+      "started_at": "2026-04-20T15:29:31.917Z",
+      "finished_at": "2026-04-20T15:30:50.580Z",
+      "duration_ms": 78663
     }
   ],
   "matching": {
     "summary": {
-      "count": 697,
+      "count": 913,
       "candidate_pairs": 0,
       "auto_match": 0,
       "review_required": 0,
