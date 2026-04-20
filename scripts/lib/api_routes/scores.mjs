@@ -54,6 +54,7 @@ export async function handleScores(req, res) {
                nl.area_exclusive_m2, nl.area_gross_m2, nl.address_text,
                nl.room_count, nl.floor, nl.total_floor, nl.building_year,
                nl.lat, nl.lng, nl.listed_at, nl.created_at,
+               nl.quality_flags,
                nl.nearest_subway_station, nl.nearest_subway_line,
                nl.subway_distance_m, nl.subway_walk_min,
                nl.deleted_at IS NOT NULL AS is_expired,
@@ -132,6 +133,10 @@ export async function handleScores(req, res) {
           is_expired: row.is_expired === true,
           image_count: Number(imageMap.get(listingId) || fallbackImageUrls.length || 0),
           first_image_url: firstImageMap.get(listingId) || fallbackImageUrls[0] || null,
+          quality_flags: (() => {
+            try { return typeof row.quality_flags === "string" ? JSON.parse(row.quality_flags) : row.quality_flags || []; }
+            catch { return []; }
+          })(),
         };
       });
     });

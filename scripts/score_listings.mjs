@@ -146,9 +146,9 @@ const SUBWAY_STATIONS = [
 //   가성비RPM(0~4) + 지하철근접(0~3) + 환승(0~3) + 면적(0~2) + 층수(0~2) + 연식(0~1) + 사진(0~1)
 //
 // 탈락(-99) 조건:
-//   반지하/지하, 옥탑, 1룸/원룸, 사진0장, 가격이상치,
-//   근린생활시설, 전입불가, 전용면적>100m², RPM<0.8(데이터오류),
-//   --max-rent 초과
+//   반지하/지하, 옥탑, 1룸/원룸, 사진0장, 근린생활시설, 전입불가,
+//   RPM<0.8(데이터오류), --max-rent 초과
+// price_outlier 플래그: RPM > 구별평균*1.5 → quality_flags에 기록 (탈락 아님)
 function buildScoreQuery(maxRent) {
   const maxRentClause = maxRent
     ? `WHEN n.rent_amount > ${Number(maxRent)} THEN -99  -- 예산 초과`
@@ -453,6 +453,51 @@ async function main() {
     } catch (txErr) {
       await client.query("ROLLBACK").catch(() => {});
       throw txErr;
+    }
+
+    // 3) price_outlier quality_flag 갱신 (구별 평균 RPM 1.5배 초과 매물)
+    const priceOutlierCte = `
+      WITH district_rpm AS (
+        SELECT SPLIT_PART(address_text, ' ', 2) AS district,
+               AVG(rent_amount / NULLIF(area_exclusive_m2, 0)) AS avg_rpm
+        FROM normalized_listings
+        WHERE lease_type = '월세' AND deleted_at IS NULL
+          AND rent_amount > 0 AND area_exclusive_m2 > 0
+        GROUP BY 1
+      ),
+      outliers AS (
+        SELECT nl.listing_id
+        FROM normalized_listings nl
+        JOIN district_rpm d ON SPLIT_PART(nl.address_text, ' ', 2) = d.district
+        WHERE nl.deleted_at IS NULL
+          AND nl.area_exclusive_m2 > 0 AND nl.rent_amount > 0
+          AND (nl.rent_amount / nl.area_exclusive_m2) > d.avg_rpm * 1.5
+      )`;
+
+    const { rowCount: flagged } = await client.query(`
+      ${priceOutlierCte}
+      UPDATE normalized_listings nl
+      SET quality_flags = COALESCE(quality_flags, '[]'::jsonb) || '["price_outlier"]'::jsonb,
+          updated_at = NOW()
+      WHERE nl.listing_id IN (SELECT listing_id FROM outliers)
+        AND NOT COALESCE(nl.quality_flags, '[]'::jsonb) @> '["price_outlier"]'::jsonb
+    `);
+
+    const { rowCount: unflagged } = await client.query(`
+      ${priceOutlierCte}
+      UPDATE normalized_listings nl
+      SET quality_flags = (
+        SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
+        FROM jsonb_array_elements(COALESCE(nl.quality_flags, '[]'::jsonb)) elem
+        WHERE elem::text != '"price_outlier"'
+      ),
+          updated_at = NOW()
+      WHERE COALESCE(nl.quality_flags, '[]'::jsonb) @> '["price_outlier"]'::jsonb
+        AND nl.listing_id NOT IN (SELECT listing_id FROM outliers)
+    `);
+
+    if (flagged > 0 || unflagged > 0) {
+      console.log(`  price_outlier 플래그: +${flagged}건 추가, -${unflagged}건 해제`);
     }
 
     return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: true };
