@@ -64,7 +64,7 @@ function Violations({ violations }) {
   );
 }
 
-export default function DetailModal({ detailId, onClose, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
+export default function DetailModal({ detailId, onClose, onExpired, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
   const [imgIdx, setImgIdx] = useState(0);
@@ -81,8 +81,11 @@ export default function DetailModal({ detailId, onClose, onOpenExternal, isFavor
 
   // 로딩 깜빡임 방지를 위해 detail 도착 시 캐시에도 복제
   useEffect(() => {
-    if (detail) setCachedDetail(detail);
-  }, [detail]);
+    if (detail) {
+      setCachedDetail(detail);
+      if (detail.is_expired && onExpired) onExpired(detailId);
+    }
+  }, [detail, detailId, onExpired]);
 
   const displayDetail = detail || cachedDetail;
   const imageCount = Array.isArray(displayDetail?.images) ? displayDetail.images.length : 0;

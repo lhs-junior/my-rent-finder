@@ -140,6 +140,11 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setDetailId(null);
   }, []);
 
+  const handleExpired = useCallback((expiredId) => {
+    setItems(prev => prev.filter(item => String(item.listing_id) !== String(expiredId)));
+    setTotalCount(prev => Math.max(0, prev - 1));
+  }, []);
+
   const runSearch = useCallback((nextFilters) => {
     const validation = validateFilters(nextFilters);
     setFormErrors(validation);
@@ -446,6 +451,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
         <DetailModal
           detailId={detailId}
           onClose={closeDetail}
+          onExpired={handleExpired}
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
