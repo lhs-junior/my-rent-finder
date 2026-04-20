@@ -364,7 +364,6 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
           "houseDir",
           "houseDirection",
           "buildingDirection",
-          "direction_text",
           "roomDirection",
         ],
         roomCountKeys: [
