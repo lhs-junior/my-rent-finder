@@ -474,10 +474,13 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
     }
 
     // roomDirection("SE" 등 영문 코드)도 포함해 항상 한국어로 정규화
+    // 이미 "향" 포함 한국어 방향값인 경우엔 덮어쓰지 않음
     const rawDir = raw.roomDirection || raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection;
     if (rawDir) {
       const normalized = normalizeZigbangDirection(rawDir) || normalizeDirection(rawDir);
-      if (normalized) item.direction = normalized;
+      if (normalized && (!item.direction || !item.direction.includes("향"))) {
+        item.direction = normalized;
+      }
     }
 
     const imageCandidates = collectZigbangImageCandidates(raw);
@@ -559,6 +562,12 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
     // available_date: moveinDate
     if (!item.available_date && raw.moveinDate) {
       item.available_date = String(raw.moveinDate).trim();
+    }
+
+    // description_text: v3 API description 필드 명시적 매핑
+    if (!item.description_text && raw.description) {
+      const desc = String(raw.description).trim();
+      if (desc) item.description_text = desc;
     }
 
     return item;
