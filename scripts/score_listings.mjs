@@ -232,8 +232,6 @@ scored AS (
       -- 데이터 정제
       WHEN n.area_exclusive_m2 > 0 AND n.rent_amount > 0
         AND (n.rent_amount / n.area_exclusive_m2) < 0.8 THEN -99  -- RPM 이상치 (데이터 오류)
-      WHEN n.area_exclusive_m2 > 0 AND d.avg_rpm IS NOT NULL
-        AND (n.rent_amount / n.area_exclusive_m2) > d.avg_rpm * 1.5 THEN -99  -- 가격 이상치
       ${maxRentClause}
       ELSE 0
     END AS eliminate,
