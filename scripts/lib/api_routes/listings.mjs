@@ -164,8 +164,7 @@ export async function handleListings(req, res) {
     const params = [];
     const normalizedRunId = normalizeBaseRunId(runId);
     if (normalizedRunId) {
-      const effectiveRunId = normalizedRunId;
-      params.push(`${effectiveRunId}::%`);
+      params.push(`${normalizedRunId}::%`);
       cond.push(`rl.run_id LIKE $${params.length}`);
     }
 

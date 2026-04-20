@@ -41,11 +41,14 @@ export async function handleScores(req, res) {
         whereClause += ` AND sl.grade = ANY($${params.length})`;
       }
 
-      const orderBy = sort === "cost"
-        ? "sl.effective_monthly_cost ASC NULLS LAST, sl.total_score DESC"
-        : sort === "newest"
-          ? "nl.listed_at DESC NULLS LAST, nl.created_at DESC"
-          : "sl.total_score DESC, sl.effective_monthly_cost ASC NULLS LAST";
+      let orderBy;
+      if (sort === "cost") {
+        orderBy = "sl.effective_monthly_cost ASC NULLS LAST, sl.total_score DESC";
+      } else if (sort === "newest") {
+        orderBy = "nl.listed_at DESC NULLS LAST, nl.created_at DESC";
+      } else {
+        orderBy = "sl.total_score DESC, sl.effective_monthly_cost ASC NULLS LAST";
+      }
 
       params.push(limit);
       const query = `
