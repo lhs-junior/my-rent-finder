@@ -87,6 +87,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       quality_flags,
       monthly_management_cost, walk_time_to_subway, parking_possible,
       bathroom_count, sale_price, loan_amount, building_year, description_text,
+      cross_ref,
       created_at, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6,
@@ -104,6 +105,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       $32,
       $33, $34, $35,
       $36, $37, $38, $39, $40,
+      $41,
       NOW(), NOW()
     )
     ON CONFLICT (platform_code, external_id) DO UPDATE SET
@@ -144,6 +146,7 @@ async function upsertNormalizedItem(client, item, rawId) {
       loan_amount = EXCLUDED.loan_amount,
       building_year = EXCLUDED.building_year,
       description_text = EXCLUDED.description_text,
+      cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
       deleted_at = normalized_listings.deleted_at,
       updated_at = NOW()
     RETURNING listing_id
@@ -183,6 +186,7 @@ async function upsertNormalizedItem(client, item, rawId) {
     item.loan_amount ?? null,
     item.building_year ?? null,
     item.description_text ?? null,
+    item.cross_ref ?? null,
   ]);
 
   return result.rows?.[0]?.listing_id ?? null;
