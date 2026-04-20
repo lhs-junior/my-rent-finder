@@ -279,6 +279,40 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             {formErrors.minArea && <p className="ls-field-err">{formErrors.minArea}</p>}
           </div>
 
+          {/* 역세권 */}
+          <div className="ls-field">
+            <span className="ls-field-label">역세권</span>
+            <div className="ls-chip-group">
+              {SUBWAY_DISTANCE_OPTIONS.map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  className={`ls-chip${(filters.maxSubwayM || "") === opt.v ? " ls-chip--active" : ""}`}
+                  onClick={() => set("maxSubwayM", opt.v)}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 정렬 */}
+          <div className="ls-field">
+            <span className="ls-field-label">정렬</span>
+            <div className="ls-chip-group">
+              {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
+                  onClick={() => set("sort", opt.v)}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 층 */}
           <div className="ls-field">
             <span className="ls-field-label">층</span>
@@ -322,40 +356,6 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             >
               ♥ 찜만{favCount > 0 ? ` (${favCount})` : ""}
             </button>
-          </div>
-
-          {/* 정렬 */}
-          <div className="ls-field">
-            <span className="ls-field-label">정렬</span>
-            <div className="ls-chip-group">
-              {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
-                  onClick={() => set("sort", opt.v)}
-                >
-                  {opt.l}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 역세권 */}
-          <div className="ls-field">
-            <span className="ls-field-label">역세권</span>
-            <div className="ls-chip-group">
-              {SUBWAY_DISTANCE_OPTIONS.map(opt => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  className={`ls-chip${(filters.maxSubwayM || "") === opt.v ? " ls-chip--active" : ""}`}
-                  onClick={() => set("maxSubwayM", opt.v)}
-                >
-                  {opt.l}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* 표시 건수 */}
