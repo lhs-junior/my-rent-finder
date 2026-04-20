@@ -8,7 +8,7 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithSufficientImages } from "./lib/known_listings.mjs";
 
 // Add stealth plugin
 chromium.use(StealthPlugin());
@@ -904,8 +904,9 @@ async function captureNaverData() {
     }
   }
   const naverAllNos = detailCandidates.map((art) => String(art.articleNo)).filter(Boolean);
-  const naverKnownIds = await getExistingWithImages("naver", naverAllNos);
-  if (naverKnownIds.size > 0) console.log(`Skipped ${naverKnownIds.size} known listings (detail fetch)`);
+  // 이미지 3개 이상인 매물만 스킵 — 썸네일(1개)만 있는 매물은 상세 API 재호출해서 전체 갤러리 수집
+  const naverKnownIds = await getExistingWithSufficientImages("naver", naverAllNos, 3);
+  if (naverKnownIds.size > 0) console.log(`Skipped ${naverKnownIds.size} known listings with 3+ images (detail fetch)`);
   const toEnrichDetail = detailCandidates
     .filter((art) => !naverKnownIds.has(String(art.articleNo)))
     .slice(0, DETAIL_ENRICH_MAX);
