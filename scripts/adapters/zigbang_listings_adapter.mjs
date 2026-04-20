@@ -473,10 +473,11 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       item.building_use = normalizeZigbangBuildingUse(raw.service_type);
     }
 
-    if (!item.direction && (raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection)) {
-      item.direction = normalizeDirection(
-        raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection,
-      );
+    // roomDirection("SE" 등 영문 코드)도 포함해 항상 한국어로 정규화
+    const rawDir = raw.roomDirection || raw.direction || raw.facing || raw.houseDirection || raw.buildingDirection;
+    if (rawDir) {
+      const normalized = normalizeZigbangDirection(rawDir) || normalizeDirection(rawDir);
+      if (normalized) item.direction = normalized;
     }
 
     const imageCandidates = collectZigbangImageCandidates(raw);
@@ -495,18 +496,19 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       }
     }
 
-    if (!item.room_count) {
-      const roomTypeStr = raw.room_type || raw.roomType;
-      if (roomTypeStr) {
-        const s = String(roomTypeStr).trim();
-        if (/원룸/.test(s)) item.room_count = 1;
-        else if (/투룸/.test(s)) item.room_count = 2;
-        else if (/쓰리룸|3룸/.test(s)) item.room_count = 3;
-        else {
-          const m = /([1-9])\s*룸/.exec(s);
-          if (m) item.room_count = Number(m[1]);
-        }
+    // roomType Korean string을 항상 우선 적용 (rooms 같은 숫자 필드보다 신뢰도 높음)
+    const roomTypeStr = raw.room_type || raw.roomType;
+    if (roomTypeStr) {
+      const s = String(roomTypeStr).trim();
+      let derived = null;
+      if (/원룸/.test(s)) derived = 1;
+      else if (/투룸/.test(s)) derived = 2;
+      else if (/쓰리룸|3룸/.test(s)) derived = 3;
+      else {
+        const m = /([1-9])\s*룸/.exec(s);
+        if (m) derived = Number(m[1]);
       }
+      if (derived !== null) item.room_count = derived;
     }
 
     // Extract nested coordinates: location.lat/lng or random_location.lat/lng
@@ -523,6 +525,40 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
 
     if (!item.listed_at) {
       item.listed_at = normalizeListedAt(raw.reg_date || raw.updatedAt || null);
+    }
+
+    // bathroomCount: v3 API에서 "1" 같은 문자열로 내려옴
+    if (!item.bathroom_count && raw.bathroomCount != null) {
+      const n = parseInt(String(raw.bathroomCount), 10);
+      if (Number.isFinite(n) && n > 0) item.bathroom_count = n;
+    }
+
+    // building_year: approveDate("2001-11-14") → 2001
+    if (!item.building_year && raw.approveDate) {
+      const year = parseInt(String(raw.approveDate).slice(0, 4), 10);
+      if (Number.isFinite(year) && year > 1900 && year < 2100) {
+        item.building_year = year;
+      }
+    }
+
+    // monthly_management_cost: manageCost.amount(만원) → 원 단위로 변환
+    if (!item.monthly_management_cost && raw.manageCost?.amount != null) {
+      const amount = Number(raw.manageCost.amount);
+      if (Number.isFinite(amount) && amount > 0) {
+        item.monthly_management_cost = Math.round(amount * 10000);
+      }
+    }
+
+    // parking_possible: parkingAvailableText 파싱
+    if (item.parking_possible == null && raw.parkingAvailableText) {
+      const pt = String(raw.parkingAvailableText);
+      if (/가능/.test(pt)) item.parking_possible = true;
+      else if (/불가/.test(pt)) item.parking_possible = false;
+    }
+
+    // available_date: moveinDate
+    if (!item.available_date && raw.moveinDate) {
+      item.available_date = String(raw.moveinDate).trim();
     }
 
     return item;

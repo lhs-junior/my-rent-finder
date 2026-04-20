@@ -328,7 +328,9 @@ async function fetchZigbangV3ItemDetail(itemId) {
 }
 
 function mergeZigbangDetail(item, detailItem) {
-  const merged = { ...item, ...detailItem };
+  // floor 필드는 v3에서 객체({allFloors, floor})로 오므로 스프레드에서 제외 후 명시적으로 처리
+  const { floor: _detailFloor, ...detailWithoutFloor } = detailItem ?? {};
+  const merged = { ...item, ...detailWithoutFloor };
 
   if (detailItem?.price && typeof detailItem.price === "object") {
     const detailDeposit = toNumberOrNull(detailItem.price.deposit);
@@ -359,15 +361,14 @@ function mergeZigbangDetail(item, detailItem) {
     merged.room_type = detailItem.roomType;
   }
 
-  if (detailItem?.floor && typeof detailItem.floor === "object") {
-    if (detailItem.floor.floor != null && merged.floor_string == null) {
-      merged.floor_string = String(detailItem.floor.floor);
+  if (_detailFloor && typeof _detailFloor === "object") {
+    if (_detailFloor.floor != null) {
+      if (merged.floor_string == null) merged.floor_string = String(_detailFloor.floor);
+      // floor를 파싱 가능한 문자열로 설정 (객체가 스프레드되지 않았으므로 여기서만 설정)
+      if (merged.floor == null) merged.floor = String(_detailFloor.floor);
     }
-    if (detailItem.floor.allFloors != null && merged.building_floor == null) {
-      merged.building_floor = String(detailItem.floor.allFloors);
-    }
-    if (detailItem.floor.floor != null && merged.floor == null) {
-      merged.floor = String(detailItem.floor.floor);
+    if (_detailFloor.allFloors != null && merged.building_floor == null) {
+      merged.building_floor = String(_detailFloor.allFloors);
     }
   }
 
