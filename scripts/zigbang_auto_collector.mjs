@@ -16,6 +16,7 @@ import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
 import path from "node:path";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 chromium.use(StealthPlugin());
 
@@ -164,7 +165,7 @@ function makeRecord(payload, requestUrl, sourceUrl = "", responseStatus = 200) {
   };
 }
 
-function getItemId(item) {
+export function getItemId(item) {
   const id =
     item?.item_id ??
     item?.itemId ??
@@ -395,7 +396,7 @@ function mergeZigbangDetail(item, detailItem) {
   return merged;
 }
 
-async function enrichListingsWithV3Detail(listings) {
+export async function enrichListingsWithV3Detail(listings, { knownIds = new Set(), detailFetcher = fetchZigbangV3ItemDetail } = {}) {
   const result = {
     attempted: 0,
     success: 0,
@@ -416,8 +417,14 @@ async function enrichListingsWithV3Detail(listings) {
       continue;
     }
 
+    if (knownIds.has(String(id))) {
+      result.skipped++;
+      result.listings.push(item);
+      continue;
+    }
+
     result.attempted++;
-    const detail = await fetchZigbangV3ItemDetail(id);
+    const detail = await detailFetcher(id);
     if (detail) {
       result.success++;
       result.listings.push(mergeZigbangDetail(item, detail));
@@ -1244,7 +1251,11 @@ async function collectZigbang() {
     }
   }
 
-  const detailStats = await enrichListingsWithV3Detail(finalListings);
+  const allIds = finalListings.map(getItemId).filter(Boolean).map(String);
+  const knownIds = enrichDetail ? await getExistingWithImages("zigbang", allIds) : new Set();
+  if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
+
+  const detailStats = await enrichListingsWithV3Detail(finalListings, { knownIds });
   finalListings = detailStats.listings;
 
   if (enrichDetail) {

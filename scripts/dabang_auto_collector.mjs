@@ -16,6 +16,7 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 chromium.use(StealthPlugin());
 
@@ -235,6 +236,10 @@ function filterListings(listings) {
   }
 
   return filtered;
+}
+
+export function filterKnownFromDetail(items, knownIds) {
+  return items.filter((item) => !knownIds.has(String(item.id)));
 }
 
 // ============================================================================
@@ -489,7 +494,11 @@ async function collectDabang() {
     let detailSuccessCount = 0;
 
     if (fetchDetail && filtered.length > 0) {
-      log(`Fetching detail for ${filtered.length} listings via browser context...`);
+      const allIds = filtered.map((item) => String(item.id));
+      const knownIds = await getExistingWithImages("dabang", allIds);
+      const needDetail = filterKnownFromDetail(filtered, knownIds);
+      if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
+      log(`Fetching detail for ${needDetail.length} listings via browser context...`);
 
       const detailPage = await context.newPage();
 
@@ -505,11 +514,11 @@ async function collectDabang() {
         vlog("Main page load for session - continuing anyway");
       }
 
-      for (let i = 0; i < filtered.length; i++) {
-        const item = filtered[i];
+      for (let i = 0; i < needDetail.length; i++) {
+        const item = needDetail[i];
         const detailUrl = `https://www.dabangapp.com/api/3/new-room/detail?room_id=${item.id}&api_version=3.0.1&call_type=web&version=1`;
 
-        vlog(`  [${i + 1}/${filtered.length}] id:${item.id} ...`);
+        vlog(`  [${i + 1}/${needDetail.length}] id:${item.id} ...`);
 
         try {
           const result = await withTimeout(
@@ -556,7 +565,7 @@ async function collectDabang() {
       }
 
       await detailPage.close();
-      log(`Detail fetch: ${detailSuccessCount}/${filtered.length} succeeded`);
+      log(`Detail fetch: ${detailSuccessCount}/${needDetail.length} succeeded`);
     }
 
     // ========================================================================
