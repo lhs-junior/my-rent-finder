@@ -230,7 +230,6 @@ scored AS (
       WHEN n.room_count IS NOT NULL AND n.room_count <= 1 THEN -99
       WHEN COALESCE(img.cnt, 0) = 0 THEN -99  -- 사진없음
       -- 데이터 정제
-      WHEN n.area_exclusive_m2 > 100 THEN -99  -- 비현실적 면적
       WHEN n.area_exclusive_m2 > 0 AND n.rent_amount > 0
         AND (n.rent_amount / n.area_exclusive_m2) < 0.8 THEN -99  -- RPM 이상치 (데이터 오류)
       WHEN n.area_exclusive_m2 > 0 AND d.avg_rpm IS NOT NULL
