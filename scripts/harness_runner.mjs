@@ -279,7 +279,7 @@ if (!hasArg(args, "--skip-status")) {
   // Phase 6.2: 수집 누락 기반 stale 판정 (HTTP 체크로 못 잡힌 매물 보완)
   try {
     const { detectStaleListings } = await import("./lib/stale_detector.mjs");
-    const staleResult = await detectStaleListings({ threshold: 3, hardDeleteThreshold: 6 });
+    const staleResult = await detectStaleListings({ staleThresholdDays: 3, hardDeleteThresholdDays: 7 });
     console.log(
       `[harness] ✓ stale detection — stale=${staleResult.marked_stale} cleared=${staleResult.cleared} hard_deleted=${staleResult.hard_deleted}`,
     );
