@@ -15,6 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 // ============================================================================
 // CLI Arguments
@@ -242,15 +243,21 @@ export async function fetchPeterpanzDetailImageUrls(hidx, options = {}) {
   return extractPeterpanzDetailImageUrlsFromHtml(html);
 }
 
-async function enrichPeterpanzListingsWithDetailImages(items) {
+export async function enrichPeterpanzListingsWithDetailImages(items, { knownIds = new Set(), imageFetcher = fetchPeterpanzDetailImageUrls } = {}) {
   let enrichedCount = 0;
+  let skippedKnown = 0;
 
   for (const item of items) {
     if (!item?.hidx) continue;
     if (collectPeterpanzImageUrls(item).length > 0) continue;
 
+    if (knownIds.has(String(item.hidx))) {
+      skippedKnown++;
+      continue;
+    }
+
     try {
-      const detailImages = await fetchPeterpanzDetailImageUrls(item.hidx);
+      const detailImages = await imageFetcher(item.hidx);
       if (detailImages.length === 0) continue;
       item.image_urls_origin = detailImages;
       item.info = { ...(item.info || {}) };
@@ -264,6 +271,7 @@ async function enrichPeterpanzListingsWithDetailImages(items) {
     }
   }
 
+  if (skippedKnown > 0) log(`Skipped ${skippedKnown} known listings (detail fetch)`);
   return { enrichedCount };
 }
 
@@ -642,7 +650,9 @@ async function collectPeterpanz() {
     const missingImageBefore = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
     if (missingImageBefore > 0) {
       log(`Image fallback: checking ${missingImageBefore} image-poor listings via detail pages`);
-      const enriched = await enrichPeterpanzListingsWithDetailImages(selected);
+      const allHidx = selected.filter((item) => item?.hidx).map((item) => String(item.hidx));
+      const knownIds = await getExistingWithImages("peterpanz", allHidx);
+      const enriched = await enrichPeterpanzListingsWithDetailImages(selected, { knownIds });
       const missingImageAfter = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
       log(`Image fallback: enriched ${enriched.enrichedCount}, remaining missing ${missingImageAfter}`);
     }

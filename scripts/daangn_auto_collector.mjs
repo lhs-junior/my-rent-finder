@@ -9,6 +9,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 // ── CLI 인자 ──
 const args = process.argv.slice(2);
@@ -728,7 +729,21 @@ function shouldHydrateDetail(item) {
   return !(hasArea && hasFloor && hasDirection && hasImage);
 }
 
-async function hydrateItemsWithDetail(items) {
+export function extractDaangnItemKey(item) {
+  return (
+    extractListingId(item?.identifier) ||
+    extractListingId(item?.id) ||
+    extractListingId(item?.source_ref) ||
+    extractListingId(item?.sourceRef) ||
+    extractListingId(item?.url) ||
+    extractListingId(item?.href) ||
+    extractListingId(item?.external_id) ||
+    extractListingId(item?.externalId) ||
+    null
+  );
+}
+
+export async function hydrateItemsWithDetail(items, { knownIds = new Set(), detailFetcher = fetchDaangnDetail } = {}) {
   const cache = new Map();
   let cursor = 0;
   const worker = async () => {
@@ -738,16 +753,10 @@ async function hydrateItemsWithDetail(items) {
 
       if (!shouldHydrateDetail(item)) continue;
 
-      const key =
-        extractListingId(item.identifier) ||
-        extractListingId(item.id) ||
-        extractListingId(item.source_ref) ||
-        extractListingId(item.sourceRef) ||
-        extractListingId(item.url) ||
-        extractListingId(item.href) ||
-        extractListingId(item.external_id) ||
-        extractListingId(item.externalId);
+      const key = extractDaangnItemKey(item);
       if (!key) continue;
+
+      if (knownIds.has(key)) continue;
 
       const seedCandidates = new Set(
         [
@@ -796,7 +805,7 @@ async function hydrateItemsWithDetail(items) {
 
       let detail = null;
       for (const input of fetchInputs) {
-        const fetchedDetail = await fetchDaangnDetail(input);
+        const fetchedDetail = await detailFetcher(input);
         if (fetchedDetail && typeof fetchedDetail === "object") {
           detail = fetchedDetail;
           break;
@@ -1444,7 +1453,10 @@ async function collectDistrict(districtName, locationId) {
       // 구버전: @type으로 판별 (fallback)
       return RESIDENTIAL_TYPES.has(item["@type"]);
     });
-  await hydrateItemsWithDetail(residentialItems);
+  const allDaangnKeys = residentialItems.map(extractDaangnItemKey).filter(Boolean);
+  const knownDaangnIds = await getExistingWithImages("daangn", allDaangnKeys);
+  if (knownDaangnIds.size > 0) console.log(`  Skipped ${knownDaangnIds.size} known listings (detail fetch)`);
+  await hydrateItemsWithDetail(residentialItems, { knownIds: knownDaangnIds });
   if (verbose)
     console.log(
       `  [${districtName}] 주거용 매물: ${residentialItems.length}건`,

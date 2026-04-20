@@ -8,6 +8,7 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 // Add stealth plugin
 chromium.use(StealthPlugin());
@@ -902,7 +903,12 @@ async function captureNaverData() {
       }
     }
   }
-  const toEnrichDetail = detailCandidates.slice(0, DETAIL_ENRICH_MAX);
+  const naverAllNos = detailCandidates.map((art) => String(art.articleNo)).filter(Boolean);
+  const naverKnownIds = await getExistingWithImages("naver", naverAllNos);
+  if (naverKnownIds.size > 0) console.log(`Skipped ${naverKnownIds.size} known listings (detail fetch)`);
+  const toEnrichDetail = detailCandidates
+    .filter((art) => !naverKnownIds.has(String(art.articleNo)))
+    .slice(0, DETAIL_ENRICH_MAX);
   console.log(`\n🔍 매물 상세 보강: ${toEnrichDetail.length}개 API 호출 중...`);
 
   let enrichedDetailCount = 0;

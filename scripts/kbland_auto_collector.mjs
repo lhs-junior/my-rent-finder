@@ -20,6 +20,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { normalizeListedAt } from "./lib/listed_at_normalizer.mjs";
+import { getExistingWithImages } from "./lib/known_listings.mjs";
 
 // ── CLI 인자 ──
 const args = process.argv.slice(2);
@@ -584,8 +585,13 @@ async function main() {
 
     console.log(`     원본 ${districtRecords.length} → 필터 ${filtered.length} → 최종 ${capped.length}`);
 
-    // 4단계: 이미지 URL 수집 (이미지 있는 매물만)
-    const withImages = capped.filter((r) => r.이미지수 > 0);
+    // known 매물 (DB에 이미 있고 이미지도 있는) → 상세 API 스킵
+    const allIds = capped.map((r) => String(r.매물일련번호));
+    const knownIds = await getExistingWithImages("kbland", allIds);
+    if (knownIds.size > 0) console.log(`  Skipped ${knownIds.size} known listings (detail fetch)`);
+
+    // 4단계: 이미지 URL 수집 (이미지 있는 매물만, known 제외)
+    const withImages = capped.filter((r) => r.이미지수 > 0 && !knownIds.has(String(r.매물일련번호)));
     if (withImages.length > 0) {
       console.log(`  4) 이미지 URL 수집 (${withImages.length}건)...`);
       for (const r of withImages) {
@@ -595,10 +601,10 @@ async function main() {
       }
     }
 
-    // 4-1단계: bascInfo로 serve-origin 감지 → 써브가 이미 수집한 매물 스킵
+    // 4-1단계: bascInfo로 serve-origin 감지 → 써브가 이미 수집한 매물 스킵 (known 제외)
     console.log(`  4-1) serve-origin 감지 (bascInfo)...`);
     let serveOriginSkipped = 0;
-    for (const r of capped) {
+    for (const r of capped.filter((r) => !knownIds.has(String(r.매물일련번호)))) {
       const { serveAtclNo, outLink } = await fetchKbBascInfo(page, r.매물일련번호);
       if (serveAtclNo) {
         r._isServeOrigin = true;
@@ -613,10 +619,11 @@ async function main() {
     // serve가 이미 수집한 매물이면 KB 중복 수집 제외
     const finalRecords = capped.filter((r) => !r._isServeOrigin);
 
-    // 5단계: 상세 API로 방향/욕실/면적 보강 (serve-origin 제외 후)
-    console.log(`  5) 상세 API 보강 (${finalRecords.length}건, serve-origin ${serveOriginSkipped}건 제외)...`);
+    // 5단계: 상세 API로 방향/욕실/면적 보강 (serve-origin 제외 후, known 제외)
+    const needDetail = finalRecords.filter((r) => !knownIds.has(String(r.매물일련번호)));
+    console.log(`  5) 상세 API 보강 (${needDetail.length}건, serve-origin ${serveOriginSkipped}건 제외)...`);
     let detailOk = 0;
-    for (const r of finalRecords) {
+    for (const r of needDetail) {
       const detail = await fetchKbDetailInfo(r.매물일련번호);
       if (!detail) continue;
       detailOk++;
@@ -634,7 +641,7 @@ async function main() {
         r.공급면적 = detailSupply;
       }
     }
-    console.log(`     상세 보강 완료: ${detailOk}/${finalRecords.length}건`);
+    console.log(`     상세 보강 완료: ${detailOk}/${needDetail.length}건`);
 
     // 샘플 출력
     for (const r of finalRecords.slice(0, 3)) {
