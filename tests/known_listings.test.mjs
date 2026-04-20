@@ -16,7 +16,6 @@ describe("getExistingWithImages", () => {
   });
 
   it("이미지 없는 매물(JOIN 결과 없음) → Set에 미포함", async () => {
-    // JOIN 결과에 없으면 query 결과 rows에 포함되지 않음
     const client = makeClient([]);
     const result = await getExistingWithImages("dabang", ["id_no_image"], client);
     expect(result.has("id_no_image")).toBe(false);
@@ -24,7 +23,6 @@ describe("getExistingWithImages", () => {
   });
 
   it("deleted_at 있는 매물 → WHERE 절에서 필터링 → Set에 미포함", async () => {
-    // deleted_at IS NULL 조건으로 WHERE에서 제외되므로 rows에 없음
     const client = makeClient([]);
     const result = await getExistingWithImages("peterpanz", ["deleted_item"], client);
     expect(result.has("deleted_item")).toBe(false);
