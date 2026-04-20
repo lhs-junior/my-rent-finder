@@ -315,6 +315,16 @@ export async function queryWithRetry(client, sql, params, options = {}) {
   throw lastErr;
 }
 
+/**
+ * Neon cold-start 대응: persist 시작 전 DB를 깨우는 ping.
+ * 실패 시 재시도 5회 (최대 ~16초 대기) 후 throw.
+ */
+export async function warmUpDb() {
+  return withDbClient((client) =>
+    queryWithRetry(client, "SELECT 1", [], { maxAttempts: 5, baseDelayMs: 1000 }),
+  );
+}
+
 export function sanitizeIdentifier(name, fallback = "value") {
   return toText(name, fallback).replace(/[^a-zA-Z0-9_\-]/g, "_");
 }

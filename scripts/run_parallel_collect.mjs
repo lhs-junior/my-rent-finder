@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { persistSummaryToDb } from "./lib/ops_db_persistence.mjs";
+import { warmUpDb } from "./lib/db_client.mjs";
 import { buildFilterArgs, getArg, getBool, getInt, getList, normalizeCap } from "./lib/cli_utils.mjs";
 import { TARGET_DISTRICTS as SEOULSUP_DISTRICTS } from "./lib/target_districts.mjs";
 
@@ -1145,6 +1146,8 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 async function runJobs(jobs, concurrency, { onComplete } = {}) {
   const results = [];
   let pointer = 0;
+  // persist는 직렬화: 동시 실행 시 Neon에 쿼리 폭탄이 몰려 query timeout 유발
+  let persistQueue = Promise.resolve();
 
   async function worker() {
     while (pointer < jobs.length) {
@@ -1162,10 +1165,12 @@ async function runJobs(jobs, concurrency, { onComplete } = {}) {
           ok: true,
           ...data,
         };
-        // 잡 완료 직후 스트리밍 persist (비동기, 실패해도 수집 흐름 방해 안 함)
+        // 잡 완료 직후 스트리밍 persist — 직렬 큐로 실행 (동시 persist 금지)
         if (onComplete) {
-          onComplete(results[current]).catch((e) =>
-            console.error(`[STREAM_PERSIST] ${jobLabel} DB 저장 실패: ${e?.message || e}`),
+          persistQueue = persistQueue.then(() =>
+            onComplete(results[current]).catch((e) =>
+              console.error(`[STREAM_PERSIST] ${jobLabel} DB 저장 실패: ${e?.message || e}`),
+            ),
           );
         }
       } catch (error) {
@@ -1258,6 +1263,11 @@ async function persistJobResult(result) {
 }
 
 const streamPersist = persistToDb ? persistJobResult : undefined;
+
+// 수집 시작 전 Neon DB를 미리 웜업 — persist 첫 요청이 cold start를 만나 timeout 폭탄 방지
+if (persistToDb) {
+  await warmUpDb().catch((e) => console.warn("[db] warm-up 실패 (무시):", e.message));
+}
 
 const phase1Jobs = jobs.filter((j) => j._phase === 1);
 const phase2Jobs = jobs.filter((j) => j._phase !== 1);
