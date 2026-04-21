@@ -6,6 +6,7 @@ import readline from "node:readline";
 
 import {
   ensureFnv11,
+  isTransientDbError,
   normalizeAreaClaimed,
   normalizeLeaseType,
   normalizePlatform,
@@ -1425,7 +1426,8 @@ export async function upsertNormalizedBatch(client, listings) {
       const result = await queryWithRetry(client, sql, params);
       rows = result.rows;
     } catch (chunkErr) {
-      // Fallback: process chunk row-by-row to avoid losing the entire chunk
+      if (isTransientDbError(chunkErr)) throw chunkErr;
+      // Fallback: process chunk row-by-row to avoid losing the entire chunk on data errors
       console.warn(`[persist] normalized batch chunk failed (size=${chunk.length}), falling back to single-row upserts: ${chunkErr.message}`);
       rows = [];
       const singleSql = buildNormalizedBatchSql(1);
@@ -1434,6 +1436,7 @@ export async function upsertNormalizedBatch(client, listings) {
           const r = await queryWithRetry(client, singleSql, rowValues);
           if (r.rows?.[0]) rows.push(r.rows[0]);
         } catch (rowErr) {
+          if (isTransientDbError(rowErr)) throw rowErr;
           console.error(`[persist] normalized single-row upsert failed: ${rowErr.message}`);
         }
       }
@@ -1694,7 +1697,10 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
         const sourceRef = toText(rawLine?.source_ref || rawLine?.sourceRef || null, null);
         if (externalId) rawIdByExternal.set(externalId, rawId);
         if (sourceRef) rawIdByExternal.set(sourceRef, rawId);
-      }).catch((err) => { console.warn('[persist] non-critical error: ' + err.message); });
+      }).catch((err) => {
+        if (isTransientDbError(err)) throw err;
+        console.warn('[persist] non-critical error: ' + err.message);
+      });
     }
 
     const normalizedPath = toText(result?.normalizedPath, null) || toText(result?.output, null);

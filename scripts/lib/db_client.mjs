@@ -288,7 +288,7 @@ const TRANSIENT_ERROR_CODES = new Set([
   "08004", // sqlserver_rejected_establishment
 ]);
 
-function isTransientDbError(err) {
+export function isTransientDbError(err) {
   if (!err) return false;
   const msg = String(err.message || "").toLowerCase();
   if (msg.includes("query read timeout")) return true;
