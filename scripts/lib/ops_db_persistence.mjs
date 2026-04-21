@@ -1356,7 +1356,7 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       building_name = EXCLUDED.building_name,
       agent_name = EXCLUDED.agent_name,
       agent_phone = EXCLUDED.agent_phone,
-      listed_at = EXCLUDED.listed_at,
+      listed_at = COALESCE(normalized_listings.listed_at, EXCLUDED.listed_at),
       available_date = EXCLUDED.available_date,
       source_ref = EXCLUDED.source_ref,
       quality_flags = EXCLUDED.quality_flags,
@@ -1371,8 +1371,9 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       walk_time_to_subway = EXCLUDED.walk_time_to_subway,
       parking_possible = EXCLUDED.parking_possible,
       deleted_at = normalized_listings.deleted_at,
+      last_confirmed_at = NOW(),
       updated_at = NOW()
-  RETURNING listing_id, external_id
+  RETURNING listing_id, external_id, (xmax = 0) AS is_insert
 `;
 
 function buildNormalizedBatchSql(chunkSize) {
@@ -1398,7 +1399,9 @@ function buildNormalizedBatchSql(chunkSize) {
  */
 export async function upsertNormalizedBatch(client, listings) {
   const resultMap = new Map(); // external_id -> listing_id
-  if (!Array.isArray(listings) || listings.length === 0) return resultMap;
+  let inserted = 0;
+  let updated = 0;
+  if (!Array.isArray(listings) || listings.length === 0) return { resultMap, inserted, updated };
 
   // Dedup by conflict key (platform_code, external_id) — keep last occurrence so latest scrape wins.
   // Prevents Postgres "ON CONFLICT DO UPDATE command cannot affect row a second time" errors
@@ -1439,11 +1442,13 @@ export async function upsertNormalizedBatch(client, listings) {
     for (const row of rows) {
       if (row?.listing_id && row?.external_id) {
         resultMap.set(row.external_id, toInt(row.listing_id, null));
+        if (row.is_insert) inserted++;
+        else updated++;
       }
     }
   }
 
-  return resultMap;
+  return { resultMap, inserted, updated };
 }
 
 function buildBatchUpsertSql(batchSize, onConflictClause) {
@@ -1627,10 +1632,12 @@ function selectPlatformBuckets(summary) {
 }
 
 async function ingestPlatformResult(client, baseRunId, platform, platformRuns, rawIdByExternal, summary) {
-  if (!platformRuns.length) return { priceChanged: 0 };
+  if (!platformRuns.length) return { priceChanged: 0, inserted: 0, updated: 0 };
   const platformRunId = resolveBaseRunId(baseRunId, platform);
   const cleanedRawIds = new Set();
   let platformPriceChanged = 0;
+  let platformInserted = 0;
+  let platformUpdated = 0;
   const status = inferStatusFromResults(platformRuns);
   const first = platformRuns[0] || {};
   const startedAt = safeDate(platformRuns.find((r) => r?.startedAt)?.startedAt || first.startedAt);
@@ -1730,7 +1737,9 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
 
     // 2. Batch-upsert all prepared rows into normalized_listings (chunks of 50)
     const rowValuesList = preparedRows.map((p) => p.rowValues);
-    const batchResultMap = await upsertNormalizedBatch(client, rowValuesList);
+    const { resultMap: batchResultMap, inserted: batchInserted, updated: batchUpdated } = await upsertNormalizedBatch(client, rowValuesList);
+    platformInserted += batchInserted;
+    platformUpdated += batchUpdated;
 
     // 3. Post-process: raw_status update, image queue, contract violations, price tracking
     const rawIdsToMarkNormalized = new Set();
@@ -1805,7 +1814,8 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       await upsertImageQueue(client, filtered);
     }
   }
-  return { priceChanged: platformPriceChanged };
+  console.log(`[persist:${platform}] 신규 ${platformInserted}건 / 업데이트 ${platformUpdated}건`);
+  return { priceChanged: platformPriceChanged, inserted: platformInserted, updated: platformUpdated };
 }
 
 async function runPersistSummary(client, summaryPath) {
@@ -2092,6 +2102,8 @@ export async function persistSummaryToDb(summaryPath, options = {}) {
     normalizedCount: 0,
     collectionRuns: [],
     priceChangedCount: 0,
+    insertedCount: 0,
+    updatedCount: 0,
   };
 
   await withDbClient(async (client) => {
@@ -2104,6 +2116,8 @@ export async function persistSummaryToDb(summaryPath, options = {}) {
         runId,
       });
       result.priceChangedCount += ingestResult?.priceChanged ?? 0;
+      result.insertedCount += ingestResult?.inserted ?? 0;
+      result.updatedCount += ingestResult?.updated ?? 0;
 
       const platformRunId = resolveBaseRunId(runId, bucket.platform);
       const countRow = await client.query(
@@ -2126,6 +2140,7 @@ export async function persistSummaryToDb(summaryPath, options = {}) {
       result.collectionRuns.push({ runId: platformRunId, rawCount, normalizedCount });
     }
     result.platformCount = platformBuckets.length;
+    console.log(`[persist] 전체 신규 ${result.insertedCount}건 / 업데이트 ${result.updatedCount}건 (플랫폼 ${result.platformCount}개)`);
   });
 
   return result;
