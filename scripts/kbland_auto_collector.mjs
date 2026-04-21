@@ -638,13 +638,15 @@ async function main() {
 
     console.log(`     원본 ${districtRecords.length} → 필터 ${filtered.length} → 최종 ${capped.length}`);
 
-    // known 매물 (DB에 이미 있고 이미지도 있는) → 상세 API 스킵
+    // known 매물 (DB에 이미 있고 이미지도 있는) → 상세 API(dtailInfo)만 스킵
+    // 이미지는 known 여부와 무관하게 항상 재수집: re-persist 시 cleanupNormalizedRowsForSourceUrl이
+    // 기존 listing_images를 삭제하므로 _imageUrls=[]로 재저장하면 이미지가 사라지는 버그 방지
     const allIds = capped.map((r) => String(r.매물일련번호));
     const knownIds = await getExistingWithImages("kbland", allIds, { maxAgeHours: 72 });
-    if (knownIds.size > 0) console.log(`  Skipped ${knownIds.size} known listings (detail fetch)`);
+    if (knownIds.size > 0) console.log(`  Skipped ${knownIds.size} known listings (detail fetch only)`);
 
-    // 4단계: 이미지 URL 수집 (이미지 있는 매물만, known 제외)
-    const withImages = capped.filter((r) => r.이미지수 > 0 && !knownIds.has(String(r.매물일련번호)));
+    // 4단계: 이미지 URL 수집 (이미지 있는 매물 전체 — known 제외하지 않음)
+    const withImages = capped.filter((r) => r.이미지수 > 0);
     if (withImages.length > 0) {
       console.log(`  4) 이미지 URL 수집 (${withImages.length}건)...`);
       for (const r of withImages) {
