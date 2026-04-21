@@ -21,7 +21,7 @@ function getArg(name, fallback = null) {
 }
 const hasFlag = (name) => args.includes(name);
 
-const sigungu = getArg("--sigungu", "노원구");
+const sigungu = getArg("--sigungu", "성동구");
 const sampleCap = Number(getArg("--sample-cap", "0")) || Infinity;
 const rentMax = Number(getArg("--rent-max", "100"));
 const depositMax = Number(getArg("--deposit-max", "10000"));

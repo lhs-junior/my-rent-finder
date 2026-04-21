@@ -715,7 +715,7 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
     if (normalizedCode === "daangn") {
       const daangnSigunguFromTarget = extractSigunguCandidates(targets);
-      const daangnKnownDistricts = ["종로구", "중구", "성북구", "성동구", "동대문구", "광진구", "중랑구", "노원구"];
+      const daangnKnownDistricts = ["종로구", "중구", "성북구", "성동구", "동대문구", "광진구", "중랑구"];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
         expandSeoulsup([
