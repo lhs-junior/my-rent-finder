@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 // ============================================================================
 // CLI Arguments
@@ -719,7 +719,7 @@ async function collectPeterpanz() {
     if (selected.length > 0) {
       log(`Detail fetch: enriching ${selected.length} listings (images + description/bathroom/year/address/agent)`);
       const allHidx = selected.filter((item) => item?.hidx).map((item) => String(item.hidx));
-      const knownIds = await getExistingWithImages("peterpanz", allHidx, { maxAgeHours: 72 });
+      const knownIds = await getExistingWithImagesAndFields("peterpanz", allHidx, ["description_text"], { maxAgeHours: 72 });
       const enriched = await enrichPeterpanzListingsWithDetailImages(selected, { knownIds });
       const missingImageAfter = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
       log(`Detail fetch: enriched ${enriched.enrichedCount}, image-missing ${missingImageAfter}`);
