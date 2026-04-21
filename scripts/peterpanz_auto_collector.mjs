@@ -531,15 +531,17 @@ export function filterPeterpanzListings(items, {
       return false;
     }
 
-    // Exact district filter
+    // Exact district filter — 실제 행정구역명(XXX구/군/시)인 경우만 문자열 비교
+    // "서울숲권역"처럼 커스텀 권역명은 bbox 필터링으로 대체
+    const isAdminDistrict = /[구군시]$/.test(targetSigungu);
     const itemSigungu = String(item.location?.address?.sigungu || "").trim();
-    if (itemSigungu && itemSigungu !== targetSigungu) {
+    if (isAdminDistrict && itemSigungu && itemSigungu !== targetSigungu) {
       reasons.sigungu++;
       return false;
     }
 
-    // Fallback to coordinate filtering only when the address district is missing.
-    if (!itemSigungu && targetBbox && item.location?.coordinate) {
+    // 권역명이거나 주소 sigungu 없을 때 → bbox로 필터링
+    if ((!itemSigungu || !isAdminDistrict) && targetBbox && item.location?.coordinate) {
       const PAD = 0.008;
       const lat = parseFloat(item.location.coordinate.latitude);
       const lng = parseFloat(item.location.coordinate.longitude);
