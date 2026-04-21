@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
+import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
 const KBLAND_FIELD_HINTS = {
   sourceRefKeys: ["매물일련번호", "external_id", "id"],
@@ -88,6 +89,26 @@ export class KblandListingAdapter extends BaseUserOnlyAdapter {
       if (!item.jibun_address) {
         const raw = rawRecord?.payload_json || rawRecord;
         item.jibun_address = extractKblandJibunAddress(raw?.address || item.address_text);
+      }
+
+      // listed_at: base adapter가 반환하지 않으므로 registeredDate에서 직접 설정
+      if (!item.listed_at) {
+        const regDate = payload?.registeredDate || payload?.registered_date;
+        if (regDate) item.listed_at = normalizeListedAt(regDate) || null;
+      }
+
+      // agent_name: base adapter가 반환하지 않으므로 agencyName에서 직접 설정
+      if (!item.agent_name) {
+        item.agent_name = payload?.agencyName || payload?.agent_name || null;
+      }
+
+      // total_floor: parseFloor(숫자) → total_floor: null 이므로 totalFloor에서 직접 보정
+      if (item.total_floor == null) {
+        const tf = payload?.totalFloor ?? payload?.total_floor;
+        if (tf != null) {
+          const n = parseInt(tf, 10);
+          if (Number.isFinite(n) && n > 0) item.total_floor = n;
+        }
       }
 
       return item;
