@@ -529,6 +529,26 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       item.listed_at = normalizeListedAt(raw.reg_date || raw.updatedAt || null);
     }
 
+    // bjdCode(법정동코드) → address_code: 네이버 cortarNo와 동일 포맷으로 버킷 통일
+    if (!item.address_code && raw.bjdCode) {
+      item.address_code = String(raw.bjdCode);
+    }
+
+    // jibunAddress → address_text: 동 레벨보다 정확한 지번주소 우선
+    if (raw.jibunAddress && typeof raw.jibunAddress === 'string' && raw.jibunAddress.trim()) {
+      const jibun = raw.jibunAddress.trim();
+      if (!item.address_text || item.address_text.split(' ').length <= 2) {
+        item.address_text = jibun.startsWith('서울') ? jibun : `서울특별시 ${jibun}`;
+      }
+      // jibun_address: 동+번지 추출 (예: "광진구 자양동 612-12" → "자양동 612-12")
+      const parts = jibun.split(/\s+/);
+      const lot = parts[parts.length - 1];
+      const dong = parts[parts.length - 2];
+      if (/^\d+(?:-\d+)*$/.test(lot) && /(?:동|가|리)\d*$/.test(dong)) {
+        item.jibun_address = `${dong} ${lot}`;
+      }
+    }
+
     // bathroomCount: v3 API에서 "1" 같은 문자열로 내려옴
     if (!item.bathroom_count && raw.bathroomCount != null) {
       const n = parseInt(String(raw.bathroomCount), 10);

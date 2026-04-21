@@ -1187,7 +1187,7 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
     areaExclusive,
   );
 
-  // 41 values matching NORMALIZED_COLUMNS order
+  // 42 values matching NORMALIZED_COLUMNS order
   const rowValues = [
     rawId,
     platform,
@@ -1230,6 +1230,7 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
     item?.monthly_management_cost != null ? Number(item.monthly_management_cost) : null,
     item?.walk_time_to_subway != null ? Number(item.walk_time_to_subway) : null,
     item?.parking_possible != null ? Boolean(item.parking_possible) : null,
+    toText(item?.jibun_address ?? item?.jibunAddress ?? null, null),
   ];
 
   // Update rawIdByExternal map so subsequent items in this batch can resolve this rawId
@@ -1328,6 +1329,7 @@ const NORMALIZED_COLUMNS = [
   "monthly_management_cost",
   "walk_time_to_subway",
   "parking_possible",
+  "jibun_address",
 ];
 
 const NORMALIZED_ON_CONFLICT_UPDATE = `
@@ -1371,6 +1373,7 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       monthly_management_cost = EXCLUDED.monthly_management_cost,
       walk_time_to_subway = EXCLUDED.walk_time_to_subway,
       parking_possible = EXCLUDED.parking_possible,
+      jibun_address = COALESCE(EXCLUDED.jibun_address, normalized_listings.jibun_address),
       deleted_at = normalized_listings.deleted_at,
       last_confirmed_at = NOW(),
       updated_at = NOW()

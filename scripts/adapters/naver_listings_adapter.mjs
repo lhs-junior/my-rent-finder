@@ -1767,6 +1767,17 @@ export class NaverListingAdapter extends BaseListingAdapter {
         }
         return merged.slice(0, this.imageLimit);
       })(),
+      jibun_address: (() => {
+        const exp = item._detail?.articleDetail?.exposureAddress;
+        if (!exp) return null;
+        const parts = String(exp).trim().split(/\s+/);
+        if (parts.length < 2) return null;
+        const lot = parts[parts.length - 1];
+        const dong = parts[parts.length - 2];
+        if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
+        if (!/(?:동|가|리)\d*$/.test(dong)) return null;
+        return `${dong} ${lot}`;
+      })(),
       raw_attrs: {
         atclNo: pick(item, ["atclNo"], null),
         articleNo: pick(item, ["articleNo", "articleId", "id"], null),

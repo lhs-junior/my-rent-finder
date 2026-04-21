@@ -28,6 +28,17 @@ const KBLAND_FIELD_HINTS = {
   listHintPaths: ["payload_json"],
 };
 
+function extractKblandJibunAddress(address) {
+  if (!address) return null;
+  const parts = String(address).trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const lot = parts[parts.length - 1];
+  const dong = parts[parts.length - 2];
+  if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
+  if (!/(?:동|가|리)\d*$/.test(dong)) return null;
+  return `${dong} ${lot}`;
+}
+
 function fixBuildingUse(propertyType) {
   if (!propertyType) return null;
   if (/연립|빌라/.test(propertyType)) return "빌라/연립";
@@ -72,6 +83,11 @@ export class KblandListingAdapter extends BaseUserOnlyAdapter {
       // rooms > 4이면 건물 총합이므로 null 처리
       if (item.room_count != null && item.room_count > 4) {
         item.room_count = null;
+      }
+
+      if (!item.jibun_address) {
+        const raw = rawRecord?.payload_json || rawRecord;
+        item.jibun_address = extractKblandJibunAddress(raw?.address || item.address_text);
       }
 
       return item;

@@ -43,6 +43,17 @@ function n(v) {
   return Number.isFinite(num) ? num : null;
 }
 
+function extractJibunKey(jibunAddress) {
+  if (!jibunAddress) return null;
+  const parts = String(jibunAddress).trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const lot = parts[parts.length - 1];
+  const dong = parts[parts.length - 2];
+  if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
+  if (!/(?:동|가|리)\d*$/.test(dong)) return null;
+  return `${dong} ${lot}`;
+}
+
 function cleanText(v) {
   return String(v || '')
     .replace(/\s+/g, ' ')
@@ -84,6 +95,7 @@ function normalize(listing) {
     sourceUrl: cleanText(listing.source_url || listing.sourceUrl || ''),
     addressCode: addrCode,
     addressText: cleanText(listing.address_text || listing.addressText || ''),
+    jibunKey: extractJibunKey(cleanText(listing.jibun_address || listing.jibunAddress || '')),
     leaseType: cleanText(listing.lease_type || listing.leaseType || ''),
     rentAmount: n(listing.rent_amount ?? listing.rentAmount),
     depositAmount: n(listing.deposit_amount ?? listing.depositAmount),
@@ -225,6 +237,11 @@ function attributeScore(a, b) {
 }
 
 function addressScore(a, b) {
+  // jibun_address 기반 고신뢰 매칭 — 동+번지가 일치하면 확정, 불일치면 페널티
+  if (a.jibunKey && b.jibunKey) {
+    if (a.jibunKey === b.jibunKey) return { score: 100, detail: 'jibun_address exact' };
+    return { score: 15, detail: 'jibun_address mismatch' };
+  }
   if (a.addressCode && b.addressCode) {
     if (a.addressCode === b.addressCode) return { score: 100, detail: 'address_code exact' };
     if (a.addressCode.slice(0, 8) === b.addressCode.slice(0, 8)) return { score: 70, detail: 'address_code prefix match' };
@@ -313,6 +330,8 @@ function candidateKeys(l) {
     }
   }
   keys.add(`${addr}|r*|a*`);
+  // jibun_address 기반 크로스플랫폼 버킷 — 동+번지가 같으면 반드시 비교
+  if (l.jibunKey) keys.add(`jibun:${l.jibunKey}`);
   return Array.from(keys);
 }
 
@@ -436,6 +455,7 @@ export {
   tokenMatchScore,
   haversineDistanceMeters,
   normalize,
+  extractJibunKey,
   areaRange,
   areaScore,
   priceScore,
