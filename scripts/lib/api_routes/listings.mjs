@@ -396,7 +396,7 @@ export async function handleListingDetail(req, res, id) {
       SELECT nl.*, rl.run_id, rl.payload_json,
              nl.deleted_at IS NOT NULL AS is_expired
       FROM normalized_listings nl
-      JOIN raw_listings rl ON rl.raw_id = nl.raw_id
+      LEFT JOIN raw_listings rl ON rl.raw_id = nl.raw_id
       WHERE nl.listing_id = $1
 `,
       [id],

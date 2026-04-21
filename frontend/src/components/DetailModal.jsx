@@ -72,7 +72,7 @@ export default function DetailModal({ detailId, onClose, onExpired, onOpenExtern
   const [cachedDetail, setCachedDetail] = useState(null);
   const [verifyStatus, setVerifyStatus] = useState({ checking: false, alive: null });
 
-  const { detail, loading } = useListingDetail(detailId, apiBase);
+  const { detail, loading, error } = useListingDetail(detailId, apiBase);
 
   // detailId가 바뀌거나 닫힐 때 캐시 정리
   useEffect(() => {
@@ -177,6 +177,18 @@ export default function DetailModal({ detailId, onClose, onExpired, onOpenExtern
           <div className="mdl-loading">
             <div className="mdl-spinner" />
             <p>매물 정보를 불러오는 중...</p>
+          </div>
+        )}
+
+        {!loading && !displayDetail && (
+          <div className="mdl-loading">
+            <p>매물 정보를 불러올 수 없습니다.</p>
+            <p className="muted" style={{ fontSize: "0.85rem", marginTop: 4 }}>
+              삭제된 매물이거나 일시적인 오류입니다.
+            </p>
+            <button type="button" className="mdl-btn mdl-btn--ghost" style={{ marginTop: 16 }} onClick={onClose}>
+              닫기
+            </button>
           </div>
         )}
 

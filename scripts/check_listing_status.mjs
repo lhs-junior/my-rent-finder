@@ -92,6 +92,20 @@ async function checkZigbangListing(externalId) {
 
 // ── 다방 상태 체크 ──
 
+function isActiveDabangRedirect(location, externalId) {
+  const id = String(externalId || "");
+  if (!id || !location) return false;
+  try {
+    const url = new URL(location, "https://www.dabangapp.com");
+    if (url.pathname.includes(`/room/${id}`)) return true;
+    if (url.searchParams.get("detail_id") === id) return true;
+    if (url.searchParams.get("room_id") === id) return true;
+    return false;
+  } catch {
+    return location.includes(`/room/${id}`) || location.includes(`detail_id=${id}`);
+  }
+}
+
 async function checkDabangListing(externalId) {
   // API requires browser session — use public room page instead
   const url = `https://www.dabangapp.com/room/${externalId}`;
@@ -109,8 +123,8 @@ async function checkDabangListing(externalId) {
   if (res.status >= 300 && res.status < 400) {
     const location = res.headers.get("location") || "";
     // 다방은 /room/{id} → /map/house?...&detail_id={id} 로 리다이렉트함 (활성 매물)
-    if (location.includes(externalId)) return { status: "active" };
-    // externalId가 없는 리다이렉트 = 매물 삭제됨
+    // pathname 또는 query param의 정확한 id 일치만 active로 판정
+    if (isActiveDabangRedirect(location, externalId)) return { status: "active" };
     return { status: "expired", resultCode: "redirect" };
   }
   if (res.status === 200) {
