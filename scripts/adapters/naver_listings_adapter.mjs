@@ -78,6 +78,7 @@ function collectNaverImageCandidates(raw) {
       const path = parsed.pathname.toLowerCase();
       if (!URL_IMAGE_RE.test(path)) return;
       if (CP_IMAGE_PATH_BAD_PATTERNS.test(path)) return;
+      if (/^(?:rter2\.com|asil\.kr|www\.rter2\.com|www\.asil\.kr)$/i.test(parsed.hostname)) return;
       // land.mk.co.kr: root-level /B*/ paths are naver API-generated and 404
       // valid CDN photos require /files/ or /files_new_ prefix
       if (/^land\.mk\.co\.kr$/i.test(parsed.hostname) && !/^\/(files|files_new_)/i.test(parsed.pathname)) return;

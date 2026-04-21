@@ -29,9 +29,11 @@ const DAANGN_MIN_AREA_M2 = (() => {
 const IMAGE_EXT_RE = /(\.jpg|\.jpeg|\.png|\.webp|\.gif|\.avif|\.bmp|\.svg)(\?|$)/i;
 const IMAGE_QUERY_HINT_RE = /(?:[?&])(?:w|width|h|height|s|size|q|fit|format|quality|type)=/i;
 const IMAGE_PATH_BLACKLIST_RE =
-  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|member_profile|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang|agency[-_]profile|business[-_]?profile|bizplatform\/profile|img-profile-user/i;
+  /(?:^|\/)(?:assets\/(?:users|profile)|local-profile|origin\/profile|member\/|member_profile|users?\/|profiles?\/|avatars?\/|default[-_ ]?(?:profile|avatar|image)|user[-_ ]?(?:profile|image)|no[-_]?image|no[-_]?pic|placeholder|blank|dummy|images\/(?:layout|main)|popup|bunyang)(?:$|[./?\/])|hanbanglog|icon_hanbang|agency[-_]profile|business[-_]?profile|bizplatform\/profile|img-profile-user/i;
 const IMAGE_HINT_PATH_RE = /(?:^|\/)(?:image|img|photo|upload|media|cdn|files?)\/?/i;
 const IMAGE_CDN_HOST_RE = /cloudfront\.net|dabangimg|d1774jszgerdmk/i;
+// 부동산 매물 사진이 아닌 것으로 알려진 호스트
+const IMAGE_BLOCKED_HOSTS_RE = /^(?:rter2\.com|asil\.kr|www\.rter2\.com|www\.asil\.kr)$/i;
 
 function isLikelyImageSource(rawUrl) {
   try {
@@ -41,6 +43,7 @@ function isLikelyImageSource(rawUrl) {
     const path = (parsed.pathname || "").toLowerCase();
     const queryHint = `${parsed.search}${parsed.hash || ""}`.toLowerCase();
     if (!path && !queryHint) return false;
+    if (IMAGE_BLOCKED_HOSTS_RE.test(parsed.hostname)) return false;
     if (IMAGE_PATH_BLACKLIST_RE.test(path)) return false;
     if (IMAGE_EXT_RE.test(path)) return true;
     if (IMAGE_QUERY_HINT_RE.test(queryHint)) return true;
