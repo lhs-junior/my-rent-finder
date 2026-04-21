@@ -1251,13 +1251,23 @@ async function persistJobResult(result) {
     workspace,
     results: [result],
   });
+  // withDbClient가 커넥션 단위 재시도, 여기선 Neon 장기 다운 대응 (30s/60s 간격)
+  const MAX_PERSIST_RETRIES = 3;
   try {
-    const persisted = await persistSummaryToDb(miniPath, { runId });
-    console.log(
-      `[STREAM_PERSIST] ${result.name}: ${persisted?.normalizedCount ?? 0}건 DB 저장 완료`,
-    );
+    for (let attempt = 1; attempt <= MAX_PERSIST_RETRIES; attempt++) {
+      try {
+        const persisted = await persistSummaryToDb(miniPath, { runId });
+        console.log(`[STREAM_PERSIST] ${result.name}: ${persisted?.normalizedCount ?? 0}건 DB 저장 완료`);
+        return;
+      } catch (e) {
+        if (attempt >= MAX_PERSIST_RETRIES) throw e;
+        const delay = 30000 * attempt; // 30s, 60s
+        console.warn(`[STREAM_PERSIST] ${result.name} 저장 실패 (${attempt}/${MAX_PERSIST_RETRIES}), ${delay / 1000}s 후 재시도: ${e.message}`);
+        await new Promise((r) => setTimeout(r, delay));
+        await warmUpDb().catch(() => {});
+      }
+    }
   } finally {
-    // 미니 summary 파일은 사용 후 제거
     try { fs.unlinkSync(miniPath); } catch {}
   }
 }
