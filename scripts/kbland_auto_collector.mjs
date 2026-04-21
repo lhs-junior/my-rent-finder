@@ -179,13 +179,17 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
 
 // ── 매물 이미지 URL 수집 (phtoList API) ──
 // returns { urls: string[], isServeOrigin: boolean }
-async function fetchImageUrls(page, listingId) {
+async function fetchImageUrls(_page, listingId) {
   try {
     const url = `https://api.kbland.kr/land-property/property/phtoList?${encodeURIComponent("매물일련번호")}=${listingId}`;
-    const result = await page.evaluate(async (u) => {
-      const r = await fetch(u);
-      return await r.json();
-    }, url);
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Referer": "https://kbland.kr/",
+        "Origin": "https://kbland.kr",
+      },
+    });
+    const result = await res.json();
     const photos = result?.dataBody?.data?.psalePhtoList || [];
     // 파일명에 공백/특수문자 포함 가능 → 마지막 경로 세그먼트만 인코딩
     const urls = photos
