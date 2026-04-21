@@ -243,9 +243,15 @@ function normalizeText(value) {
     .trim();
 }
 
+function isRealDistrict(s) {
+  return typeof s === "string" && /[구군시]$/.test(s.trim());
+}
+
 function buildFallbackAddress(row, rawRecord) {
   const city = normalizeText(row?.sido || row?.city || rawRecord?.sido || rawRecord?.city || DEFAULT_CITY);
-  const gu = normalizeText(row?.sigungu || row?.gu || rawRecord?.sigungu || row?.district || rawRecord?.district);
+  // rawRecord.sigungu가 실제 행정구역(구/군/시로 끝남)일 때만 사용 — "서울숲권역" 같은 수집 범위 인자 제외
+  const rawSigungu = isRealDistrict(rawRecord?.sigungu) ? rawRecord.sigungu : null;
+  const gu = normalizeText(row?.sigungu || row?.gu || row?.district || rawRecord?.district || rawSigungu);
   const dong = normalizeText(
     row?.dong || row?.dongName || row?.town || row?.읍면동 || rawRecord?.dongName || rawRecord?.dong,
   );
@@ -259,7 +265,7 @@ function enrichDabangRow(row, rawRecord) {
   if (!next.sido && !next.city && !next.city_name) {
     next.sido = DEFAULT_CITY;
   }
-  if (!next.sigungu && rawRecord?.sigungu) {
+  if (!next.sigungu && isRealDistrict(rawRecord?.sigungu)) {
     next.sigungu = rawRecord.sigungu;
   }
   if (!next.dongName && rawRecord?.dongName) {

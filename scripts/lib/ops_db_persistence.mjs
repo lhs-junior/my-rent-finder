@@ -1444,13 +1444,17 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       area_gross_m2_min = EXCLUDED.area_gross_m2_min,
       area_gross_m2_max = EXCLUDED.area_gross_m2_max,
       area_claimed = EXCLUDED.area_claimed,
-      address_text = EXCLUDED.address_text,
+      address_text = CASE
+        WHEN EXCLUDED.address_text LIKE '%구%' THEN EXCLUDED.address_text
+        WHEN normalized_listings.address_text LIKE '%구%' THEN normalized_listings.address_text
+        ELSE COALESCE(EXCLUDED.address_text, normalized_listings.address_text)
+      END,
       address_code = EXCLUDED.address_code,
       room_count = EXCLUDED.room_count,
-      bathroom_count = EXCLUDED.bathroom_count,
+      bathroom_count = COALESCE(EXCLUDED.bathroom_count, normalized_listings.bathroom_count),
       floor = EXCLUDED.floor,
       total_floor = EXCLUDED.total_floor,
-      direction = EXCLUDED.direction,
+      direction = COALESCE(EXCLUDED.direction, normalized_listings.direction),
       building_use = EXCLUDED.building_use,
       building_name = EXCLUDED.building_name,
       agent_name = EXCLUDED.agent_name,
@@ -1464,7 +1468,7 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       sale_price = EXCLUDED.sale_price,
       loan_amount = EXCLUDED.loan_amount,
       building_year = EXCLUDED.building_year,
-      description_text = EXCLUDED.description_text,
+      description_text = COALESCE(EXCLUDED.description_text, normalized_listings.description_text),
       cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
       monthly_management_cost = EXCLUDED.monthly_management_cost,
       walk_time_to_subway = EXCLUDED.walk_time_to_subway,
