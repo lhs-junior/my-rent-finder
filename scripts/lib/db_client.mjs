@@ -212,8 +212,8 @@ export function getDbConfig() {
     const cfg = {
       connectionString: process.env.DATABASE_URL,
       connectionTimeoutMillis: 15000,
-      // 10s: dead connection을 30s 대기 대신 빠르게 감지 → withDbClient 새 커넥션 재시도 진입 단축
-      query_timeout: 10000,
+      // 25s: Neon 로드 스파이크(~20s) 허용하면서 dead connection은 30s보다 빠르게 감지
+      query_timeout: 25000,
     };
     if (process.env.DATABASE_URL.includes("neon.tech") || process.env.DATABASE_URL.includes("sslmode=require")) {
       cfg.ssl = { rejectUnauthorized: false };
