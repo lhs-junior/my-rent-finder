@@ -68,24 +68,62 @@ async function getClusters(page, district) {
   const d = DISTRICTS[district];
   if (!d) throw new Error(`Unknown district: ${district}`);
 
-  // 지도 페이지로 이동
   const mapUrl = `https://kbland.kr/map?xy=${d.lat},${d.lng},15`;
-  await page.goto(mapUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-  // Vuex markerMaemulList가 채워질 때까지 폴링 (최대 20초)
+  // 네트워크 인터셉트로 마커 API 응답 직접 캡처 (Vuex 의존 없이)
+  let networkClusters = [];
+  const markerPromise = page.waitForResponse(
+    (resp) => resp.url().includes("markerMaemulList"),
+    { timeout: 25000 },
+  ).then(async (resp) => {
+    try {
+      const json = await resp.json();
+      const list = json?.dataBody?.data?.markerMaemulList
+        || json?.dataBody?.data
+        || [];
+      if (Array.isArray(list)) {
+        networkClusters = list
+          .map((m) => ({
+            id: m.클러스터식별자,
+            count: m.매물개수,
+            lat: m.wgs84위도,
+            lng: m.wgs84경도,
+          }))
+          .filter((c) => c.id && c.count > 0)
+          .sort((a, b) => b.count - a.count);
+      }
+    } catch { /* 파싱 실패 → Vuex fallback 사용 */ }
+  }).catch(() => { /* 타임아웃 → Vuex fallback 사용 */ });
+
+  await page.goto(mapUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  await markerPromise;
+
+  if (networkClusters.length > 0) {
+    return networkClusters;
+  }
+
+  // Fallback: Vuex 폴링 (Vue 2 / Vue 3 양쪽 시도)
   const pollExtract = () =>
     page.evaluate(() => {
-      const vm = document.querySelector("#app")?.__vue__;
-      const list = vm?.$store?.state?.map?.markerMaemulList || [];
-      return list
-        .map((m) => ({
-          id: m.클러스터식별자,
-          count: m.매물개수,
-          lat: m.wgs84위도,
-          lng: m.wgs84경도,
-        }))
+      // Vue 2: #app.__vue__.$store
+      const vm2 = document.querySelector("#app")?.__vue__;
+      const list2 = vm2?.$store?.state?.map?.markerMaemulList;
+      if (Array.isArray(list2) && list2.length > 0) return list2
+        .map((m) => ({ id: m.클러스터식별자, count: m.매물개수, lat: m.wgs84위도, lng: m.wgs84경도 }))
         .filter((c) => c.id && c.count > 0)
         .sort((a, b) => b.count - a.count);
+
+      // Vue 3: #app.__vue_app__ globalProperties
+      const app3 = document.querySelector("#app")?.__vue_app__;
+      const store3 = app3?.config?.globalProperties?.$store;
+      const list3 = store3?.state?.map?.markerMaemulList
+        || store3?.state?.value?.map?.markerMaemulList;
+      if (Array.isArray(list3) && list3.length > 0) return list3
+        .map((m) => ({ id: m.클러스터식별자, count: m.매물개수, lat: m.wgs84위도, lng: m.wgs84경도 }))
+        .filter((c) => c.id && c.count > 0)
+        .sort((a, b) => b.count - a.count);
+
+      return [];
     });
 
   const MAX_WAIT_MS = 20000;
@@ -158,15 +196,23 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
   });
 
   // /cl/ 페이지로 이동 → 사이트가 propList/filter 자동 호출
+  // waitForResponse를 goto 전에 등록해야 응답 누락 없음
+  const filterResponsePromise = page.waitForResponse(
+    (r) => r.url().includes("propList/filter"),
+    { timeout: 15000 },
+  ).catch(() => null);
+
   try {
     await page.goto(`https://kbland.kr/cl/${clusterId}?xy=${lat},${lng},17`, {
       waitUntil: "domcontentloaded",
       timeout: 20000,
     });
-    await page.waitForTimeout(3000);
   } catch (navErr) {
     console.warn(`     ⚠ 네비게이션 실패 (cluster ${clusterId}): ${navErr.message}`);
   }
+
+  // API 응답이 올 때까지 대기 (최대 15초, 고정 3초 대신)
+  await filterResponsePromise;
 
   // 인터셉터 해제
   await page.unroute("**/propList/filter");
@@ -549,7 +595,13 @@ async function main() {
       clusterIdx++;
       visitedClusters.add(cluster.id);
 
-      const { listings, status } = await fetchClusterListings(page, cluster.id, cluster.lat, cluster.lng);
+      let { listings, status } = await fetchClusterListings(page, cluster.id, cluster.lat, cluster.lng);
+      // 빈 결과 시 1회 재시도 (타이밍 문제 대비)
+      if (listings.length === 0) {
+        await page.waitForTimeout(1500);
+        ({ listings, status } = await fetchClusterListings(page, cluster.id, cluster.lat, cluster.lng));
+        if (listings.length > 0) console.log(`     ↩ 재시도 성공 (cluster ${cluster.id})`);
+      }
 
       let newCount = 0;
       for (const item of listings) {
