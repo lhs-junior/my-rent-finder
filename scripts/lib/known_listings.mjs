@@ -42,6 +42,7 @@ export async function getExistingWithImages(platformCode, externalIds, opts = {}
 const ALLOWED_EXTRA_FIELDS = new Set([
   "description_text", "bathroom_count", "building_year",
   "available_date", "jibun_address", "agent_name", "building_name",
+  "direction",
 ]);
 
 export async function getExistingWithImagesAndFields(platformCode, externalIds, requiredFields = [], opts = {}) {

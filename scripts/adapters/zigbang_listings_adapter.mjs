@@ -496,17 +496,23 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       }
     }
 
-    // roomType Korean string을 항상 우선 적용 (rooms 같은 숫자 필드보다 신뢰도 높음)
-    const roomTypeStr = raw.room_type || raw.roomType;
+    // v3 API의 한국어 roomType 우선, batch API의 숫자 코드(room_type) 는 fallback
+    const roomTypeStr = raw.roomType || raw.room_type;
     if (roomTypeStr) {
       const s = String(roomTypeStr).trim();
       let derived = null;
       if (/원룸/.test(s)) derived = 1;
       else if (/투룸/.test(s)) derived = 2;
       else if (/쓰리룸|3룸/.test(s)) derived = 3;
+      else if (/포룸|4룸/.test(s)) derived = 4;
       else {
         const m = /([1-9])\s*룸/.exec(s);
         if (m) derived = Number(m[1]);
+      }
+      // batch API 숫자 코드 매핑 ("01"~"04")
+      if (derived === null) {
+        const codeMap = { "01": 1, "02": 2, "03": 3, "04": 4, "1": 1, "2": 2, "3": 3, "4": 4 };
+        derived = codeMap[s] ?? null;
       }
       if (derived !== null) item.room_count = derived;
     }

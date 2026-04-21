@@ -16,7 +16,7 @@ import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
 import path from "node:path";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 chromium.use(StealthPlugin());
 
@@ -1253,7 +1253,7 @@ async function collectZigbang() {
   }
 
   const allIds = finalListings.map(getItemId).filter(Boolean).map(String);
-  const knownIds = enrichDetail ? await getExistingWithImages("zigbang", allIds, { maxAgeHours: 72 }) : new Set();
+  const knownIds = enrichDetail ? await getExistingWithImagesAndFields("zigbang", allIds, ["description_text", "bathroom_count", "direction"], { maxAgeHours: 72 }) : new Set();
   if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
 
   const detailStats = await enrichListingsWithV3Detail(finalListings, { knownIds });
