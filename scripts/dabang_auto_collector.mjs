@@ -72,28 +72,22 @@ const minPyeong = Math.max(1, Math.floor(minAreaM2 / 3.306));
 // ============================================================================
 
 const DISTRICT_COORDS = {
-  "서울숲권역": { lat: 37.5473, lng: 127.0490 },
   "노원구":   { lat: 37.6542, lng: 127.0568 },
   "중랑구":   { lat: 37.5953, lng: 127.0937 },
   "동대문구": { lat: 37.5744, lng: 127.0396 },
   "광진구":   { lat: 37.5384, lng: 127.0822 },
   "성북구":   { lat: 37.5894, lng: 127.0167 },
   "성동구":   { lat: 37.5633, lng: 127.0371 },
-  "중구":     { lat: 37.5641, lng: 126.9979 },
-  "종로구":   { lat: 37.5735, lng: 126.9790 },
 };
 
 // Bounding boxes for location filtering (same as zigbang)
 const DISTRICT_BBOX = {
-  "서울숲권역": { sw_lat: 37.5300, sw_lng: 126.9900, ne_lat: 37.6350, ne_lng: 127.1200 },
   "노원구":   { sw_lat: 37.6200, sw_lng: 127.0200, ne_lat: 37.6900, ne_lng: 127.1000 },
   "중랑구":   { sw_lat: 37.5800, sw_lng: 127.0600, ne_lat: 37.6350, ne_lng: 127.1200 },
   "동대문구": { sw_lat: 37.5550, sw_lng: 127.0100, ne_lat: 37.5950, ne_lng: 127.0700 },
   "광진구":   { sw_lat: 37.5200, sw_lng: 127.0550, ne_lat: 37.5600, ne_lng: 127.1100 },
-  "성북구":   { sw_lat: 37.5700, sw_lng: 126.9900, ne_lat: 37.6100, ne_lng: 127.0450 },
+  "성북구":   { sw_lat: 37.5700, sw_lng: 127.0000, ne_lat: 37.6100, ne_lng: 127.0450 },
   "성동구":   { sw_lat: 37.5400, sw_lng: 127.0100, ne_lat: 37.5850, ne_lng: 127.0650 },
-  "중구":     { sw_lat: 37.5450, sw_lng: 126.9700, ne_lat: 37.5800, ne_lng: 127.0200 },
-  "종로구":   { sw_lat: 37.5500, sw_lng: 126.9500, ne_lat: 37.6000, ne_lng: 127.0100 },
 };
 
 const district = DISTRICT_COORDS[sigungu];
