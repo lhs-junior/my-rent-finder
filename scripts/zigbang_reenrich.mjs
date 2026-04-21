@@ -14,7 +14,7 @@ function sleep(ms) {
 
 await withDbClient(async (db) => {
   const { rows } = await db.query(`
-    SELECT listing_id, source_ref, direction, floor, total_floor
+    SELECT listing_id, source_ref, raw_id, direction, floor, total_floor
     FROM normalized_listings
     WHERE platform_code = 'zigbang' AND deleted_at IS NULL
     ORDER BY listing_id
@@ -53,11 +53,13 @@ await withDbClient(async (db) => {
       description_text:        derived.description_text      ?? null,
     };
 
+    const imgUrls = Array.isArray(derived.image_urls) ? derived.image_urls : [];
+
     console.log(
       `  ${row.source_ref}: room=${patch.room_count} dir=${patch.direction}` +
       ` floor=${patch.floor}/${patch.total_floor} bath=${patch.bathroom_count}` +
       ` year=${patch.building_year} mgmt=${patch.monthly_management_cost}` +
-      ` park=${patch.parking_possible} avail=${patch.available_date}`,
+      ` imgs=${imgUrls.length}`,
     );
 
     if (!DRY_RUN) {
@@ -89,6 +91,18 @@ await withDbClient(async (db) => {
           patch.description_text,
         ],
       );
+
+      if (imgUrls.length > 0) {
+        await db.query(`DELETE FROM listing_images WHERE listing_id = $1`, [row.listing_id]);
+        for (let i = 0; i < imgUrls.length; i++) {
+          await db.query(
+            `INSERT INTO listing_images (listing_id, raw_id, source_url, status, is_primary)
+             VALUES ($1, $2, $3, 'queued', $4)
+             ON CONFLICT (listing_id, source_url) DO NOTHING`,
+            [row.listing_id, row.raw_id ?? null, imgUrls[i], i === 0],
+          );
+        }
+      }
     }
 
     updated++;
