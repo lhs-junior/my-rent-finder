@@ -523,14 +523,15 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
     if (normalizedCode === "zigbang") {
       const zigbangSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...zigbangSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
-          ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
-        ].filter(Boolean),
+          ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       if (sigunguCandidates.length === 0) {
@@ -618,14 +619,15 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
 
     if (normalizedCode === "peterpanz") {
       const ppSigunguFromTarget = extractSigunguCandidates(targets);
+      const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...ppSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
-          ...(fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
-        ].filter(Boolean),
+          ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       if (sigunguCandidates.length === 0) {
@@ -1002,12 +1004,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
       const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...serveSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
           ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["성동구"]),
-        ].filter(Boolean),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       const perSigunguCap = splitCap(sampleCap, sigunguCandidates.length);
