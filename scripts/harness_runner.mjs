@@ -131,6 +131,7 @@ const phaseTimes = {};
 // Phase 1: Collection + Quality Gate
 // ═══════════════════════════════════════════
 let collectionResult;
+let lastSummary = null;
 
 if (!skipCollect) {
   phaseTimes.collection_start = Date.now();
@@ -143,7 +144,6 @@ if (!skipCollect) {
   if (!hasArg(args, "--normalize")) collectArgs.push("--normalize");
 
   let retries = 0;
-  let lastSummary = null;
   while (retries <= COLLECTION_THRESHOLDS.maxRetries) {
     try {
       runPhase(`collection (attempt ${retries + 1})`, collectScript, collectArgs);
