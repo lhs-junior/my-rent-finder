@@ -3,7 +3,7 @@ import { resolveExternalListingUrl } from "../utils/listing-url.js";
 import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
-const GRADE_COLORS = { SS: "#dc2626", S: "#f59e0b", A: "#3b82f6", B: "#6b7280" };
+const GRADE_COLORS = { SS: "#dc2626", S: "#f59e0b", A: "#3b82f6" };
 
 function ScoreBadge({ grade, score }) {
   return (

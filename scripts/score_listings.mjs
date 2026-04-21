@@ -366,7 +366,7 @@ async function main() {
       if (r.total_score >= opts.thresholdSS) grade = "SS";
       else if (r.total_score >= opts.thresholdS) grade = "S";
       else if (r.total_score >= opts.thresholdA) grade = "A";
-      else grade = "B";
+      else return null; // A 미만 탈락 — 저장 불필요
 
       // 실질 월비용 = 월세 + (보증금 × 연이율 / 12)
       const effectiveMonthlyCost = r.deposit_amount > 0
@@ -374,7 +374,7 @@ async function main() {
         : r.rent_amount;
 
       return { ...r, grade, effectiveMonthlyCost };
-    });
+    }).filter(Boolean);
 
     const ssGrade = graded.filter((r) => r.grade === "SS");
     const sGrade = graded.filter((r) => r.grade === "S");
@@ -396,7 +396,6 @@ async function main() {
     console.log(`\n  SS급 (${opts.thresholdSS}점↑): ${ssGrade.length}개`);
     console.log(`  S급 (${opts.thresholdS}~${opts.thresholdSS - 1}점): ${sGrade.length}개`);
     console.log(`  A급 (${opts.thresholdA}~${opts.thresholdS - 1}점): ${aGrade.length}개`);
-    console.log(`  B급 (${opts.thresholdA}점↓): ${graded.length - ssGrade.length - sGrade.length - aGrade.length}개`);
 
     // 상위 매물 미리보기 (SS급 상위 5개)
     if (ssGrade.length > 0) {
@@ -414,7 +413,7 @@ async function main() {
       }
     }
 
-    if (opts.dryRun) return { total: graded.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
+    if (opts.dryRun) return { total: rows.length, ssCount: ssGrade.length, sCount: sGrade.length, aCount: aGrade.length, saved: false };
 
     // 2) scored_listings 전체 갱신 — 트랜잭션으로 원자성 보장
     // BEGIN/COMMIT: DELETE + INSERT를 하나의 트랜잭션으로 묶어 FK 위반 방지

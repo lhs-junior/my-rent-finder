@@ -175,7 +175,7 @@ export async function handleScoresSummary(req, res) {
         JOIN normalized_listings nl ON nl.listing_id = sl.listing_id
         WHERE sl.grade IS NOT NULL AND sl.grade != 'REJECT' AND nl.deleted_at IS NULL
         GROUP BY sl.grade
-        ORDER BY CASE sl.grade WHEN 'SS' THEN 1 WHEN 'S' THEN 2 WHEN 'A' THEN 3 WHEN 'B' THEN 4 ELSE 5 END
+        ORDER BY CASE sl.grade WHEN 'SS' THEN 1 WHEN 'S' THEN 2 WHEN 'A' THEN 3 ELSE 4 END
       `);
       return rows.map((r) => ({
         grade: r.grade,
