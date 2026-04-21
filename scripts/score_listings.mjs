@@ -149,10 +149,13 @@ const SUBWAY_STATIONS = [
 //   반지하/지하, 옥탑, 1룸/원룸, 사진0장, 근린생활시설, 전입불가,
 //   RPM<0.8(데이터오류), --max-rent 초과
 // price_outlier 플래그: RPM > 구별평균*1.5 → quality_flags에 기록 (탈락 아님)
-function buildScoreQuery(maxRent) {
+function buildScoreQuery(maxRent, interestRate = 0.04) {
   const maxRentClause = maxRent
     ? `WHEN n.rent_amount > ${Number(maxRent)} THEN -99  -- 예산 초과`
     : "";
+  // 실질 RPM = (월세 + 보증금×이자율/12) / 전용면적
+  const effectiveRpm = `(n.rent_amount + n.deposit_amount * ${interestRate} / 12.0) / NULLIF(n.area_exclusive_m2, 0)`;
+  const districtRpm = `(rent_amount + deposit_amount * ${interestRate} / 12.0) / NULLIF(area_exclusive_m2, 0)`;
 
   return `
 WITH district_rpm AS (
@@ -164,7 +167,7 @@ WITH district_rpm AS (
     AVG(rpm) AS avg_rpm
   FROM (
     SELECT SPLIT_PART(address_text, ' ', 2) AS district,
-           rent_amount / NULLIF(area_exclusive_m2, 0) AS rpm
+           ${districtRpm} AS rpm
     FROM normalized_listings
     WHERE lease_type = '월세' AND deleted_at IS NULL
       AND rent_amount > 0 AND area_exclusive_m2 > 0
@@ -236,13 +239,13 @@ scored AS (
       ELSE 0
     END AS eliminate,
 
-    -- ② 가성비 RPM 0~4점 (구별 m²당 월세 순위, 낮을수록 좋음)
+    -- ② 가성비 RPM 0~4점 (구별 실질m²당 월비용 순위, 낮을수록 좋음)
     CASE
       WHEN n.rent_amount <= 0 OR n.area_exclusive_m2 <= 0 OR d.p25 IS NULL THEN 0
-      WHEN (n.rent_amount / n.area_exclusive_m2) <= d.p25 THEN 4
-      WHEN (n.rent_amount / n.area_exclusive_m2) <= d.p50 THEN 3
-      WHEN (n.rent_amount / n.area_exclusive_m2) <= d.p75 THEN 2
-      WHEN (n.rent_amount / n.area_exclusive_m2) <= d.avg_rpm THEN 1
+      WHEN ${effectiveRpm} <= d.p25 THEN 4
+      WHEN ${effectiveRpm} <= d.p50 THEN 3
+      WHEN ${effectiveRpm} <= d.p75 THEN 2
+      WHEN ${effectiveRpm} <= d.avg_rpm THEN 1
       ELSE 0
     END AS rpm_score,
 
@@ -354,7 +357,7 @@ async function main() {
   console.log(`  A급 기준: ${opts.thresholdA}~${opts.thresholdS - 1}점`);
   if (opts.dryRun) console.log("  [DRY RUN] 저장하지 않고 집계만 수행");
 
-  const scoreQuery = buildScoreQuery(opts.maxRent);
+  const scoreQuery = buildScoreQuery(opts.maxRent, opts.interestRate);
 
   const result = await withDbClient(async (client) => {
     // 1) 점수 계산
