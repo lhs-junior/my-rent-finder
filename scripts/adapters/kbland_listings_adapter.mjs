@@ -14,7 +14,7 @@ const KBLAND_FIELD_HINTS = {
   areaGrossKeys: ["supplyArea", "area_gross_m2"],
   // rooms: 개별 매물 방수 (1~3이 99.5%), 5이상은 건물 총합이므로 post-processing에서 cap
   roomCountKeys: ["room_count", "rooms"],
-  bathroomCountKeys: ["bathroom_count"],
+  bathroomCountKeys: ["bathroomCount", "bathroom_count"],
   floorKeys: ["floor"],
   totalFloorKeys: ["totalFloor", "total_floor"],
   buildingUseKeys: ["propertyType", "building_use"],
@@ -23,7 +23,8 @@ const KBLAND_FIELD_HINTS = {
   imageKeys: ["imageUrls", "image_urls"],
   salePriceKeys: ["salePrice", "dealAmount", "price"],
   loanAmountKeys: ["loanAmount", "loan"],
-  buildingYearKeys: ["useApproveYmd", "buildYear", "builtYear"],
+  buildingYearKeys: ["approveDate", "useApproveYmd", "buildYear", "builtYear"],
+  descriptionKeys: ["description"],
   listHintPaths: ["payload_json"],
 };
 

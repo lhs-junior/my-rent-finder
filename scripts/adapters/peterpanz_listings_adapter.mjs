@@ -88,7 +88,7 @@ export class PeterpanzListingAdapter extends BaseUserOnlyAdapter {
       lease_type: raw.type?.contract_type || null,
       rent_amount: raw.price?.monthly_fee != null ? Math.round(raw.price.monthly_fee / 10000) : null,
       deposit_amount: raw.price?.deposit != null ? Math.round(raw.price.deposit / 10000) : null,
-      maintenance_cost: raw.price?.maintenance_cost != null ? Math.round(raw.price.maintenance_cost / 10000) : null,
+      monthly_management_cost: raw.price?.maintenance_cost != null ? Math.round(raw.price.maintenance_cost / 10000) : null,
       area_exclusive_m2: raw.info?.real_size || null,
       area_gross_m2: raw.info?.supplied_size || null,
       floor: raw.floor?.target ?? null,
