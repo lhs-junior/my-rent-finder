@@ -9,35 +9,43 @@ function makeItem(hidx, hasImages = false) {
   };
 }
 
-describe("enrichPeterpanzListingsWithDetailImages — known listing skip", () => {
-  it("known hidx → imageFetcher 미호출", async () => {
-    const called = [];
-    const mockFetcher = async (hidx) => { called.push(hidx); return ["https://img.example.com/a.jpg"]; };
+// mockFetcher는 fetchPeterpanzDetailData 시그니처를 따름: { imageUrls, ...extraFields }
+function makeMockFetcher(called, imageUrls = []) {
+  return async (hidx) => { called.push(hidx); return { imageUrls }; };
+}
 
-    const items = [makeItem(111), makeItem(222), makeItem(333)];
+describe("enrichPeterpanzListingsWithDetailImages — known listing skip", () => {
+  it("known + 이미지 있음만 skip, known + 이미지 없음은 fetch", async () => {
+    const called = [];
+    const mockFetcher = makeMockFetcher(called, ["https://img.example.com/a.jpg"]);
+
+    // 111: known + 이미지 없음 → fetch
+    // 222: unknown + 이미지 없음 → fetch
+    // 333: known + 이미지 있음 → skip
+    const items = [makeItem(111), makeItem(222), makeItem(333, true)];
     const knownIds = new Set(["111", "333"]);
 
     const result = await enrichPeterpanzListingsWithDetailImages(items, { knownIds, imageFetcher: mockFetcher });
 
-    expect(called).toEqual([222]);
-    expect(result.enrichedCount).toBe(1);
+    expect(called).toEqual([111, 222]);
+    expect(result.enrichedCount).toBe(2);
   });
 
-  it("이미 이미지 있는 항목은 known 여부와 무관하게 fetch 스킵", async () => {
+  it("unknown + 이미지 있음도 fetch (추가 필드 채우기)", async () => {
     const called = [];
-    const mockFetcher = async (hidx) => { called.push(hidx); return []; };
+    const mockFetcher = makeMockFetcher(called);
 
     const items = [makeItem(10, true), makeItem(20, false)];
     const knownIds = new Set();
 
     await enrichPeterpanzListingsWithDetailImages(items, { knownIds, imageFetcher: mockFetcher });
 
-    expect(called).toEqual([20]);
+    expect(called).toEqual([10, 20]);
   });
 
   it("모두 unknown → 전부 fetch 시도", async () => {
     const called = [];
-    const mockFetcher = async (hidx) => { called.push(hidx); return []; };
+    const mockFetcher = makeMockFetcher(called);
 
     const items = [makeItem(1), makeItem(2), makeItem(3)];
     await enrichPeterpanzListingsWithDetailImages(items, { imageFetcher: mockFetcher });
@@ -45,9 +53,9 @@ describe("enrichPeterpanzListingsWithDetailImages — known listing skip", () =>
     expect(called).toEqual([1, 2, 3]);
   });
 
-  it("known인 경우 item은 그대로 보존(이미지 없어도 통과)", async () => {
-    const mockFetcher = async () => [];
-    const items = [makeItem(99)];
+  it("known + 이미지 있음 → skip, enrichedCount에 포함 안 됨", async () => {
+    const mockFetcher = makeMockFetcher([]);
+    const items = [makeItem(99, true)];
     const knownIds = new Set(["99"]);
 
     const result = await enrichPeterpanzListingsWithDetailImages(items, { knownIds, imageFetcher: mockFetcher });

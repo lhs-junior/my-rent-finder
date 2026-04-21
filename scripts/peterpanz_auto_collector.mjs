@@ -224,9 +224,56 @@ export function extractPeterpanzDetailImageUrlsFromHtml(html) {
   return dedupeStrings(candidates.map(toOriginImageUrl).filter(Boolean));
 }
 
-export async function fetchPeterpanzDetailImageUrls(hidx, options = {}) {
+/**
+ * HTML에서 이미지 URL + 상세 필드(description_text, bathroom_count, building_year 등)를 한 번에 추출.
+ * var aptInfo = {...} 인라인 JSON을 파싱하는 것이 핵심.
+ */
+export function extractPeterpanzDetailDataFromHtml(html) {
+  const source = String(html || "");
+  const imageUrls = extractPeterpanzDetailImageUrlsFromHtml(source);
+
+  let aptInfo = null;
+  const aptMatch = source.match(/var\s+aptInfo\s*=\s*(\{[\s\S]*?\});\s*(?:var\s|let\s|const\s|<\/script>)/);
+  if (aptMatch) {
+    try { aptInfo = JSON.parse(aptMatch[1]); } catch { /* ignore */ }
+  }
+
+  if (!aptInfo) return { imageUrls };
+
+  const descRaw = aptInfo.description || aptInfo.pp_details || null;
+  const description_text = descRaw && String(descRaw).trim() ? String(descRaw).trim() : null;
+
+  const bathroom_count = aptInfo.bathroom_count != null ? Number(aptInfo.bathroom_count) : null;
+
+  // building_date: "2001-09-29" → 2001, build_year가 null인 경우 fallback
+  const buildingDateRaw = aptInfo.build_year || aptInfo.building_date || null;
+  const building_year = buildingDateRaw ? parseInt(String(buildingDateRaw), 10) : null;
+
+  const moveText = String(aptInfo.move_text || aptInfo.move_date || "").trim();
+  const available_date = moveText || null;
+
+  const jibun_address = String(aptInfo.jibun_address || "").trim() || null;
+
+  const direction = String(aptInfo.direction || "").trim() || null;
+
+  // agent_name: JSON-LD Product의 offers.offeredBy.name
+  let agent_name = null;
+  for (const m of source.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const d = JSON.parse(m[1]);
+      if (d?.offers?.offeredBy?.name) {
+        agent_name = String(d.offers.offeredBy.name).trim() || null;
+        break;
+      }
+    } catch { /* ignore */ }
+  }
+
+  return { imageUrls, description_text, bathroom_count, building_year, available_date, jibun_address, direction, agent_name };
+}
+
+export async function fetchPeterpanzDetailData(hidx, options = {}) {
   const listingId = String(hidx || "").trim();
-  if (!listingId) return [];
+  if (!listingId) return { imageUrls: [] };
 
   const fetchImpl = typeof options.fetchImpl === "function" ? options.fetchImpl : fetch;
   const resp = await fetchImpl(`https://www.peterpanz.com/house/${encodeURIComponent(listingId)}`, {
@@ -235,39 +282,59 @@ export async function fetchPeterpanzDetailImageUrls(hidx, options = {}) {
     signal: options.signal ?? AbortSignal.timeout(12000),
   });
 
-  if (!resp.ok) {
-    throw new Error(`detail_http_${resp.status}`);
-  }
+  if (!resp.ok) throw new Error(`detail_http_${resp.status}`);
 
   const html = await resp.text();
-  return extractPeterpanzDetailImageUrlsFromHtml(html);
+  return extractPeterpanzDetailDataFromHtml(html);
 }
 
-export async function enrichPeterpanzListingsWithDetailImages(items, { knownIds = new Set(), imageFetcher = fetchPeterpanzDetailImageUrls } = {}) {
+// backward compat — backfill_peterpanz_images.mjs 등에서 사용
+export async function fetchPeterpanzDetailImageUrls(hidx, options = {}) {
+  const data = await fetchPeterpanzDetailData(hidx, options);
+  return data.imageUrls;
+}
+
+export async function enrichPeterpanzListingsWithDetailImages(items, { knownIds = new Set(), imageFetcher = fetchPeterpanzDetailData } = {}) {
   let enrichedCount = 0;
   let skippedKnown = 0;
 
   for (const item of items) {
     if (!item?.hidx) continue;
-    if (collectPeterpanzImageUrls(item).length > 0) continue;
 
-    if (knownIds.has(String(item.hidx))) {
+    const hasImages = collectPeterpanzImageUrls(item).length > 0;
+    const isKnown = knownIds.has(String(item.hidx));
+
+    // known 매물이고 이미지도 있으면 skip (추가 필드는 DB에 이미 있을 것)
+    if (isKnown && hasImages) {
       skippedKnown++;
       continue;
     }
 
     try {
-      const detailImages = await imageFetcher(item.hidx);
-      if (detailImages.length === 0) continue;
-      item.image_urls_origin = detailImages;
-      item.info = { ...(item.info || {}) };
-      if (!item.info.thumbnail) {
-        item.info.thumbnail = detailImages[0];
+      const detail = await imageFetcher(item.hidx);
+
+      // 이미지 병합 (없을 때만)
+      if (!hasImages && detail.imageUrls?.length > 0) {
+        item.image_urls_origin = detail.imageUrls;
+        item.info = { ...(item.info || {}) };
+        if (!item.info.thumbnail) item.info.thumbnail = detail.imageUrls[0];
       }
+
+      // 추가 필드 병합
+      if (detail.description_text) item.description_text = detail.description_text;
+      if (detail.bathroom_count != null) item.bathroom_count = detail.bathroom_count;
+      if (detail.building_year != null) item.building_year = detail.building_year;
+      if (detail.available_date) item.available_date = detail.available_date;
+      if (detail.jibun_address) item.jibun_address = detail.jibun_address;
+      if (detail.direction && !item.info?.direction) {
+        item.info = { ...(item.info || {}), direction: detail.direction };
+      }
+      if (detail.agent_name) item.agent_name = detail.agent_name;
+
       enrichedCount += 1;
       await sleep(120);
     } catch (error) {
-      vlog(`detail image fallback failed for ${item.hidx}: ${error.message}`);
+      vlog(`detail fetch failed for ${item.hidx}: ${error.message}`);
     }
   }
 
@@ -649,14 +716,13 @@ async function collectPeterpanz() {
       log(`After sample cap: ${selected.length} items`);
     }
 
-    const missingImageBefore = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
-    if (missingImageBefore > 0) {
-      log(`Image fallback: checking ${missingImageBefore} image-poor listings via detail pages`);
+    if (selected.length > 0) {
+      log(`Detail fetch: enriching ${selected.length} listings (images + description/bathroom/year/address/agent)`);
       const allHidx = selected.filter((item) => item?.hidx).map((item) => String(item.hidx));
       const knownIds = await getExistingWithImages("peterpanz", allHidx, { maxAgeHours: 72 });
       const enriched = await enrichPeterpanzListingsWithDetailImages(selected, { knownIds });
       const missingImageAfter = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
-      log(`Image fallback: enriched ${enriched.enrichedCount}, remaining missing ${missingImageAfter}`);
+      log(`Detail fetch: enriched ${enriched.enrichedCount}, image-missing ${missingImageAfter}`);
     }
 
     // ---- Write raw JSONL ----
