@@ -30,6 +30,8 @@ function parseArgs() {
     thresholdS: Number(args["threshold-s"]) || 10,
     thresholdA: Number(args["threshold-a"]) || 8,
     maxRent: args["max-rent"] ? Number(args["max-rent"]) : null,
+    maxEffectiveCost: args["max-effective-cost"] ? Number(args["max-effective-cost"]) : 85,
+    maxDeposit: args["max-deposit"] ? Number(args["max-deposit"]) : 10000,
     interestRate: Number(args["interest-rate"]) || 0.04,
     dryRun: args["dry-run"] === "true",
   };
@@ -149,9 +151,15 @@ const SUBWAY_STATIONS = [
 //   반지하/지하, 옥탑, 1룸/원룸, 사진0장, 근린생활시설, 전입불가,
 //   RPM<0.8(데이터오류), --max-rent 초과
 // price_outlier 플래그: RPM > 구별평균*1.5 → quality_flags에 기록 (탈락 아님)
-function buildScoreQuery(maxRent, interestRate = 0.04) {
+function buildScoreQuery(maxRent, interestRate = 0.04, maxEffectiveCost = 85, maxDeposit = 10000) {
   const maxRentClause = maxRent
     ? `WHEN n.rent_amount > ${Number(maxRent)} THEN -99  -- 예산 초과`
+    : "";
+  const maxEffectiveCostClause = maxEffectiveCost
+    ? `WHEN (n.rent_amount + n.deposit_amount * ${interestRate} / 12.0) > ${maxEffectiveCost} THEN -99  -- 실질 월비용 초과`
+    : "";
+  const maxDepositClause = maxDeposit
+    ? `WHEN n.deposit_amount > ${maxDeposit} THEN -99  -- 보증금 초과`
     : "";
   // 실질 RPM = (월세 + 보증금×이자율/12) / 전용면적
   const effectiveRpm = `(n.rent_amount + n.deposit_amount * ${interestRate} / 12.0) / NULLIF(n.area_exclusive_m2, 0)`;
@@ -236,6 +244,8 @@ scored AS (
       WHEN n.area_exclusive_m2 > 0 AND n.rent_amount > 0
         AND (n.rent_amount / n.area_exclusive_m2) < 0.8 THEN -99  -- RPM 이상치 (데이터 오류)
       ${maxRentClause}
+      ${maxDepositClause}
+      ${maxEffectiveCostClause}
       ELSE 0
     END AS eliminate,
 
@@ -351,13 +361,15 @@ async function main() {
 
   console.log("── 매물 배점 v3 시작 (가성비+환승 기반, scored_listings 저장) ──");
   if (opts.maxRent) console.log(`  월세 상한: ${opts.maxRent}만원`);
+  if (opts.maxDeposit) console.log(`  보증금 상한: ${opts.maxDeposit}만원`);
+  if (opts.maxEffectiveCost) console.log(`  실질 월비용 상한: ${opts.maxEffectiveCost}만원 (월세 + 보증금×이자율/12)`);
   console.log(`  이자율: ${(opts.interestRate * 100).toFixed(1)}% (실질 월비용 계산용)`);
   console.log(`  SS급 기준: ${opts.thresholdSS}점 이상`);
   console.log(`  S급 기준: ${opts.thresholdS}~${opts.thresholdSS - 1}점`);
   console.log(`  A급 기준: ${opts.thresholdA}~${opts.thresholdS - 1}점`);
   if (opts.dryRun) console.log("  [DRY RUN] 저장하지 않고 집계만 수행");
 
-  const scoreQuery = buildScoreQuery(opts.maxRent, opts.interestRate);
+  const scoreQuery = buildScoreQuery(opts.maxRent, opts.interestRate, opts.maxEffectiveCost, opts.maxDeposit);
 
   const result = await withDbClient(async (client) => {
     // 1) 점수 계산

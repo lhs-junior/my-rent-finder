@@ -319,6 +319,8 @@ if (!hasArg(args, "--skip-score")) {
     const scoreScript = path.resolve(import.meta.dirname, "score_listings.mjs");
     runPhase("score listings", scoreScript, [
       "--interest-rate=0.04",
+      "--max-deposit=10000",
+      "--max-effective-cost=85",
     ]);
     const scoringDurationMs = Date.now() - phaseTimes.scoring_start;
     console.log(`[harness] ✓ score listings complete — ${(scoringDurationMs / 1000).toFixed(1)}s`);
