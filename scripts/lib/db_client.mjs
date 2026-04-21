@@ -212,7 +212,8 @@ export function getDbConfig() {
     const cfg = {
       connectionString: process.env.DATABASE_URL,
       connectionTimeoutMillis: 15000,
-      query_timeout: 30000,
+      // 10s: dead connection을 30s 대기 대신 빠르게 감지 → withDbClient 새 커넥션 재시도 진입 단축
+      query_timeout: 10000,
     };
     if (process.env.DATABASE_URL.includes("neon.tech") || process.env.DATABASE_URL.includes("sslmode=require")) {
       cfg.ssl = { rejectUnauthorized: false };
@@ -252,15 +253,22 @@ pool.on("error", (err) => {
 process.on("SIGTERM", () => pool.end());
 
 export async function withDbClient(handler) {
-  const client = await pool.connect();
-  try {
-    const result = await handler(client);
-    client.release();
-    return result;
-  } catch (err) {
-    // transient 에러(죽은 커넥션)는 pool에 폐기 신호를 전달해 재사용 방지
-    client.release(isTransientDbError(err) ? err : undefined);
-    throw err;
+  const MAX_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const client = await pool.connect();
+    try {
+      const result = await handler(client);
+      client.release();
+      return result;
+    } catch (err) {
+      // transient 에러(죽은 커넥션)는 pool에 폐기 신호 전달
+      client.release(isTransientDbError(err) ? err : undefined);
+      // 비-transient 에러 또는 마지막 시도: 즉시 throw
+      if (!isTransientDbError(err) || attempt >= MAX_RETRIES) throw err;
+      const delay = 500 * (2 ** (attempt - 1)); // 500ms, 1000ms
+      console.warn(`[db] withDbClient retry ${attempt}/${MAX_RETRIES} in ${delay}ms: ${err.message}`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
   }
 }
 
@@ -292,36 +300,26 @@ function isTransientDbError(err) {
   return false;
 }
 
-/**
- * Run a DB query with bounded retry on transient errors (Neon cold-start, pooler hiccups,
- * connection resets, query timeouts). Permanent errors (constraint violations, syntax) are
- * thrown immediately. Default: up to 2 retries with 500ms / 1500ms backoff.
- */
+// 동일 client 내 일시적 네트워크 블립 대응. 새 커넥션 재시도는 withDbClient가 담당.
 export async function queryWithRetry(client, sql, params, options = {}) {
-  const maxAttempts = Math.max(1, options.maxAttempts ?? 3);
+  const maxAttempts = Math.max(1, options.maxAttempts ?? 2);
   const baseDelayMs = options.baseDelayMs ?? 500;
-  let lastErr;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
       return await client.query(sql, params);
     } catch (err) {
-      lastErr = err;
       if (attempt >= maxAttempts || !isTransientDbError(err)) throw err;
       const delay = baseDelayMs * (3 ** (attempt - 1));
       console.warn(`[db] transient error (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms: ${err.message}`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  throw lastErr;
 }
 
-/**
- * Neon cold-start 대응: persist 시작 전 DB를 깨우는 ping.
- * 실패 시 재시도 5회 (최대 ~16초 대기) 후 throw.
- */
+// Neon cold-start 대응: persist 시작 전 DB를 깨우는 ping.
 export async function warmUpDb() {
   return withDbClient((client) =>
-    queryWithRetry(client, "SELECT 1", [], { maxAttempts: 5, baseDelayMs: 1000 }),
+    queryWithRetry(client, "SELECT 1", [], { maxAttempts: 5, baseDelayMs: 2000 }),
   );
 }
 
