@@ -495,7 +495,7 @@ async function collectDabang() {
 
     if (fetchDetail && filtered.length > 0) {
       const allIds = filtered.map((item) => String(item.id));
-      const knownIds = await getExistingWithImages("dabang", allIds);
+      const knownIds = await getExistingWithImages("dabang", allIds, { maxAgeHours: 72 });
       const needDetail = filterKnownFromDetail(filtered, knownIds);
       if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
       log(`Fetching detail for ${needDetail.length} listings via browser context...`);

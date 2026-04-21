@@ -1454,7 +1454,7 @@ async function collectDistrict(districtName, locationId) {
       return RESIDENTIAL_TYPES.has(item["@type"]);
     });
   const allDaangnKeys = residentialItems.map(extractDaangnItemKey).filter(Boolean);
-  const knownDaangnIds = await getExistingWithImages("daangn", allDaangnKeys);
+  const knownDaangnIds = await getExistingWithImages("daangn", allDaangnKeys, { maxAgeHours: 72 });
   if (knownDaangnIds.size > 0) console.log(`  Skipped ${knownDaangnIds.size} known listings (detail fetch)`);
   await hydrateItemsWithDetail(residentialItems, { knownIds: knownDaangnIds });
   if (verbose)

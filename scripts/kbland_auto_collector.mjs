@@ -587,7 +587,7 @@ async function main() {
 
     // known 매물 (DB에 이미 있고 이미지도 있는) → 상세 API 스킵
     const allIds = capped.map((r) => String(r.매물일련번호));
-    const knownIds = await getExistingWithImages("kbland", allIds);
+    const knownIds = await getExistingWithImages("kbland", allIds, { maxAgeHours: 72 });
     if (knownIds.size > 0) console.log(`  Skipped ${knownIds.size} known listings (detail fetch)`);
 
     // 4단계: 이미지 URL 수집 (이미지 있는 매물만, known 제외)

@@ -294,7 +294,7 @@ const ZIGBANG_HEADERS = {
   Referer: "https://www.zigbang.com/",
 };
 
-async function fetchZigbangV3ItemDetail(itemId) {
+export async function fetchZigbangV3ItemDetail(itemId) {
   if (!itemId) return null;
   const safeId = String(itemId).trim();
   if (!safeId) return null;
@@ -327,7 +327,7 @@ async function fetchZigbangV3ItemDetail(itemId) {
   }
 }
 
-function mergeZigbangDetail(item, detailItem) {
+export function mergeZigbangDetail(item, detailItem) {
   // floor 필드는 v3에서 객체({allFloors, floor})로 오므로 스프레드에서 제외 후 명시적으로 처리
   const { floor: _detailFloor, ...detailWithoutFloor } = detailItem ?? {};
   const merged = { ...item, ...detailWithoutFloor };
@@ -1253,7 +1253,7 @@ async function collectZigbang() {
   }
 
   const allIds = finalListings.map(getItemId).filter(Boolean).map(String);
-  const knownIds = enrichDetail ? await getExistingWithImages("zigbang", allIds) : new Set();
+  const knownIds = enrichDetail ? await getExistingWithImages("zigbang", allIds, { maxAgeHours: 72 }) : new Set();
   if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
 
   const detailStats = await enrichListingsWithV3Detail(finalListings, { knownIds });

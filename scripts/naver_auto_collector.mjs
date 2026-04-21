@@ -905,7 +905,7 @@ async function captureNaverData() {
   }
   const naverAllNos = detailCandidates.map((art) => String(art.articleNo)).filter(Boolean);
   // 이미지 3개 이상인 매물만 스킵 — 썸네일(1개)만 있는 매물은 상세 API 재호출해서 전체 갤러리 수집
-  const naverKnownIds = await getExistingWithSufficientImages("naver", naverAllNos, 3);
+  const naverKnownIds = await getExistingWithSufficientImages("naver", naverAllNos, 3, { maxAgeHours: 72 });
   if (naverKnownIds.size > 0) console.log(`Skipped ${naverKnownIds.size} known listings with 3+ images (detail fetch)`);
   const toEnrichDetail = detailCandidates
     .filter((art) => !naverKnownIds.has(String(art.articleNo)))

@@ -651,7 +651,7 @@ async function collectPeterpanz() {
     if (missingImageBefore > 0) {
       log(`Image fallback: checking ${missingImageBefore} image-poor listings via detail pages`);
       const allHidx = selected.filter((item) => item?.hidx).map((item) => String(item.hidx));
-      const knownIds = await getExistingWithImages("peterpanz", allHidx);
+      const knownIds = await getExistingWithImages("peterpanz", allHidx, { maxAgeHours: 72 });
       const enriched = await enrichPeterpanzListingsWithDetailImages(selected, { knownIds });
       const missingImageAfter = selected.filter((item) => collectPeterpanzImageUrls(item).length === 0).length;
       log(`Image fallback: enriched ${enriched.enrichedCount}, remaining missing ${missingImageAfter}`);
