@@ -78,6 +78,8 @@ const DISTRICT_COORDS = {
   "광진구":   { lat: 37.5384, lng: 127.0822 },
   "성북구":   { lat: 37.5894, lng: 127.0167 },
   "성동구":   { lat: 37.5633, lng: 127.0371 },
+  "중구":     { lat: 37.5594, lng: 127.0139 },
+  "종로구":   { lat: 37.5790, lng: 127.0126 },
 };
 
 // Bounding boxes for location filtering (same as zigbang)
@@ -88,6 +90,8 @@ const DISTRICT_BBOX = {
   "광진구":   { sw_lat: 37.5200, sw_lng: 127.0550, ne_lat: 37.5600, ne_lng: 127.1100 },
   "성북구":   { sw_lat: 37.5700, sw_lng: 127.0000, ne_lat: 37.6100, ne_lng: 127.0450 },
   "성동구":   { sw_lat: 37.5400, sw_lng: 127.0100, ne_lat: 37.5850, ne_lng: 127.0650 },
+  "중구":     { sw_lat: 37.5450, sw_lng: 127.0000, ne_lat: 37.5800, ne_lng: 127.0300 },
+  "종로구":   { sw_lat: 37.5650, sw_lng: 127.0000, ne_lat: 37.5950, ne_lng: 127.0300 },
 };
 
 const district = DISTRICT_COORDS[sigungu];

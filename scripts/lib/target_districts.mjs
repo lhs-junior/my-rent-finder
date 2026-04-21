@@ -9,4 +9,6 @@ export const TARGET_DISTRICTS = [
   "성북구",
   "중랑구",
   "노원구",
+  "중구",
+  "종로구",
 ];
