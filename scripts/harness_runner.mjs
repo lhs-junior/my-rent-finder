@@ -10,6 +10,7 @@ import { evaluateListingQuality } from "./lib/harness/listing_quality.mjs";
 import { evaluateMatches } from "./lib/harness/match_evaluator.mjs";
 import { buildReport } from "./lib/harness/report_builder.mjs";
 import { COLLECTION_THRESHOLDS } from "./lib/harness/constants.mjs";
+import { withDbClient } from "./lib/db_client.mjs";
 
 const args = process.argv.slice(2);
 const startTime = Date.now();
@@ -142,6 +143,7 @@ if (!skipCollect) {
   if (!hasArg(args, "--normalize")) collectArgs.push("--normalize");
 
   let retries = 0;
+  let lastSummary = null;
   while (retries <= COLLECTION_THRESHOLDS.maxRetries) {
     try {
       runPhase(`collection (attempt ${retries + 1})`, collectScript, collectArgs);
@@ -151,6 +153,7 @@ if (!skipCollect) {
 
     const summary = readJsonSafe(summaryPath);
     if (summary) {
+      lastSummary = summary;
       const platformData = buildPlatformData(summary);
       collectionResult = evaluateCollection({ platforms: platformData });
       collectionResult.retries = retries;
@@ -349,6 +352,52 @@ report.phases.status_check = statusCheckPhase;
 report.phases.scoring = scoringPhase;
 
 console.log(`[harness] collection: ${(collectionDurationMs / 1000).toFixed(1)}s, normalization: ${(normalizationDurationMs / 1000).toFixed(1)}s, matching: ${(matchingDurationMs / 1000).toFixed(1)}s, status_check: ${(statusCheckDurationMs / 1000).toFixed(1)}s, scoring: ${(scoringDurationMs / 1000).toFixed(1)}s`);
+
+// ─── 플랫폼별 수집 현황 출력
+const PLATFORM_ORDER = ["zigbang", "dabang", "naver", "daangn", "serve", "kbland", "peterpanz"];
+console.log(`\n[harness] ─── 플랫폼별 수집 현황 ──────────────────────────`);
+if (lastSummary) {
+  const pd = buildPlatformData(lastSummary);
+  for (const p of PLATFORM_ORDER) {
+    const d = pd[p];
+    const pr = collectionResult?.per_platform?.[p];
+    if (!d && !pr) continue;
+    const count = d?.collected ?? 0;
+    const failFlag = pr?.status === "fail" ? " ⚠ 수집 실패" : "";
+    console.log(`[harness]   ${p.padEnd(12)}: ${count}건 수집${failFlag}`);
+  }
+}
+
+// ─── DB 이미지 보유율 조회 및 0% 경고
+const imageWarnings = [];
+try {
+  await withDbClient(async (client) => {
+    const { rows } = await client.query(`
+      SELECT
+        nl.platform_code,
+        COUNT(*) AS total,
+        COUNT(li.listing_id) AS with_images,
+        ROUND(COUNT(li.listing_id)::numeric / COUNT(*) * 100, 1) AS rate
+      FROM normalized_listings nl
+      LEFT JOIN (SELECT DISTINCT listing_id FROM listing_images) li ON li.listing_id = nl.listing_id
+      WHERE nl.deleted_at IS NULL
+      GROUP BY nl.platform_code
+      ORDER BY rate DESC
+    `);
+    console.log(`\n[harness] ─── 이미지 보유율 ────────────────────────────────`);
+    for (const r of rows) {
+      const rate = parseFloat(r.rate);
+      const flag = rate === 0 ? " ⚠ 0% — 수집기/API 점검 필요!" : "";
+      console.log(`[harness]   ${r.platform_code.padEnd(12)}: ${r.with_images}/${r.total} (${r.rate}%)${flag}`);
+      if (rate === 0) imageWarnings.push(r.platform_code);
+    }
+  });
+} catch (e) {
+  console.warn(`[harness] ⚠ 이미지 통계 조회 실패: ${e.message}`);
+}
+if (imageWarnings.length > 0) {
+  console.log(`\n[harness] ⚠⚠ 이미지 0% 플랫폼: ${imageWarnings.join(", ")} — 수집기/API 점검 필요`);
+}
 
 const reportPath = path.join(reportsDir, `harness-${runId}.json`);
 fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
