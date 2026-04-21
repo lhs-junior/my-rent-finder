@@ -766,6 +766,14 @@ body {
   background: white;
   color: var(--text);
 }
+.map-mobile-filter-section-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
 .map-mobile-filter-footer {
   display: flex;
   gap: 10px;
@@ -4428,6 +4436,41 @@ pre {
 .score-sort-separator {
   color: var(--muted, #6b7280);
   padding: 0 4px;
+}
+
+/* 모바일: AI 추천 필터 가로 스크롤 */
+@media (max-width: 767px) {
+  .fav-grade-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+  .fav-grade-filter::-webkit-scrollbar { display: none; }
+  .fav-grade-btn { flex-shrink: 0; }
+  .score-sort-separator { flex-shrink: 0; }
+}
+
+/* 하단 시트 줌아웃 버튼 */
+.map-bottom-zoom-btn {
+  display: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: white;
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+@media (max-width: 767px) {
+  .map-bottom-zoom-btn { display: flex; }
 }
 
 /* listed_at 상대 시간 표시 (ListingCard, MapLeftPanel) */

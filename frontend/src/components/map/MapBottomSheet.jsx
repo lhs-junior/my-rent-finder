@@ -13,6 +13,7 @@ export default function MapBottomSheet({
   onCardClick,
   filters = {},
   onFilterChange,
+  onZoomOut,
 }) {
   const [stage, setStage] = useState("peek");
   const [showFilter, setShowFilter] = useState(false);
@@ -156,6 +157,32 @@ export default function MapBottomSheet({
                   ))}
                 </div>
               )}
+              <div className="map-mobile-filter-section-label">역세권</div>
+              <div className="map-grade-filter">
+                {[{ v: "", l: "전체" }, { v: "500", l: "500m" }, { v: "1000", l: "1km" }, { v: "2000", l: "2km" }].map(opt => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    className={`map-grade-btn${(filters.max_subway_m || "") === opt.v ? " map-grade-btn--active" : ""}`}
+                    onClick={() => set("max_subway_m", opt.v)}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+              <div className="map-mobile-filter-section-label">정렬</div>
+              <div className="map-grade-filter">
+                {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    className={`map-grade-btn${(filters.sort || "") === opt.v ? " map-grade-btn--active" : ""}`}
+                    onClick={() => set("sort", opt.v)}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="map-mobile-filter-footer">
               <button
@@ -191,6 +218,15 @@ export default function MapBottomSheet({
             <div className="map-bottom-handle-bar" />
             <span className="map-bottom-count">{loading ? "..." : `${totalInBounds ?? markers.length}건`}</span>
           </div>
+          {onZoomOut && (
+            <button
+              type="button"
+              className="map-bottom-zoom-btn"
+              onClick={onZoomOut}
+              aria-label="지도 축소"
+              title="지도 축소"
+            >－</button>
+          )}
           <button
             type="button"
             className={`map-bottom-filter-btn${activeFilterCount > 0 ? " map-bottom-filter-btn--active" : ""}`}

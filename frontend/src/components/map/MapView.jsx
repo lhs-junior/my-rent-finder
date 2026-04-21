@@ -318,6 +318,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         onCardClick={handleCardClick}
         filters={filters}
         onFilterChange={handleFilterChange}
+        onZoomOut={() => mapRef.current?.zoomOut?.()}
       />
     </div>
   );
