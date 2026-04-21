@@ -673,8 +673,15 @@ async function collectDabang() {
 // Entry Point
 // ============================================================================
 
-collectDabang().catch((err) => {
-  console.error(`[dabang] Fatal error: ${err.message}`);
-  console.error(err.stack);
-  process.exit(1);
-});
+import path from "node:path";
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+
+if (isDirectRun) {
+  collectDabang().catch((err) => {
+    console.error(`[dabang] Fatal error: ${err.message}`);
+    console.error(err.stack);
+    process.exit(1);
+  });
+}

@@ -744,11 +744,17 @@ async function main() {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error("Fatal:", e);
-    process.exit(1);
-  })
-  .finally(() => {
-    process.exit(0);
-  });
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+
+if (isDirectRun) {
+  main()
+    .catch((e) => {
+      console.error("Fatal:", e);
+      process.exit(1);
+    })
+    .finally(() => {
+      process.exit(0);
+    });
+}

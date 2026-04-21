@@ -1043,7 +1043,14 @@ async function captureNaverData() {
 // Main
 // ============================================================================
 
-captureNaverData().catch((err) => {
-  console.error("❌ Fatal error:", err);
-  process.exit(1);
-});
+import path from "node:path";
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+
+if (isDirectRun) {
+  captureNaverData().catch((err) => {
+    console.error("❌ Fatal error:", err);
+    process.exit(1);
+  });
+}

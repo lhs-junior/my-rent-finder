@@ -1345,8 +1345,14 @@ async function collectZigbang() {
 // Entry Point
 // ============================================================================
 
-collectZigbang().catch((err) => {
-  console.error(`[zigbang] Fatal error: ${err.message}`);
-  console.error(err.stack);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+
+if (isDirectRun) {
+  collectZigbang().catch((err) => {
+    console.error(`[zigbang] Fatal error: ${err.message}`);
+    console.error(err.stack);
+    process.exit(1);
+  });
+}
