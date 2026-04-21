@@ -10,6 +10,7 @@
  *   node scripts/check_listing_status.mjs [--platform kbland|zigbang|dabang|peterpanz|naver|daangn|all] [--batch-size 50] [--delay-ms 200] [--dry-run]
  */
 
+import fs from "node:fs";
 import { withDbClient } from "./lib/db_client.mjs";
 import { TARGET_DISTRICTS } from "./lib/target_districts.mjs";
 
@@ -167,57 +168,60 @@ async function checkPeterpanzListing(externalId) {
 }
 
 // ── 네이버 부동산 상태 체크 ──
+// fin.land.naver.com/articles/{id} → redirect:follow 후 SSR 결과로 판별
+// 활성: HTTP 200 + 본문 ~127k (매물 상세 SSR 성공)
+// 만료: HTTP 500 + 본문 ~43k (SSR이 매물 없음으로 실패)
+// 검증: 가짜 ID, 확인된 만료 ID → 모두 500 반환 / 활성 13건 → 모두 200 반환 (2025-04-21)
+
+const NAVER_SESSION_PATH = `${process.env.HOME}/.naver-realestate-session.json`;
+let _naverCookieHeader = null;
+
+function getNaverCookieHeader() {
+  if (_naverCookieHeader !== null) return _naverCookieHeader;
+  try {
+    if (fs.existsSync(NAVER_SESSION_PATH)) {
+      const raw = JSON.parse(fs.readFileSync(NAVER_SESSION_PATH, "utf8"));
+      const cookies = (raw?.cookies ?? [])
+        .filter((c) => c.domain?.includes("naver"))
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
+      _naverCookieHeader = cookies || "";
+    } else {
+      _naverCookieHeader = "";
+    }
+  } catch {
+    _naverCookieHeader = "";
+  }
+  return _naverCookieHeader;
+}
 
 async function checkNaverListing(externalId) {
-  // API is heavily rate-limited (429). Use the public article page instead.
   const url = `https://fin.land.naver.com/articles/${externalId}`;
+  const cookieHeader = getNaverCookieHeader();
   const res = await fetch(url, {
     headers: {
       "User-Agent": COMMON_UA,
-      Accept: "text/html,application/xhtml+xml",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       "Accept-Language": "ko-KR,ko;q=0.9",
+      Referer: "https://fin.land.naver.com/",
+      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
     },
-    redirect: "manual",
-    signal: AbortSignal.timeout(5000),
+    redirect: "follow",
+    signal: AbortSignal.timeout(10000),
   });
 
+  // SSR이 매물을 찾지 못하면 500 반환 (검증된 패턴)
+  if (res.status === 500) return { status: "expired", resultCode: "ssr_not_found" };
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
-  if (res.status === 429) return { status: "error", httpStatus: 429 }; // rate limit → consecutive timeout 로직에 위임
-  if (res.status >= 300 && res.status < 400) {
-    const location = res.headers.get("location") || "";
-    // Redirect to search/main = listing gone
-    if (location.includes("/articles/") && location.includes(externalId)) return { status: "active" };
-    return { status: "expired", resultCode: "redirect" };
-  }
+  if (res.status === 429) return { status: "error", httpStatus: 429 };
+
   if (res.status === 200) {
     const html = await res.text();
-    // Check for expired/deleted indicators
-    if (
-      html.includes("삭제된 매물") ||
-      html.includes("존재하지 않는 매물") ||
-      html.includes("거래가 완료") ||
-      html.includes("거래 완료된 매물") ||
-      html.includes("이미 거래된")
-    ) {
-      return { status: "expired", resultCode: "page_expired" };
-    }
-    // Check for error page — "일시적인 오류로 정보를 불러오지 못했어요" etc.
-    if (
-      html.includes("정보를 불러오지 못했") ||
-      html.includes("일시적인 오류") ||
-      html.includes("다시 시도해 주세요") ||
-      html.includes("페이지를 찾을 수 없")
-    ) {
-      return { status: "expired", resultCode: "error_page" };
-    }
-    // Check for active listing indicators
-    if (html.includes("articleDetail") || html.includes("매물번호") || html.includes("articleNo")) {
-      return { status: "active" };
-    }
-    // If we got a page without clear indicators, treat as active
-    if (html.length > 5000) return { status: "active" };
-    return { status: "expired", resultCode: "empty_page" };
+    // 짧은 응답(~43k)은 SSR 에러 페이지 = 만료
+    if (html.length < 60000) return { status: "expired", resultCode: "short_page" };
+    return { status: "active" };
   }
+
   return { status: "error", httpStatus: res.status };
 }
 
@@ -312,6 +316,7 @@ const CHECKERS = {
 const DB_ONLY_PLATFORMS = new Set([]);
 const EXPIRE_DAYS_WITH_STALE = 30; // STALE_SUSPECT + 30일 경과 → 만료
 const EXPIRE_DAYS_ABSOLUTE = 60;   // 무조건 만료
+
 
 async function checkPlatformByDb(platformCode, client) {
   console.log(`\n[status-check] ── ${platformCode} (DB 기반) ──`);
