@@ -1193,6 +1193,7 @@ async function runJobs(jobs, concurrency, { onComplete } = {}) {
 
   const loops = Array.from({ length: Math.min(concurrency, Math.max(1, jobs.length)) }, () => worker());
   await Promise.all(loops);
+  await persistQueue;
   return results.filter(Boolean);
 }
 
@@ -1387,14 +1388,24 @@ writeJson(summaryPath, summary);
 
 let dbPersist = null;
 if (persistToDb) {
-  try {
-    dbPersist = await persistSummaryToDb(summaryPath, { runId });
-    if (dbPersist?.priceChangedCount > 0) {
-      console.log(`[PRICE_TRACK] ${dbPersist.priceChangedCount} price change(s) recorded`);
+  const MAX_FINAL_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_FINAL_RETRIES; attempt++) {
+    try {
+      dbPersist = await persistSummaryToDb(summaryPath, { runId });
+      if (dbPersist?.priceChangedCount > 0) {
+        console.log(`[PRICE_TRACK] ${dbPersist.priceChangedCount} price change(s) recorded`);
+      }
+      break;
+    } catch (error) {
+      if (attempt >= MAX_FINAL_RETRIES) {
+        console.error(`DB persistence required but failed: ${error?.message || error}`);
+        throw error;
+      }
+      const delay = 30000 * attempt;
+      console.warn(`[DB_PERSIST] 최종 저장 실패 (${attempt}/${MAX_FINAL_RETRIES}), ${delay / 1000}s 후 재시도: ${error?.message}`);
+      await new Promise((r) => setTimeout(r, delay));
+      await warmUpDb().catch(() => {});
     }
-  } catch (error) {
-    console.error(`DB persistence required but failed: ${error?.message || error}`);
-    throw error;
   }
 }
 

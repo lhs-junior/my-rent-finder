@@ -921,6 +921,96 @@ async function upsertRawListing(client, rawLine, platformCode, runId) {
   return toInt(result.rows?.[0]?.raw_id, null);
 }
 
+const RAW_BATCH_SIZE = 50;
+
+async function batchUpsertRawListings(client, rawLines, platformCode, runId) {
+  const platform = normalizePlatform(platformCode);
+  const rawIdByExternal = new Map();
+  if (!platform || !rawLines.length) return rawIdByExternal;
+
+  // Prepare rows, dedup by externalId (last write wins — matches DB ON CONFLICT behavior)
+  const prepared = new Map();
+  for (const rawLine of rawLines) {
+    if (!rawLine || typeof rawLine !== "object") continue;
+    const sourceUrl = normalizePlatformSourceUrl(platform, toSafeSourceUrl(rawLine));
+    const rawPayload = JSON.stringify(normalizeRawPayload(rawLine));
+    const hashHex = crypto.createHash("sha1").update(rawPayload).digest("hex");
+    const externalId = buildRawListingExternalId(rawLine, platform, hashHex);
+    if (!externalId || !sourceUrl) continue;
+    prepared.set(externalId, {
+      rawLine,
+      externalId,
+      values: [
+        platform,
+        externalId,
+        sourceUrl,
+        rawPayload,
+        toText(rawLine?.page_snapshot || rawLine?.pageSnapshot || rawLine?.source_html, null),
+        extractCollectedAt(rawLine),
+        extractParsedAt(rawLine),
+        toText(runId, null),
+        extractRawStatus(rawLine),
+        toText(rawLine?.area_unit || rawLine?.areaUnit || rawLine?.area_unit_name, null),
+        toText(rawLine?.price_unit || rawLine?.priceUnit || rawLine?.price_unit_name, null),
+        toText(rawLine?.parse_error || rawLine?.parseError || rawLine?.error_code || rawLine?.errorCode, null),
+        toText(rawLine?.fingerprint || rawLine?.idempotency_key || rawLine?.request_id, null),
+        Buffer.from(hashHex, "hex"),
+      ],
+    });
+  }
+
+  const entries = Array.from(prepared.values());
+  for (let i = 0; i < entries.length; i += RAW_BATCH_SIZE) {
+    const batch = entries.slice(i, i + RAW_BATCH_SIZE);
+    const placeholders = batch.map((_, bi) => {
+      const b = bi * 14;
+      return `($${b+1},$${b+2},$${b+3},$${b+4}::jsonb,$${b+5},$${b+6}::timestamptz,$${b+7}::timestamptz,$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14})`;
+    }).join(",");
+    const params = batch.flatMap((r) => r.values);
+    const batchResult = await queryWithRetry(client, `
+      INSERT INTO raw_listings (
+        platform_code,external_id,source_url,payload_json,page_snapshot,
+        collected_at,parsed_at,run_id,raw_status,raw_area_unit,
+        raw_price_unit,parse_error_code,raw_fingerprint,raw_hash
+      ) VALUES ${placeholders}
+      ON CONFLICT (platform_code, external_id) DO UPDATE
+      SET source_url = EXCLUDED.source_url,
+          payload_json = EXCLUDED.payload_json,
+          page_snapshot = COALESCE(EXCLUDED.page_snapshot, raw_listings.page_snapshot),
+          collected_at = EXCLUDED.collected_at,
+          parsed_at = COALESCE(EXCLUDED.parsed_at, raw_listings.parsed_at),
+          run_id = EXCLUDED.run_id,
+          raw_status = EXCLUDED.raw_status,
+          raw_area_unit = EXCLUDED.raw_area_unit,
+          raw_price_unit = EXCLUDED.raw_price_unit,
+          parse_error_code = EXCLUDED.parse_error_code,
+          raw_fingerprint = EXCLUDED.raw_fingerprint,
+          raw_hash = EXCLUDED.raw_hash,
+          updated_at = NOW()
+      RETURNING raw_id, external_id
+    `, params);
+
+    for (const row of batchResult.rows) {
+      const rawId = toInt(row.raw_id, null);
+      const extId = toText(row.external_id, null);
+      if (!rawId || !extId) continue;
+      const entry = prepared.get(extId);
+      if (!entry) continue;
+      const rawLine = entry.rawLine;
+      const rawCandidates = extractExternalIdCandidates(rawLine);
+      for (const candidate of rawCandidates) {
+        if (candidate) rawIdByExternal.set(candidate, rawId);
+      }
+      const externalId2 = extractExternalId(rawLine, platform);
+      const sourceRef = toText(rawLine?.source_ref || rawLine?.sourceRef || null, null);
+      if (externalId2) rawIdByExternal.set(externalId2, rawId);
+      if (sourceRef) rawIdByExternal.set(sourceRef, rawId);
+    }
+  }
+
+  return rawIdByExternal;
+}
+
 async function resolveRawIdByExternal(client, platformCode, externalId) {
   if (!externalId) return null;
   const result = await client.query(
@@ -1267,7 +1357,10 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
     .query(`UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = $1`, [
       rawId,
     ])
-    .catch((err) => { console.error('[persist] raw_status update failed for raw_id=' + rawId + ': ' + err.message); });
+    .catch((err) => {
+      if (isTransientDbError(err)) throw err;
+      console.error('[persist] raw_status update failed for raw_id=' + rawId + ': ' + err.message);
+    });
 
   for (let index = 0; index < imageUrls.length; index += 1) {
     const source = toText(imageUrls[index], "");
@@ -1279,7 +1372,7 @@ async function upsertNormalizedListing(client, item, platformCode, runId, rawIdB
 }
 
 const IMAGE_BATCH_SIZE = 200;
-const NORMALIZED_BATCH_SIZE = 50;
+const NORMALIZED_BATCH_SIZE = 100;
 
 // Column list for normalized_listings INSERT (41 columns, order matches VALUES placeholders)
 // Intentionally excluded — populated via UPDATE by post-processing scripts, never by INSERT:
@@ -1577,46 +1670,31 @@ function parseViolations(item) {
 async function persistContractViolations(client, platformCode, rawId, listingId, item) {
   const violations = parseViolations(item);
   if (!violations.length || !listingId) return;
-  for (const violation of violations) {
-    const scopeId = `${platformCode}:${listingId}:${violation.code}`;
-    await client
-      .query(
-        `
-      INSERT INTO contract_violations (
-        scope,
-        scope_id,
-        platform_code,
-        raw_id,
-        listing_id,
-        violation_code,
-        message,
-        detail,
-        severity
-      ) VALUES (
-        'NORMALIZED',
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7::jsonb,
-        $8
-      )
-      `,
-        [
-          scopeId,
-          normalizePlatform(platformCode),
-          rawId || null,
-          listingId,
-          violation.code,
-          violation.message,
-          JSON.stringify(violation.detail),
-          violation.severity,
-        ],
-      )
-      .catch((err) => { console.error('[persist] contract_violations insert failed: ' + err.message); });
-  }
+  const params = [];
+  const placeholders = violations.map((violation, i) => {
+    const b = i * 8;
+    params.push(
+      `${platformCode}:${listingId}:${violation.code}`,
+      normalizePlatform(platformCode),
+      rawId || null,
+      listingId,
+      violation.code,
+      violation.message,
+      JSON.stringify(violation.detail),
+      violation.severity,
+    );
+    return `('NORMALIZED',$${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7}::jsonb,$${b+8})`;
+  }).join(",");
+  await client
+    .query(
+      `INSERT INTO contract_violations (scope,scope_id,platform_code,raw_id,listing_id,violation_code,message,detail,severity)
+       VALUES ${placeholders} ON CONFLICT DO NOTHING`,
+      params,
+    )
+    .catch((err) => {
+      if (isTransientDbError(err)) throw err;
+      console.error('[persist] contract_violations insert failed: ' + err.message);
+    });
 }
 
 function inferStatusFromResults(results) {
@@ -1688,22 +1766,19 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
   for (const result of platformRuns) {
     const rawPath = toText(result?.rawFile, null);
     if (rawPath && fs.existsSync(rawPath)) {
-      await readJsonlAsync(rawPath, async (rawLine) => {
-        if (!rawLine || typeof rawLine !== "object") return;
-        const rawId = await upsertRawListing(client, rawLine, platform, platformRunId);
-        if (!rawId) return;
-        const rawCandidates = extractExternalIdCandidates(rawLine);
-        for (const candidate of rawCandidates) {
-          if (candidate) rawIdByExternal.set(candidate, rawId);
-        }
-        const externalId = extractExternalId(rawLine, platform);
-        const sourceRef = toText(rawLine?.source_ref || rawLine?.sourceRef || null, null);
-        if (externalId) rawIdByExternal.set(externalId, rawId);
-        if (sourceRef) rawIdByExternal.set(sourceRef, rawId);
+      const rawLines = [];
+      await readJsonlAsync(rawPath, (rawLine) => {
+        if (rawLine && typeof rawLine === "object") rawLines.push(rawLine);
       }).catch((err) => {
         if (isTransientDbError(err)) throw err;
         console.warn('[persist] non-critical error: ' + err.message);
       });
+      if (rawLines.length > 0) {
+        const batchMap = await batchUpsertRawListings(client, rawLines, platform, platformRunId);
+        for (const [key, rawId] of batchMap) {
+          rawIdByExternal.set(key, rawId);
+        }
+      }
     }
 
     const normalizedPath = toText(result?.normalizedPath, null) || toText(result?.output, null);
@@ -1766,7 +1841,10 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       }
 
       // Contract violations
-      await persistContractViolations(client, platform, prepared.rawId, listingId, prepared.item).catch((err) => { console.error('[persist] persistContractViolations failed: ' + err.message); });
+      await persistContractViolations(client, platform, prepared.rawId, listingId, prepared.item).catch((err) => {
+        if (isTransientDbError(err)) throw err;
+        console.error('[persist] persistContractViolations failed: ' + err.message);
+      });
 
       // Price change detection
       const extId = normalizePlatformSourceRef(
@@ -1798,7 +1876,10 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       await client.query(
         `UPDATE raw_listings SET raw_status='NORMALIZED', parsed_at = NOW(), updated_at = NOW() WHERE raw_id = ANY($1::bigint[])`,
         [Array.from(rawIdsToMarkNormalized)],
-      ).catch((err) => { console.error('[persist] bulk raw_status update failed: ' + err.message); });
+      ).catch((err) => {
+        if (isTransientDbError(err)) throw err;
+        console.error('[persist] bulk raw_status update failed: ' + err.message);
+      });
     }
 
     if (priceChangedItems.length > 0) {
@@ -2038,7 +2119,10 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
       .then(() => {
         storedPairs += 1;
       })
-      .catch((err) => { console.warn('[persist] listing_matches insert failed: ' + err.message); });
+      .catch((err) => {
+        if (isTransientDbError(err)) throw err;
+        console.warn('[persist] listing_matches insert failed: ' + err.message);
+      });
   }
 
   let storedGroups = 0;
@@ -2080,7 +2164,10 @@ async function persistMatcherResults(client, baseRunId, matchOutputPath) {
         `,
           [groupId, memberListing, toNumber(memberId?.score, 100)],
         )
-        .catch((err) => { console.warn('[persist] match_group_members insert failed: ' + err.message); });
+        .catch((err) => {
+          if (isTransientDbError(err)) throw err;
+          console.warn('[persist] match_group_members insert failed: ' + err.message);
+        });
     }
   }
 
