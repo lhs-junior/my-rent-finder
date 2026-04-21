@@ -1,12 +1,6 @@
 import { withDbClient } from "./db_client.mjs";
 
-/**
- * @param {string} platformCode
- * @param {string[]} externalIds
- * @param {{ maxAgeHours?: number, client?: object }} [opts]
- *   maxAgeHours: 이 시간보다 오래된 매물은 이미지가 있어도 재수집 대상으로 취급.
- *                null/undefined = 제한 없음 (기존 동작).
- */
+// maxAgeHours: 지정 시간보다 오래된 매물은 이미지 보유 여부와 관계없이 재수집 대상으로 취급
 export async function getExistingWithImages(platformCode, externalIds, opts = {}) {
   // 하위 호환: 3번째 인수가 DB client 객체(query 메서드 보유)이면 legacy 시그니처로 처리
   if (opts !== null && typeof opts === "object" && typeof opts.query === "function") {
@@ -43,16 +37,7 @@ export async function getExistingWithImages(platformCode, externalIds, opts = {}
   return withDbClient(run);
 }
 
-/**
- * 이미지를 minCount개 이상 가진 매물만 반환.
- * naver처럼 첫 수집 시 썸네일(1개)만 저장된 매물을
- * 재수집 대상에서 제외하지 않기 위해 사용.
- *
- * @param {string} platformCode
- * @param {string[]} externalIds
- * @param {number} [minCount=3]
- * @param {{ maxAgeHours?: number, client?: object }} [opts]
- */
+// naver처럼 첫 수집 시 썸네일만 있는 매물을 known으로 취급하지 않기 위해 minCount 임계값 사용
 export async function getExistingWithSufficientImages(platformCode, externalIds, minCount = 3, opts = {}) {
   if (opts !== null && typeof opts === "object" && typeof opts.query === "function") {
     opts = { client: opts };

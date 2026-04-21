@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getExistingWithImages } from "../scripts/lib/known_listings.mjs";
+import { getExistingWithImages, getExistingWithSufficientImages } from "../scripts/lib/known_listings.mjs";
 
 function makeClient(rows) {
   return { query: async () => ({ rows }) };
@@ -57,5 +57,34 @@ describe("getExistingWithImages", () => {
     await getExistingWithImages("dabang", ["r1", "r2"], client);
     expect(capturedParams[0]).toBe("dabang");
     expect(capturedParams[1]).toEqual(["r1", "r2"]);
+  });
+
+  it("maxAgeHours 지정 시 params에 시간 값 추가 및 쿼리에 staleness 조건 포함", async () => {
+    let capturedSql = null;
+    let capturedParams = null;
+    const client = {
+      query: async (sql, params) => { capturedSql = sql; capturedParams = params; return { rows: [] }; },
+    };
+    await getExistingWithImages("zigbang", ["id1"], { maxAgeHours: 72, client });
+    expect(capturedParams).toHaveLength(3);
+    expect(capturedParams[2]).toBe(72);
+    expect(capturedSql).toContain("$3");
+    expect(capturedSql).toContain("updated_at");
+  });
+});
+
+describe("getExistingWithSufficientImages", () => {
+  it("maxAgeHours 지정 시 params=[platform,ids,minCount,hours], 쿼리에 $4 포함", async () => {
+    let capturedSql = null;
+    let capturedParams = null;
+    const client = {
+      query: async (sql, params) => { capturedSql = sql; capturedParams = params; return { rows: [] }; },
+    };
+    await getExistingWithSufficientImages("naver", ["a1"], 3, { maxAgeHours: 72, client });
+    expect(capturedParams).toHaveLength(4);
+    expect(capturedParams[2]).toBe(3);
+    expect(capturedParams[3]).toBe(72);
+    expect(capturedSql).toContain("$4");
+    expect(capturedSql).toContain("updated_at");
   });
 });

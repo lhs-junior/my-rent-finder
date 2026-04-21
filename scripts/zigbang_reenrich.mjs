@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-/**
- * 직방 DB 매물 재보강 스크립트
- * v3 API로 상세 정보를 재조회하여 잘못된/누락된 컬럼을 수정한다.
- *
- * 대상 필드: room_count, direction, floor, total_floor,
- *            bathroom_count, building_year, monthly_management_cost,
- *            parking_possible, available_date, description_text
- */
 import { withDbClient } from "./lib/db_client.mjs";
 import { fetchZigbangV3ItemDetail, mergeZigbangDetail } from "./zigbang_auto_collector.mjs";
 import { ZigbangListingAdapter } from "./adapters/zigbang_listings_adapter.mjs";
@@ -42,10 +34,7 @@ await withDbClient(async (db) => {
       continue;
     }
 
-    // v3 상세를 mergeZigbangDetail로 합쳐서 postProcess용 raw 구성
     const rawMerged = mergeZigbangDetail({ item_id: row.source_ref }, detail);
-
-    // postProcess에 빈 item 전달 → 기존 DB 값 영향 없이 순수 v3 기반 파생
     const derived = adapter.postProcess(
       { image_urls: [] },
       { payload_json: rawMerged },
