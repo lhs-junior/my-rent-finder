@@ -526,10 +526,24 @@ async function main() {
 
   const startTime = Date.now();
 
-  // 플랫폼별 병렬 처리 — 각 플랫폼이 독립적인 DB 커넥션 사용
-  const results = (
-    await Promise.all(platformList.map((p) => withDbClient((client) => checkPlatform(p, client))))
-  ).filter(Boolean);
+  // pool max=5 — 7개 동시 실행 시 커넥션 타임아웃 발생.
+  // 3개씩 배치로 병렬 실행하여 속도 유지 + 커넥션 경합 제거.
+  const BATCH = 3;
+  const results = [];
+  for (let i = 0; i < platformList.length; i += BATCH) {
+    const batch = platformList.slice(i, i + BATCH);
+    const settled = await Promise.allSettled(
+      batch.map((p) => withDbClient((client) => checkPlatform(p, client))),
+    );
+    for (let j = 0; j < batch.length; j++) {
+      const r = settled[j];
+      if (r.status === "fulfilled" && r.value) {
+        results.push(r.value);
+      } else if (r.status === "rejected") {
+        console.error(`[status-check] ${batch[j]} 처리 중 오류: ${r.reason?.message}`);
+      }
+    }
+  }
 
   // 전체 요약
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
