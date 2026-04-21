@@ -908,12 +908,12 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
       const fallbackSigunguList = conditionData?.target?.sigunguList || [];
       const fallbackSigungu = conditionData?.target?.sigungu;
       const sigunguCandidates = unique(
-        [
+        expandSeoulsup([
           ...kblandSigunguFromTarget,
           ...selectedSigunguList,
           ...(overrideSigungu ? [overrideSigungu] : []),
           ...(fallbackSigunguList.length ? fallbackSigunguList : fallbackSigungu ? [fallbackSigungu] : ["노원구"]),
-        ].filter(Boolean),
+        ].filter(Boolean)),
       ).slice(0, Math.max(1, naverMaxRegions));
 
       if (sigunguCandidates.length === 0) {
