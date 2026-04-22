@@ -508,12 +508,46 @@ async function expireOutOfScopeDistricts(client) {
   return rowCount;
 }
 
+// bbox 기준 (수집기와 동일)
+const DISTRICT_BBOX = {
+  성동구:   { sw_lat: 37.540, ne_lat: 37.585, sw_lng: 127.010, ne_lng: 127.075 },
+  광진구:   { sw_lat: 37.517, ne_lat: 37.570, sw_lng: 127.055, ne_lng: 127.110 },
+  동대문구: { sw_lat: 37.555, ne_lat: 37.595, sw_lng: 127.010, ne_lng: 127.085 },
+  성북구:   { sw_lat: 37.570, ne_lat: 37.600, sw_lng: 127.019, ne_lng: 127.070 },
+  중랑구:   { sw_lat: 37.570, ne_lat: 37.635, sw_lng: 127.055, ne_lng: 127.120 },
+  중구:     { sw_lat: 37.545, ne_lat: 37.580, sw_lng: 127.000, ne_lng: 127.030 },
+  종로구:   { sw_lat: 37.565, ne_lat: 37.595, sw_lng: 127.000, ne_lng: 127.030 },
+};
+
+async function expireBboxOutliers(client) {
+  const conditions = Object.entries(DISTRICT_BBOX).map(([gu, b]) =>
+    `(address_text LIKE '%${gu}%' AND lat IS NOT NULL AND lng IS NOT NULL AND ` +
+    `(lat < ${b.sw_lat} OR lat > ${b.ne_lat} OR lng < ${b.sw_lng} OR lng > ${b.ne_lng}))`
+  ).join("\n    OR ");
+
+  const sql = `
+    UPDATE normalized_listings SET deleted_at = NOW()
+    WHERE deleted_at IS NULL AND (${conditions})
+    RETURNING listing_id
+  `;
+
+  if (dryRun) {
+    const { rows } = await client.query(sql.replace("UPDATE normalized_listings SET deleted_at = NOW()", "SELECT listing_id FROM normalized_listings").replace("RETURNING listing_id", ""));
+    console.log(`[scope-check] DRY RUN: bbox 이탈 ${rows.length}건 soft-delete 예정`);
+    return rows.length;
+  }
+  const { rowCount } = await client.query(sql);
+  if (rowCount > 0) console.log(`[scope-check] bbox 이탈 ${rowCount}건 soft-delete 완료`);
+  return rowCount;
+}
+
 async function main() {
   const platformList = platform === "all" ? Object.keys(CHECKERS) : [platform];
 
   // 수집 대상 밖 구 매물 선제 정리 (all 모드에서만)
   if (platform === "all") {
     await withDbClient((client) => expireOutOfScopeDistricts(client));
+    await withDbClient((client) => expireBboxOutliers(client));
   }
 
   // Validate platforms
