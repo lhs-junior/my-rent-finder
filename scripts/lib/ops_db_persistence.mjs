@@ -594,11 +594,32 @@ async function cleanupNormalizedRowsByListingIds(client, listingIds) {
      WHERE listing_id = ANY($1::bigint[])`,
     [normalized],
   );
-  await client.query(
-    `DELETE FROM normalized_listings
-     WHERE listing_id = ANY($1::bigint[])`,
+
+  // pin_favorites가 걸린 listing_id는 하드 삭제하면 찜 목록이 사라지므로
+  // 소프트 삭제(deleted_at)만 수행하고 하드 삭제 대상에서 제외
+  const pinnedRes = await client.query(
+    `SELECT DISTINCT listing_id FROM pin_favorites WHERE listing_id = ANY($1::bigint[])`,
     [normalized],
   );
+  const pinnedIds = new Set(pinnedRes.rows.map((r) => String(r.listing_id)));
+  const toHardDelete = normalized.filter((id) => !pinnedIds.has(String(id)));
+  const toSoftDelete = normalized.filter((id) => pinnedIds.has(String(id)));
+
+  if (toSoftDelete.length) {
+    await client.query(
+      `UPDATE normalized_listings
+       SET deleted_at = NOW()
+       WHERE listing_id = ANY($1::bigint[]) AND deleted_at IS NULL`,
+      [toSoftDelete],
+    );
+  }
+  if (toHardDelete.length) {
+    await client.query(
+      `DELETE FROM normalized_listings
+       WHERE listing_id = ANY($1::bigint[])`,
+      [toHardDelete],
+    );
+  }
 }
 
 async function cleanupNormalizedRowsForRawId(client, platform, rawId) {

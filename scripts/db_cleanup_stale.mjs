@@ -64,34 +64,49 @@ await withDbClient(async (client) => {
     return;
   }
 
+  // pin_favorites가 걸린 listing_id는 하드 삭제 대상에서 제외 (찜 목록 보호)
+  const pinnedRes = await client.query(`
+    SELECT DISTINCT listing_id FROM pin_favorites WHERE listing_id = ANY($1::int[])
+  `, [ids]);
+  const pinnedSet = new Set(pinnedRes.rows.map((r) => String(r.listing_id)));
+  const safeIds = ids.filter((id) => !pinnedSet.has(String(id)));
+  if (pinnedSet.size > 0) {
+    console.log(`[cleanup] 찜 걸린 매물 하드 삭제 제외: ${pinnedSet.size}건 (소프트 딜리트 상태 유지)`);
+  }
+
+  if (!safeIds.length) {
+    console.log("[cleanup] 하드 삭제 대상 없음 (전부 찜 걸린 매물). 완료.");
+    return;
+  }
+
   // NO ACTION FK 테이블 먼저 삭제
   // listing_matches: source 또는 target이 대상인 행 삭제
   const matchDel = await client.query(`
     DELETE FROM listing_matches
     WHERE source_listing_id = ANY($1::int[])
        OR target_listing_id = ANY($1::int[])
-  `, [ids]);
+  `, [safeIds]);
   console.log(`[cleanup] listing_matches 삭제: ${matchDel.rowCount}건`);
 
   // match_group_members
   const groupDel = await client.query(`
     DELETE FROM match_group_members
     WHERE listing_id = ANY($1::int[])
-  `, [ids]);
+  `, [safeIds]);
   console.log(`[cleanup] match_group_members 삭제: ${groupDel.rowCount}건`);
 
   // contract_violations
   const cvDel = await client.query(`
     DELETE FROM contract_violations
     WHERE listing_id = ANY($1::int[])
-  `, [ids]);
+  `, [safeIds]);
   console.log(`[cleanup] contract_violations 삭제: ${cvDel.rowCount}건`);
 
-  // normalized_listings 삭제 (CASCADE: listing_images, scored_listings, pin_favorites 등 자동 삭제)
+  // normalized_listings 하드 삭제 (CASCADE: listing_images, scored_listings 자동 삭제)
   const mainDel = await client.query(`
     DELETE FROM normalized_listings
     WHERE listing_id = ANY($1::int[])
-  `, [ids]);
+  `, [safeIds]);
   console.log(`[cleanup] normalized_listings 하드 삭제: ${mainDel.rowCount}건`);
 
   // 정리 후 DB 크기 확인
