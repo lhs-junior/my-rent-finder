@@ -30,7 +30,7 @@ function parseArgs() {
     thresholdS: Number(args["threshold-s"]) || 10,
     thresholdA: Number(args["threshold-a"]) || 8,
     maxRent: args["max-rent"] ? Number(args["max-rent"]) : null,
-    maxEffectiveCost: args["max-effective-cost"] ? Number(args["max-effective-cost"]) : 85,
+    maxEffectiveCost: args["max-effective-cost"] ? Number(args["max-effective-cost"]) : 95,
     maxDeposit: args["max-deposit"] ? Number(args["max-deposit"]) : 10000,
     interestRate: Number(args["interest-rate"]) || 0.04,
     dryRun: args["dry-run"] === "true",
@@ -234,8 +234,7 @@ scored AS (
       WHEN n.building_use ILIKE '%상가주택%' THEN -99
       WHEN n.title ILIKE '%전입불가%' OR n.title ILIKE '%전입신고%불%'
         OR n.description_text ILIKE '%전입불가%' OR n.description_text ILIKE '%전입신고%불%' THEN -99
-      WHEN n.title ILIKE '%원룸%' OR n.title ILIKE '%오픈형%'
-        OR n.title ILIKE '%1룸%' OR n.title ILIKE '%쓰리룸%' OR n.title ILIKE '%3룸%'
+      WHEN n.title ILIKE '%원룸%' OR n.title ILIKE '%오픈형%' OR n.title ILIKE '%1룸%'
         OR n.building_use ILIKE '%원룸%' OR n.building_use ILIKE '%오픈%원룸%'
         OR n.building_use ILIKE '%1룸%' THEN -99
       WHEN n.room_count IS NOT NULL AND n.room_count <= 1 THEN -99
@@ -285,11 +284,10 @@ scored AS (
       ELSE 0
     END AS area_score,
 
-    -- ⑥ 층수 0~2점
+    -- ⑥ 층수 0~2점 (지하는 탈락 처리됨, 지상 1층 이상은 모두 양호)
     CASE
       WHEN n.floor IS NULL THEN 1
-      WHEN n.floor >= 3 THEN 2
-      WHEN n.floor = 2  THEN 1
+      WHEN n.floor >= 1  THEN 2
       ELSE 0
     END AS floor_score,
 
