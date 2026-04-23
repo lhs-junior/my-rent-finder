@@ -1471,7 +1471,7 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
         ELSE COALESCE(EXCLUDED.address_text, normalized_listings.address_text)
       END,
       address_code = EXCLUDED.address_code,
-      room_count = EXCLUDED.room_count,
+      room_count = COALESCE(EXCLUDED.room_count, normalized_listings.room_count),
       bathroom_count = COALESCE(EXCLUDED.bathroom_count, normalized_listings.bathroom_count),
       floor = EXCLUDED.floor,
       total_floor = EXCLUDED.total_floor,

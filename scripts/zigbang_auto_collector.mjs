@@ -18,6 +18,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+
 chromium.use(StealthPlugin());
 
 // ============================================================================
@@ -93,7 +97,7 @@ try {
 }
 
 const district = districtCoords[sigungu];
-if (!district) {
+if (!district && isDirectRun) {
   console.error(`[zigbang] ERROR: Unknown district: ${sigungu}`);
   console.error(`[zigbang] Available: ${Object.keys(districtCoords).join(", ")}`);
   process.exit(1);
@@ -1344,10 +1348,6 @@ async function collectZigbang() {
 // ============================================================================
 // Entry Point
 // ============================================================================
-
-const isDirectRun = process.argv[1]
-  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
-  : false;
 
 if (isDirectRun) {
   collectZigbang().catch((err) => {

@@ -496,8 +496,8 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       }
     }
 
-    // v3 API의 한국어 roomType 우선, batch API의 숫자 코드(room_type) 는 fallback
-    const roomTypeStr = raw.roomType || raw.room_type;
+    // v3 detail API의 한국어 roomType만 신뢰 (list API 숫자 코드 "01"~"04"는 부정확)
+    const roomTypeStr = raw.roomType;
     if (roomTypeStr) {
       const s = String(roomTypeStr).trim();
       let derived = null;
@@ -508,11 +508,6 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       else {
         const m = /([1-9])\s*룸/.exec(s);
         if (m) derived = Number(m[1]);
-      }
-      // batch API 숫자 코드 매핑 ("01"~"04")
-      if (derived === null) {
-        const codeMap = { "01": 1, "02": 2, "03": 3, "04": 4, "1": 1, "2": 2, "3": 3, "4": 4 };
-        derived = codeMap[s] ?? null;
       }
       if (derived !== null) item.room_count = derived;
     }
