@@ -25,6 +25,13 @@ trap "rm -f $LOCK" EXIT INT TERM
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 수집 시작 (PID=$$)" | tee -a "$LOG_DIR/collect.log"
 
+# 최신 코드로 실행하기 위해 git pull (실패해도 계속 진행)
+GIT_BIN="/usr/bin/git"
+REPO_DIR="$SCRIPT_DIR/.."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 시작" | tee -a "$LOG_DIR/collect.log"
+cd "$REPO_DIR" && $GIT_BIN pull --ff-only 2>&1 | tee -a "$LOG_DIR/collect.log" || \
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 실패 — 기존 코드로 계속 진행" | tee -a "$LOG_DIR/collect.log"
+
 # caffeinate -i: 수집 중 절전 방지 (stdout/stderr 터미널로 출력)
 caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0
 
