@@ -1038,10 +1038,26 @@ function normalizeBuildingUseValue(value) {
   if (!normalized) return null;
   const normalizedLower = normalized.toLowerCase();
 
+  // realEstateTypeCode values (naver list API)
+  if (normalizedLower === "vl") return "빌라/연립";
+  if (normalizedLower === "yr") return "빌라/연립";
+  if (normalizedLower === "dsd") return "단독/다가구";
+  if (normalizedLower === "dddgg") return "단독/다가구";
+
   if (/(단독|다가구|다세대|다가지구|주택)/.test(normalizedLower)) return "단독/다가구";
   if (/(연립|빌라|빌라\/?연립)/.test(normalizedLower)) return "빌라/연립";
 
   return normalized;
+}
+
+function parseRoomFromTagList(tagList) {
+  if (!Array.isArray(tagList)) return null;
+  const NUMS = { 한: 1, 두: 2, 세: 3, 네: 4, 다섯: 5, 여섯: 6 };
+  for (const tag of tagList) {
+    const m = /^방(한|두|세|네|다섯|여섯)개$/.exec(String(tag || "").trim());
+    if (m) return NUMS[m[1]] ?? null;
+  }
+  return null;
 }
 
 function parseRoom(value) {
@@ -1647,11 +1663,14 @@ export class NaverListingAdapter extends BaseListingAdapter {
           const n = Number(fromDetail);
           if (Number.isFinite(n) && n > 0) return n;
         }
+        // tagList에서 방 개수 파싱 (예: "방두개" → 2)
+        const fromTagList = parseRoomFromTagList(item.tagList);
+        if (fromTagList !== null) return fromTagList;
         return Number.isFinite(Number(roomRaw))
           ? Number(roomRaw)
           : parseRoom(
-              pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title"], null) ||
-                normalizeText(pick(item, ["atclDtl", "tradeTitle"], "")),
+              pick(item, ["roomType", "roomNm", "articleTitle", "atclNm", "title", "articleName"], null) ||
+                normalizeText(pick(item, ["atclDtl", "tradeTitle", "articleFeatureDesc"], "")),
             );
       })(),
       bathroom_count: (() => {
@@ -1672,9 +1691,10 @@ export class NaverListingAdapter extends BaseListingAdapter {
         pick(item, ["facing", "direction", "directionText", "houseDirection", "houseDir", "dir"], null),
       ),
       building_use: normalizeBuildingUseValue(
+        item._detail?.articleDetail?.buildingTypeName ||
         pick(
           item,
-          ["houseType", "houseTypeNm", "houseTypeName", "atclType", "buildingType", "buildingTypeNm", "type"],
+          ["realEstateTypeName", "realEstateTypeCode", "houseType", "houseTypeNm", "houseTypeName", "atclType", "buildingType", "buildingTypeNm", "type"],
           null,
         ),
       ),
