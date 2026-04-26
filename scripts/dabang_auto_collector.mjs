@@ -570,6 +570,7 @@ async function collectDabang() {
     // ========================================================================
 
     for (const item of filtered) {
+      const basePayload = item._detail || item;
       const record = {
         platform_code: "dabang",
         collected_at: new Date().toISOString(),
@@ -577,7 +578,7 @@ async function collectDabang() {
         request_url: buildDabangUrl(item._category || "onetwo"),
         response_status: 200,
         sigungu,
-        payload_json: item._detail || item,
+        payload_json: { ...basePayload, sigungu },
       };
       rawStream.write(JSON.stringify(record) + "\n");
     }
