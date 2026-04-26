@@ -16,7 +16,7 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 chromium.use(StealthPlugin());
 
@@ -85,12 +85,12 @@ const DISTRICT_COORDS = {
 // Bounding boxes for location filtering (same as zigbang)
 const DISTRICT_BBOX = {
   "중랑구":   { sw_lat: 37.5700, sw_lng: 127.0550, ne_lat: 37.6350, ne_lng: 127.1200 },
-  "동대문구": { sw_lat: 37.5550, sw_lng: 127.0100, ne_lat: 37.5950, ne_lng: 127.0850 },
+  "동대문구": { sw_lat: 37.5550, sw_lng: 127.0100, ne_lat: 37.6100, ne_lng: 127.0850 },
   "광진구":   { sw_lat: 37.5200, sw_lng: 127.0550, ne_lat: 37.5700, ne_lng: 127.1100 },
-  "성북구":   { sw_lat: 37.5700, sw_lng: 127.0190, ne_lat: 37.6000, ne_lng: 127.0700 },
+  "성북구":   { sw_lat: 37.5700, sw_lng: 126.9850, ne_lat: 37.6250, ne_lng: 127.0700 },
   "성동구":   { sw_lat: 37.5400, sw_lng: 127.0100, ne_lat: 37.5850, ne_lng: 127.0750 },
-  "중구":     { sw_lat: 37.5450, sw_lng: 127.0000, ne_lat: 37.5800, ne_lng: 127.0300 },
-  "종로구":   { sw_lat: 37.5650, sw_lng: 127.0000, ne_lat: 37.5950, ne_lng: 127.0300 },
+  "중구":     { sw_lat: 37.5450, sw_lng: 126.9550, ne_lat: 37.5800, ne_lng: 127.0300 },
+  "종로구":   { sw_lat: 37.5650, sw_lng: 126.9400, ne_lat: 37.6300, ne_lng: 127.0300 },
 };
 
 const district = DISTRICT_COORDS[sigungu];
@@ -492,7 +492,7 @@ async function collectDabang() {
 
     if (fetchDetail && filtered.length > 0) {
       const allIds = filtered.map((item) => String(item.id));
-      const knownIds = await getExistingWithImages("dabang", allIds, { maxAgeHours: 72 });
+      const knownIds = await getExistingWithImagesAndFields("dabang", allIds, ["bathroom_count"], { maxAgeHours: 72 });
       const needDetail = filterKnownFromDetail(filtered, knownIds);
       if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
       log(`Fetching detail for ${needDetail.length} listings via browser context...`);

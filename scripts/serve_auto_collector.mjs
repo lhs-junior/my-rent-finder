@@ -79,10 +79,10 @@ const DISTRICT_BBOX = {
   "중랑구":   { minLa: 37.5700, maxLa: 37.6350, minLo: 127.0550, maxLo: 127.1200 },
   "동대문구": { minLa: 37.5550, maxLa: 37.6100, minLo: 127.0100, maxLo: 127.0850 },
   "광진구":   { minLa: 37.5200, maxLa: 37.5700, minLo: 127.0550, maxLo: 127.1100 },
-  "성북구":   { minLa: 37.5700, maxLa: 37.6000, minLo: 127.0190, maxLo: 127.0700 },
+  "성북구":   { minLa: 37.5700, maxLa: 37.6250, minLo: 126.9850, maxLo: 127.0700 },
   "성동구":   { minLa: 37.5400, maxLa: 37.5850, minLo: 127.0100, maxLo: 127.0750 },
-  "중구":     { minLa: 37.5450, maxLa: 37.5800, minLo: 127.0000, maxLo: 127.0300 },
-  "종로구":   { minLa: 37.5650, maxLa: 37.5950, minLo: 127.0000, maxLo: 127.0300 },
+  "중구":     { minLa: 37.5450, maxLa: 37.5800, minLo: 126.9550, maxLo: 127.0300 },
+  "종로구":   { minLa: 37.5650, maxLa: 37.6300, minLo: 126.9400, maxLo: 127.0300 },
   "노원구":   { minLa: 37.6200, maxLa: 37.6950, minLo: 127.0300, maxLo: 127.1050 },
 };
 
