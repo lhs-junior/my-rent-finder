@@ -3,6 +3,17 @@
 import { BaseUserOnlyAdapter } from "./user_only_listing_adapter.mjs";
 import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
+function extractJibunKey(addr) {
+  if (!addr) return null;
+  const parts = String(addr).trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const lot = parts[parts.length - 1];
+  const dong = parts[parts.length - 2];
+  if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
+  if (!/(?:동|가|리)\d*$/.test(dong)) return null;
+  return `${dong} ${lot}`;
+}
+
 const DAANGN_IMAGE_URL_HOST_HINTS = [
   /(^|\.)kr\.gcp-karroter\.net$/i,
   /(^|\.)kakaocdn\.net$/i,
@@ -1089,6 +1100,18 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
 
     if (!item.address_text && payload?.address?.streetAddress) {
       item.address_text = payload.address.streetAddress;
+    }
+
+    if (!item.jibun_address) {
+      const candidates = [
+        payload?.jibunAddress,
+        payload?.address?.jibunAddress,
+        payload?._detail?.jibunAddress,
+      ];
+      for (const c of candidates) {
+        const j = extractJibunKey(c);
+        if (j) { item.jibun_address = j; break; }
+      }
     }
 
     if (!item.title && payload?.name) {

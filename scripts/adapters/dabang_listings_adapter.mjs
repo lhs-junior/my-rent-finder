@@ -3,6 +3,17 @@
 import { BaseUserOnlyAdapter, parseMoneyPair } from "./user_only_listing_adapter.mjs";
 import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
+function extractJibunKey(addr) {
+  if (!addr) return null;
+  const parts = String(addr).trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const lot = parts[parts.length - 1];
+  const dong = parts[parts.length - 2];
+  if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
+  if (!/(?:동|가|리)\d*$/.test(dong)) return null;
+  return `${dong} ${lot}`;
+}
+
 const DEFAULT_CITY = "서울특별시";
 
 const DABANG_FIELD_HINTS = {
@@ -443,6 +454,11 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
       if (urls.length > 0) {
         normalized.image_urls = urls.slice(0, 12);
       }
+    }
+
+    if (!normalized.jibun_address) {
+      const j = extractJibunKey(mergedRow?.address || normalized.address_text);
+      if (j) normalized.jibun_address = j;
     }
 
     return normalized;

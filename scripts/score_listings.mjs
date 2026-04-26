@@ -302,7 +302,8 @@ scored AS (
     CASE
       WHEN COALESCE(img.cnt, 0) >= 5 THEN 1
       ELSE 0
-    END AS img_score
+    END AS img_score,
+    COALESCE(img.cnt, 0) AS img_count
 
   FROM normalized_listings n
   LEFT JOIN district_rpm d ON SPLIT_PART(n.address_text, ' ', 2) = d.district
@@ -332,11 +333,22 @@ ranked AS (
     s.eliminate, s.rpm_score, s.subway_score, s.transfer_score,
     s.area_score, s.floor_score, s.year_score, s.img_score,
     (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) AS total_score,
+    -- 지번주소 기반 중복 제거: 동+번지+월세 동일 → 사진 많은 쪽 우선 보존
+    CASE WHEN n.jibun_address IS NOT NULL
+      THEN ROW_NUMBER() OVER (
+        PARTITION BY n.jibun_address, n.rent_amount
+        ORDER BY s.img_count DESC,
+                 (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
+                 n.listing_id
+      )
+    END AS jibun_dup_rank,
+    -- 위치 기반 중복 제거: lat/lng 소수점 3자리(≈111m) + 동일 월세
     ROW_NUMBER() OVER (
       PARTITION BY ROUND(n.lat::numeric, 3), ROUND(n.lng::numeric, 3), n.rent_amount
-      ORDER BY (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
+      ORDER BY s.img_count DESC,
+               (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
                n.room_count DESC NULLS LAST, n.listing_id
-    ) AS dup_rank
+    ) AS latlng_dup_rank
   FROM scored s
   JOIN normalized_listings n ON n.listing_id = s.listing_id
   LEFT JOIN cross_ref_dupes crd ON crd.naver_listing_id = s.listing_id
@@ -348,7 +360,8 @@ SELECT
   eliminate, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score,
   total_score
 FROM ranked
-WHERE dup_rank = 1
+WHERE (jibun_dup_rank IS NULL OR jibun_dup_rank = 1)
+  AND latlng_dup_rank = 1
 ORDER BY total_score DESC, listing_id
 `;
 }
