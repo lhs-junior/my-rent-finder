@@ -66,18 +66,33 @@ await withDbClient(async (client) => {
     return;
   }
 
-  await client.query(`DELETE FROM image_fetch_jobs WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
-  await client.query(`DELETE FROM contract_violations WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
-  await client.query(`DELETE FROM quality_reports WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
-  await client.query(`DELETE FROM match_group_members WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
+  // 찜된 매물은 하드 삭제 제외 (소프트 삭제도 금지 — pin_favorites 행 보호)
+  const pinnedRes = await client.query(
+    `SELECT DISTINCT listing_id FROM pin_favorites WHERE listing_id = ANY($1::bigint[])`,
+    [listingIds],
+  );
+  const pinnedIds = new Set(pinnedRes.rows.map((r) => String(r.listing_id)));
+  const safeIds = listingIds.filter((id) => !pinnedIds.has(String(id)));
+  if (pinnedIds.size > 0) {
+    console.log(`찜된 매물 ${pinnedIds.size}건은 삭제 제외: [${[...pinnedIds].join(", ")}]`);
+  }
+  if (!safeIds.length) {
+    console.log("삭제 대상 없음 (전부 찜된 매물). 완료.");
+    return;
+  }
+
+  await client.query(`DELETE FROM image_fetch_jobs WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
+  await client.query(`DELETE FROM contract_violations WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
+  await client.query(`DELETE FROM quality_reports WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
+  await client.query(`DELETE FROM match_group_members WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
   await client.query(
     `DELETE FROM listing_matches
      WHERE source_listing_id = ANY($1::bigint[])
         OR target_listing_id = ANY($1::bigint[])`,
-    [listingIds],
+    [safeIds],
   );
-  await client.query(`DELETE FROM listing_images WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
-  await client.query(`DELETE FROM normalized_listings WHERE listing_id = ANY($1::bigint[])`, [listingIds]);
+  await client.query(`DELETE FROM listing_images WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
+  await client.query(`DELETE FROM normalized_listings WHERE listing_id = ANY($1::bigint[])`, [safeIds]);
 
-  console.log(`Deleted ${listingIds.length} invalid daangn listings.`);
+  console.log(`Deleted ${safeIds.length} invalid daangn listings.`);
 });

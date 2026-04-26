@@ -101,7 +101,8 @@ export async function detectStaleListings(options = {}) {
            ) ls
           WHERE nl.listing_id = ls.listing_id
             AND nl.deleted_at IS NULL
-            AND ls.last_seen < NOW() - ($1::int || ' days')::interval`,
+            AND ls.last_seen < NOW() - ($1::int || ' days')::interval
+            AND nl.listing_id NOT IN (SELECT listing_id FROM pin_favorites)`,
         [hardDeleteThresholdDays, eligiblePlatforms],
       );
       results.hard_deleted = delRes.rowCount || 0;

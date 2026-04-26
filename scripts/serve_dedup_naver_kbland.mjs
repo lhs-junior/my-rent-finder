@@ -141,7 +141,8 @@ async function main() {
         `UPDATE normalized_listings
          SET deleted_at = $1, updated_at = $1
          WHERE listing_id = ANY($2::bigint[])
-           AND deleted_at IS NULL`,
+           AND deleted_at IS NULL
+           AND listing_id NOT IN (SELECT listing_id FROM pin_favorites)`,
         [now, naverIds]
       );
       console.log(`  naver ${res.rowCount}건 deleted_at 마킹 완료`);
@@ -152,7 +153,8 @@ async function main() {
         `UPDATE normalized_listings
          SET deleted_at = $1, updated_at = $1
          WHERE listing_id = ANY($2::bigint[])
-           AND deleted_at IS NULL`,
+           AND deleted_at IS NULL
+           AND listing_id NOT IN (SELECT listing_id FROM pin_favorites)`,
         [now, kblandIds]
       );
       console.log(`  kbland ${res.rowCount}건 deleted_at 마킹 완료`);
