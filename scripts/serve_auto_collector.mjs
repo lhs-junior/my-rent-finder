@@ -77,7 +77,7 @@ const TRIGGER_ATCL = "331096536";
 
 const DISTRICT_BBOX = {
   "중랑구":   { minLa: 37.5700, maxLa: 37.6350, minLo: 127.0550, maxLo: 127.1200 },
-  "동대문구": { minLa: 37.5550, maxLa: 37.5950, minLo: 127.0100, maxLo: 127.0850 },
+  "동대문구": { minLa: 37.5550, maxLa: 37.6100, minLo: 127.0100, maxLo: 127.0850 },
   "광진구":   { minLa: 37.5200, maxLa: 37.5700, minLo: 127.0550, maxLo: 127.1100 },
   "성북구":   { minLa: 37.5700, maxLa: 37.6000, minLo: 127.0190, maxLo: 127.0700 },
   "성동구":   { minLa: 37.5400, maxLa: 37.5850, minLo: 127.0100, maxLo: 127.0750 },
