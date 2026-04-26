@@ -5,7 +5,7 @@
  *
  * Usage:
  *   node scripts/reenrich_from_raw.mjs [--dry-run] [platform ...]
- *   node scripts/reenrich_from_raw.mjs               # kbland + dabang + peterpanz
+ *   node scripts/reenrich_from_raw.mjs               # kbland + dabang + peterpanz + daangn
  *   node scripts/reenrich_from_raw.mjs kbland         # kbland만
  *   node scripts/reenrich_from_raw.mjs --dry-run      # 실제 UPDATE 없이 미리보기
  */
@@ -13,6 +13,7 @@ import { withDbClient } from "./lib/db_client.mjs";
 import { KblandListingAdapter } from "./adapters/kbland_listings_adapter.mjs";
 import { DabangListingAdapter } from "./adapters/dabang_listings_adapter.mjs";
 import { PeterpanzListingAdapter } from "./adapters/peterpanz_listings_adapter.mjs";
+import { DaangnListingAdapter } from "./adapters/daangn_listings_adapter.mjs";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 const ARG_PLATFORMS = process.argv.slice(2).filter((a) => !a.startsWith("--"));
@@ -21,6 +22,7 @@ const ADAPTERS = {
   kbland:    new KblandListingAdapter(),
   dabang:    new DabangListingAdapter(),
   peterpanz: new PeterpanzListingAdapter(),
+  daangn:    new DaangnListingAdapter(),
 };
 
 const PATCH_COLS = [
@@ -94,16 +96,16 @@ await withDbClient(async (db) => {
       if (!DRY_RUN) {
         await db.query(
           `UPDATE normalized_listings SET
-             room_count              = $2,
-             direction               = $3,
-             floor                   = $4,
-             total_floor             = $5,
-             bathroom_count          = $6,
-             building_year           = $7,
-             monthly_management_cost = $8,
-             parking_possible        = $9,
-             available_date          = $10,
-             description_text        = $11,
+             room_count              = COALESCE($2, room_count),
+             direction               = COALESCE($3, direction),
+             floor                   = COALESCE($4, floor),
+             total_floor             = COALESCE($5, total_floor),
+             bathroom_count          = COALESCE($6, bathroom_count),
+             building_year           = COALESCE($7, building_year),
+             monthly_management_cost = COALESCE($8, monthly_management_cost),
+             parking_possible        = COALESCE($9, parking_possible),
+             available_date          = COALESCE($10, available_date),
+             description_text        = COALESCE($11, description_text),
              updated_at              = NOW()
            WHERE listing_id = $1`,
           [

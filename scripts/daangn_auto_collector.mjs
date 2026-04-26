@@ -9,7 +9,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 // ── CLI 인자 ──
 const args = process.argv.slice(2);
@@ -1454,7 +1454,7 @@ async function collectDistrict(districtName, locationId) {
       return RESIDENTIAL_TYPES.has(item["@type"]);
     });
   const allDaangnKeys = residentialItems.map(extractDaangnItemKey).filter(Boolean);
-  const knownDaangnIds = await getExistingWithImages("daangn", allDaangnKeys, { maxAgeHours: 72 });
+  const knownDaangnIds = await getExistingWithImagesAndFields("daangn", allDaangnKeys, ["description_text"], { maxAgeHours: 72 });
   if (knownDaangnIds.size > 0) console.log(`  Skipped ${knownDaangnIds.size} known listings (detail fetch)`);
   await hydrateItemsWithDetail(residentialItems, { knownIds: knownDaangnIds });
   if (verbose)

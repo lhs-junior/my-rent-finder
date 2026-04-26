@@ -20,7 +20,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { normalizeListedAt } from "./lib/listed_at_normalizer.mjs";
-import { getExistingWithImages } from "./lib/known_listings.mjs";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 // ── CLI 인자 ──
 const args = process.argv.slice(2);
@@ -283,7 +283,7 @@ const KB_DETAIL_HEADERS = {
   Referer: "https://kbland.kr/",
 };
 
-async function fetchKbDetailInfo(listingId) {
+export async function fetchKbDetailInfo(listingId) {
   try {
     const url = `https://api.kbland.kr/land-property/property/dtailInfo?${encodeURIComponent("매물일련번호")}=${listingId}`;
     const res = await fetch(url, { headers: KB_DETAIL_HEADERS });
@@ -642,7 +642,7 @@ async function main() {
     // 이미지는 known 여부와 무관하게 항상 재수집: re-persist 시 cleanupNormalizedRowsForSourceUrl이
     // 기존 listing_images를 삭제하므로 _imageUrls=[]로 재저장하면 이미지가 사라지는 버그 방지
     const allIds = capped.map((r) => String(r.매물일련번호));
-    const knownIds = await getExistingWithImages("kbland", allIds, { maxAgeHours: 72 });
+    const knownIds = await getExistingWithImagesAndFields("kbland", allIds, ["direction", "bathroom_count"], { maxAgeHours: 72 });
     if (knownIds.size > 0) console.log(`  Skipped ${knownIds.size} known listings (detail fetch only)`);
 
     // 4단계: 이미지 URL 수집 (이미지 있는 매물 전체 — known 제외하지 않음)

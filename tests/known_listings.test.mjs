@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getExistingWithImages, getExistingWithSufficientImages } from "../scripts/lib/known_listings.mjs";
+import { getExistingWithImages, getExistingWithSufficientImages, getExistingWithImagesAndFields } from "../scripts/lib/known_listings.mjs";
 
 function makeClient(rows) {
   return { query: async () => ({ rows }) };
@@ -70,6 +70,47 @@ describe("getExistingWithImages", () => {
     expect(capturedParams[2]).toBe(72);
     expect(capturedSql).toContain("$3");
     expect(capturedSql).toContain("updated_at");
+  });
+});
+
+describe("getExistingWithImagesAndFields", () => {
+  it("이미지 있고 requiredFields 모두 non-null → known으로 반환", async () => {
+    const client = makeClient([{ external_id: "abc" }]);
+    const result = await getExistingWithImagesAndFields("kbland", ["abc", "new"], ["direction"], { client });
+    expect(result.has("abc")).toBe(true);
+    expect(result.has("new")).toBe(false);
+  });
+
+  it("requiredFields 빈 배열 → getExistingWithImages 동일 동작", async () => {
+    let capturedSql = "";
+    const client = { query: async (sql) => { capturedSql = sql; return { rows: [] }; } };
+    await getExistingWithImagesAndFields("dabang", ["x"], [], { client });
+    expect(capturedSql).not.toContain("IS NOT NULL");
+  });
+
+  it("허용되지 않는 필드는 SQL에 포함되지 않음 (injection 방지)", async () => {
+    let capturedSql = "";
+    const client = { query: async (sql) => { capturedSql = sql; return { rows: [] }; } };
+    await getExistingWithImagesAndFields("dabang", ["x"], ["direction", "DROP TABLE"], { client });
+    expect(capturedSql).toContain("direction IS NOT NULL");
+    expect(capturedSql).not.toContain("DROP TABLE");
+  });
+
+  it("maxAgeHours 지정 시 staleness 조건이 쿼리에 포함됨", async () => {
+    let capturedSql = "";
+    let capturedParams = null;
+    const client = { query: async (sql, params) => { capturedSql = sql; capturedParams = params; return { rows: [] }; } };
+    await getExistingWithImagesAndFields("kbland", ["id1"], ["bathroom_count"], { maxAgeHours: 72, client });
+    expect(capturedSql).toContain("updated_at");
+    expect(capturedParams).toContain(72);
+  });
+
+  it("빈 externalIds → DB 쿼리 없이 빈 Set 반환", async () => {
+    let queryCalled = false;
+    const client = { query: async () => { queryCalled = true; return { rows: [] }; } };
+    const result = await getExistingWithImagesAndFields("kbland", [], ["direction"], { client });
+    expect(result.size).toBe(0);
+    expect(queryCalled).toBe(false);
   });
 });
 
