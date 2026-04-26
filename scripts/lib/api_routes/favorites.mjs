@@ -11,9 +11,10 @@ export async function handleFavorites(req, res) {
   try {
     const url = new URL(req.url, "http://localhost");
     const sort = (url.searchParams.get("sort") || "").trim();
+    // 만료된 찜 매물은 항상 맨 뒤로, 유효 매물 내에서 정렬
     const orderBy = sort === "newest"
-      ? "nl.listed_at DESC NULLS LAST, pf.added_at DESC"
-      : "pf.added_at DESC";
+      ? "nl.deleted_at NULLS FIRST, nl.listed_at DESC NULLS LAST, pf.added_at DESC"
+      : "nl.deleted_at NULLS FIRST, pf.added_at DESC";
 
     const result = await withDbClient(async (client) => {
       const rows = await client.query(`
@@ -27,11 +28,12 @@ export async function handleFavorites(req, res) {
                nl.lat, nl.lng, nl.quality_flags, nl.listed_at, nl.created_at,
                nl.nearest_subway_station, nl.nearest_subway_line,
                nl.subway_distance_m, nl.subway_walk_min,
+               nl.deleted_at,
                rl.payload_json
         FROM pin_favorites pf
         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
-        WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+        WHERE pf.pin_hash = $1
         ORDER BY ${orderBy}
       `, [ANON_PIN_HASH]);
 
@@ -99,6 +101,7 @@ export async function handleFavorites(req, res) {
           subway_distance_m: toInt(row.subway_distance_m, null),
           subway_walk_min: toInt(row.subway_walk_min, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+          is_expired: row.deleted_at != null,
         };
       });
     });
@@ -121,7 +124,7 @@ export async function handleFavoriteIds(req, res) {
         SELECT pf.listing_id
         FROM pin_favorites pf
         JOIN normalized_listings nl ON nl.listing_id = pf.listing_id
-        WHERE pf.pin_hash = $1 AND nl.deleted_at IS NULL
+        WHERE pf.pin_hash = $1
       `, [ANON_PIN_HASH]);
       return rows.rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
     });

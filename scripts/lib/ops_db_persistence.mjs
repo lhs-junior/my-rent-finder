@@ -563,63 +563,56 @@ async function cleanupNormalizedRowsByListingIds(client, listingIds) {
   const normalized = listingIds.map((id) => toInt(id, null)).filter((id) => id !== null);
   if (!normalized.length) return;
 
-  await client.query(
-    `DELETE FROM image_fetch_jobs
-     WHERE listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-  await client.query(
-    `DELETE FROM contract_violations
-     WHERE listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-  await client.query(
-    `DELETE FROM quality_reports
-     WHERE listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-  await client.query(
-    `DELETE FROM match_group_members
-     WHERE listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-  await client.query(
-    `DELETE FROM listing_matches
-     WHERE source_listing_id = ANY($1::bigint[])
-        OR target_listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-  await client.query(
-    `DELETE FROM listing_images
-     WHERE listing_id = ANY($1::bigint[])`,
-    [normalized],
-  );
-
-  // pin_favorites가 걸린 listing_id는 하드 삭제하면 찜 목록이 사라지므로
-  // 소프트 삭제(deleted_at)만 수행하고 하드 삭제 대상에서 제외
+  // 찜된 매물은 수집 파이프라인 정리 대상에서 완전히 제외 — 소프트 삭제도 금지.
+  // (소프트 삭제하면 favorites API가 deleted_at IS NULL 필터로 숨겨버리는 버그 재현됨)
+  // 실제 매물 만료는 check_listing_status.mjs가 deleted_at을 담당한다.
   const pinnedRes = await client.query(
     `SELECT DISTINCT listing_id FROM pin_favorites WHERE listing_id = ANY($1::bigint[])`,
     [normalized],
   );
   const pinnedIds = new Set(pinnedRes.rows.map((r) => String(r.listing_id)));
-  const toHardDelete = normalized.filter((id) => !pinnedIds.has(String(id)));
-  const toSoftDelete = normalized.filter((id) => pinnedIds.has(String(id)));
+  if (pinnedIds.size > 0) {
+    console.warn(`[persist] 찜된 매물 ${pinnedIds.size}건은 수집 정리 대상에서 제외: [${[...pinnedIds].join(", ")}]`);
+  }
+  const safeToDelete = normalized.filter((id) => !pinnedIds.has(String(id)));
+  if (!safeToDelete.length) return;
 
-  if (toSoftDelete.length) {
-    await client.query(
-      `UPDATE normalized_listings
-       SET deleted_at = NOW()
-       WHERE listing_id = ANY($1::bigint[]) AND deleted_at IS NULL`,
-      [toSoftDelete],
-    );
-  }
-  if (toHardDelete.length) {
-    await client.query(
-      `DELETE FROM normalized_listings
-       WHERE listing_id = ANY($1::bigint[])`,
-      [toHardDelete],
-    );
-  }
+  await client.query(
+    `DELETE FROM image_fetch_jobs
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM contract_violations
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM quality_reports
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM match_group_members
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM listing_matches
+     WHERE source_listing_id = ANY($1::bigint[])
+        OR target_listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM listing_images
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
+  await client.query(
+    `DELETE FROM normalized_listings
+     WHERE listing_id = ANY($1::bigint[])`,
+    [safeToDelete],
+  );
 }
 
 async function cleanupNormalizedRowsForRawId(client, platform, rawId) {
