@@ -633,7 +633,7 @@ async function cleanupNormalizedRowsForRawId(client, platform, rawId) {
   await cleanupNormalizedRowsByListingIds(client, listingIds);
 }
 
-async function cleanupNormalizedRowsForSourceUrl(client, platform, sourceUrl) {
+async function cleanupNormalizedRowsForSourceUrl(client, platform, sourceUrl, selfExternalId = null) {
   const platformCode = normalizePlatform(platform);
   const normalizedSourceUrl = normalizePlatformSourceUrl(platformCode, toText(sourceUrl, ""));
   if (!platformCode || !normalizedSourceUrl) return;
@@ -658,14 +658,16 @@ async function cleanupNormalizedRowsForSourceUrl(client, platform, sourceUrl) {
   const candidates = Array.from(sourceUrls).filter(Boolean);
   if (!candidates.length) return;
 
+  const selfId = selfExternalId != null ? String(selfExternalId) : null;
   const lookup = await client.query(
     `
       SELECT listing_id
       FROM normalized_listings
       WHERE platform_code = $1
         AND source_url = ANY($2::text[])
+        ${selfId ? "AND external_id IS DISTINCT FROM $3" : ""}
     `,
-    [platformCode, candidates],
+    selfId ? [platformCode, candidates, selfId] : [platformCode, candidates],
   );
 
   const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
@@ -1282,7 +1284,7 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
     }
   }
 
-  await cleanupNormalizedRowsForSourceUrl(client, platform, finalSourceUrl);
+  await cleanupNormalizedRowsForSourceUrl(client, platform, finalSourceUrl, externalId);
 
   const canonicalKey = buildCanonicalKey(
     platform,
