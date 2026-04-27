@@ -100,7 +100,7 @@ export async function handleSettings(req, res) {
           [hashed]
         )
       );
-    } catch (e) {
+    } catch {
       sendJson(res, 500, { error: "Database error" });
       return;
     }
@@ -125,7 +125,7 @@ export async function handleSettings(req, res) {
       rows = await withDbClient((client) =>
         client.query("SELECT key, value FROM user_settings ORDER BY key")
       );
-    } catch (e) {
+    } catch {
       sendJson(res, 500, { error: "Database query failed" });
       return;
     }
@@ -160,7 +160,7 @@ export async function handleSettings(req, res) {
           [parsed.key, parsed.value]
         )
       );
-    } catch (e) {
+    } catch {
       sendJson(res, 500, { error: "Database query failed" });
       return;
     }

@@ -143,7 +143,7 @@ async function humanClick(page, selector, options = {}) {
     await page.click(selector);
     await randomDelay(500, 1500);
     return true;
-  } catch (err) {
+  } catch {
     if (verbose) console.log(`  ⚠️  Click failed: ${selector}`);
     return false;
   }
@@ -156,7 +156,7 @@ async function humanType(page, selector, text) {
     await page.fill(selector, text);
     await randomDelay(500, 1000);
     return true;
-  } catch (err) {
+  } catch {
     if (verbose) console.log(`  ⚠️  Type failed: ${selector}`);
     return false;
   }
@@ -293,7 +293,7 @@ async function captureDirectArticleAPI(page, capturedResponses, rawStream, overr
   result.stateSnapshot = stateSnapshot;
 
   const buildResult = buildArticleApiQuery(state, overrides);
-  let baseUrl = buildResult.url;
+  const baseUrl = buildResult.url;
   const baseParsed = new URL(baseUrl);
   if (verbose) {
     console.log(
@@ -551,7 +551,7 @@ async function captureNaverData() {
 
       capturedResponses.push(record);
       rawStream.write(JSON.stringify(record) + "\n");
-    } catch (err) {
+    } catch {
       // Ignore parse errors
     }
   });
@@ -781,7 +781,7 @@ async function captureNaverData() {
         );
         await randomDelay(1000, 2000);
       }
-    } catch (err) {
+    } catch {
       if (verbose) console.log(`  ⚠️  Click attempt ${attempt + 1} failed`);
       await randomDelay(500, 1000);
     }

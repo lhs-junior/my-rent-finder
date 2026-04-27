@@ -61,7 +61,7 @@ export async function handleProfileRead(req, res) {
       scoreRows.map((r) => [r.listing_id, r.grade])
     );
     sendJson(res, 200, { settings, favoriteIds, favoriteGrades, scoredGrades });
-  } catch (e) {
+  } catch {
     sendJson(res, 500, { error: "DB error" });
   }
 }
@@ -88,7 +88,7 @@ export async function handleProfileSettings(req, res) {
       )
     );
     sendJson(res, 200, { ok: true });
-  } catch (e) {
+  } catch {
     sendJson(res, 500, { error: "DB error" });
   }
 }
@@ -196,7 +196,7 @@ export async function handleProfileFavorites(req, res) {
     });
 
     sendJson(res, 200, { items: result, total: result.length });
-  } catch (e) {
+  } catch {
     sendJson(res, 500, { error: "DB error" });
   }
 }
@@ -237,7 +237,7 @@ export async function handleProfileFavoriteToggle(req, res) {
       }
     });
     sendJson(res, 200, { action, listing_id: listingId });
-  } catch (e) {
+  } catch {
     sendJson(res, 500, { error: "DB error" });
   }
 }

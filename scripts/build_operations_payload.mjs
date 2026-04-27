@@ -514,7 +514,7 @@ const overallRequiredRate = allListings.length
 
 const matcherInputPath = path.join(runDir, `operations_match_input_${Date.now()}.json`);
 let matcherOutput = null;
-let matchResultPath = matcherOutArg
+const matchResultPath = matcherOutArg
   ? path.resolve(process.cwd(), matcherOutArg)
   : path.join(runDir, `match_result_${runMeta.runId}.json`);
 

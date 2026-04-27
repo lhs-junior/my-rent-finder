@@ -36,7 +36,7 @@ const DEFAULT_RULES = {
 };
 
 // Default rules used by scoring functions; CLI can override via --rules
-let rules = DEFAULT_RULES;
+const rules = DEFAULT_RULES;
 
 function n(v) {
   const num = Number(v);

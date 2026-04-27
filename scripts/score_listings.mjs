@@ -342,9 +342,9 @@ ranked AS (
                  n.listing_id
       )
     END AS jibun_dup_rank,
-    -- 위치 기반 중복 제거: lat/lng 소수점 3자리(≈111m) + 동일 월세
+    -- 위치 기반 중복 제거: lat/lng 소수점 3자리(≈111m) + 동일 월세+보증금
     ROW_NUMBER() OVER (
-      PARTITION BY ROUND(n.lat::numeric, 3), ROUND(n.lng::numeric, 3), n.rent_amount
+      PARTITION BY ROUND(n.lat::numeric, 3), ROUND(n.lng::numeric, 3), n.rent_amount, n.deposit_amount
       ORDER BY s.img_count DESC,
                (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
                n.room_count DESC NULLS LAST, n.listing_id

@@ -86,7 +86,7 @@ async function captureNaverData() {
 
       capturedResponses.push(record);
       rawStream.write(JSON.stringify(record) + "\n");
-    } catch (err) {
+    } catch {
       // Ignore parse errors (binary responses, etc.)
     }
   });

@@ -137,8 +137,8 @@ function parsePriceTitle(priceTitle) {
   const match = priceTitle.match(/^([0-9억,.]+)\s*\/\s*([0-9,.]+)$/);
   if (!match) return { deposit: null, rent: null };
 
-  let depositStr = match[1];
-  let rentStr = match[2];
+  const depositStr = match[1];
+  const rentStr = match[2];
 
   // Parse deposit: handle 억 unit
   let deposit = 0;

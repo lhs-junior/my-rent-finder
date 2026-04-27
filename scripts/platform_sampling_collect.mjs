@@ -80,7 +80,7 @@ function getNaverDistrictCode(sigungu) {
       naverDistrictCodes = JSON.parse(
         fs.readFileSync('scripts/naver_district_codes.json', 'utf8'),
       );
-    } catch (err) {
+    } catch {
       naverDistrictCodes = {};
       return null;
     }

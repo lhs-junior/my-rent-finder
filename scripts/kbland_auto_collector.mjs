@@ -186,7 +186,7 @@ async function fetchClusterListings(page, clusterId, lat, lng) {
       // 원본 응답 그대로 전달 (사이트 UI 깨지지 않게)
       await route.fulfill({ response });
       handled = true;
-    } catch (e) {
+    } catch {
       if (!handled) {
         try {
           await route.continue();
@@ -271,7 +271,7 @@ async function fetchKbBascInfo(page, listingId) {
       : null;
     const outLink = info["제휴매물아웃링크"] || null;
     return { serveAtclNo, outLink };
-  } catch (e) {
+  } catch {
     return { serveAtclNo: null, outLink: null };
   }
 }

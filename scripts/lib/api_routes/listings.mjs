@@ -903,16 +903,19 @@ export async function handleListingsGeo(req, res) {
       cond.push(`nl.subway_distance_m IS NOT NULL AND nl.subway_distance_m <= $${params.length}`);
     }
 
-    // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
+    // Dedup: 1) signature dedup (same platform+address+price) 2) cross-platform dedup (lat4+lng4+rent+deposit)
     const GEO_DEDUP_RK = dedupRankExpression("nl");
+    const GEO_PLAT_PRI = `CASE nl.platform_code
+      WHEN 'serve'     THEN 1 WHEN 'naver'    THEN 2 WHEN 'kbland'   THEN 3
+      WHEN 'zigbang'   THEN 4 WHEN 'dabang'   THEN 5 WHEN 'peterpanz' THEN 6
+      WHEN 'daangn'    THEN 7 ELSE 8 END`;
 
     params.push(limit);
     const rows = await client.query(
       `
-      SELECT * FROM (
+      WITH _base AS (
         SELECT nl.listing_id, nl.lat, nl.lng, nl.platform_code,
-               nl.lease_type, nl.title,
-               nl.sale_price,
+               nl.lease_type, nl.title, nl.sale_price,
                nl.rent_amount, nl.deposit_amount,
                COALESCE(nl.area_exclusive_m2, nl.area_gross_m2) AS area_m2,
                nl.address_text, nl.room_count, nl.floor, nl.building_use,
@@ -920,11 +923,34 @@ export async function handleListingsGeo(req, res) {
                nl.nearest_subway_station, nl.nearest_subway_line,
                nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at,
-               ${GEO_DEDUP_RK} AS _rk
+               ROUND(nl.lat::numeric, 4) AS _lat4,
+               ROUND(nl.lng::numeric, 4) AS _lng4,
+               ${GEO_PLAT_PRI} AS _plat_pri,
+               ${GEO_DEDUP_RK} AS _sig_rk
         FROM normalized_listings nl
         WHERE ${cond.join(" AND ")}
-      ) _d WHERE _d._rk = 1
-      ORDER BY ${sort === "newest" ? "_d.listed_at DESC NULLS LAST, _d.created_at DESC" : "_d.created_at DESC"}
+      ),
+      _sig_deduped AS (
+        SELECT * FROM _base WHERE _sig_rk = 1
+      ),
+      _cross_deduped AS (
+        SELECT *,
+          ROW_NUMBER() OVER (
+            PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
+            ORDER BY _plat_pri, listing_id
+          ) AS _cross_rk,
+          COUNT(*)::int OVER (
+            PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
+          ) AS group_count,
+          ARRAY_AGG(listing_id) OVER (
+            PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
+            ORDER BY _plat_pri, listing_id
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+          ) AS group_listing_ids
+        FROM _sig_deduped
+      )
+      SELECT * FROM _cross_deduped WHERE _cross_rk = 1
+      ORDER BY ${sort === "newest" ? "listed_at DESC NULLS LAST, created_at DESC" : "created_at DESC"}
       LIMIT $${params.length}
     `,
       params,
@@ -932,11 +958,24 @@ export async function handleListingsGeo(req, res) {
 
     const countResult = await client.query(
       `
-      SELECT COUNT(*) AS total FROM (
-        SELECT nl.listing_id, ${GEO_DEDUP_RK} AS _rk
+      WITH _base AS (
+        SELECT nl.listing_id,
+               ROUND(nl.lat::numeric, 4) AS _lat4,
+               ROUND(nl.lng::numeric, 4) AS _lng4,
+               nl.rent_amount, nl.deposit_amount,
+               ${GEO_PLAT_PRI} AS _plat_pri,
+               ${GEO_DEDUP_RK} AS _sig_rk
         FROM normalized_listings nl
         WHERE ${cond.join(" AND ")}
-      ) _d WHERE _d._rk = 1
+      ),
+      _sig_deduped AS (SELECT * FROM _base WHERE _sig_rk = 1)
+      SELECT COUNT(*) AS total FROM (
+        SELECT ROW_NUMBER() OVER (
+          PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
+          ORDER BY _plat_pri, listing_id
+        ) AS _cross_rk
+        FROM _sig_deduped
+      ) _c WHERE _cross_rk = 1
     `,
       params.slice(0, -1),
     );
@@ -969,6 +1008,9 @@ export async function handleListingsGeo(req, res) {
           nearest_subway_line: safeText(row.nearest_subway_line, null),
           subway_distance_m: toInt(row.subway_distance_m, null),
           subway_walk_min: toInt(row.subway_walk_min, null),
+          group_count: toInt(row.group_count, 1),
+          group_listing_ids: (Array.isArray(row.group_listing_ids) ? row.group_listing_ids : [])
+            .map((id) => toInt(id, null)).filter(Boolean),
         };
       }),
       total_in_bounds: parseInt(countResult.rows?.[0]?.total || "0", 10),

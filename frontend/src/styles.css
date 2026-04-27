@@ -1066,6 +1066,106 @@ body {
   font-size: 0.72rem;
 }
 
+/* -- Stack marker badge ---------------------------------------------------- */
+
+.map-marker-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: #fff;
+  color: #2460f2;
+  border: 1.5px solid #2460f2;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 2px;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* -- Stack popup (multi-listing at same location) -------------------------- */
+
+.map-stack-popup {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  min-width: 220px;
+  max-width: 300px;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.map-stack-popup-header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 9px 12px;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.map-stack-row {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.1s;
+}
+
+.map-stack-row:last-child {
+  border-bottom: none;
+}
+
+.map-stack-row:hover {
+  background: #f5f7ff;
+}
+
+.map-stack-platform {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.map-stack-price {
+  font-weight: 700;
+  color: #111;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-stack-specs {
+  color: #888;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.map-stack-dup-badge {
+  background: #f0f4ff;
+  color: #2460f2;
+  border-radius: 10px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* -- Filter strip (pill chip) -------------------------------------------- */
 
 .filter-strip {

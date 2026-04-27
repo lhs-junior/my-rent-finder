@@ -456,7 +456,7 @@ async function strategyDirectApi() {
   // Step 1: Get item IDs from multiple property type endpoints
   // Search: villa, officetel first (more likely >= 40m2), then oneroom
   const propertyTypes = ["villa", "officetel", "oneroom"];
-  let allItems = [];
+  const allItems = [];
 
   for (const ptype of propertyTypes) {
     const v2Url =
@@ -530,7 +530,7 @@ async function strategyDirectApi() {
   // Step 2: Get item details in batches (API rejects large payloads)
   const detailUrl = "https://apis.zigbang.com/house/property/v1/items/list";
   const BATCH_SIZE = 15;
-  let detailedItems = [];
+  const detailedItems = [];
 
   // Ensure IDs are numeric (not objects or strings)
   const numericIds = itemIds.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0);

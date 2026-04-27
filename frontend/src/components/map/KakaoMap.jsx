@@ -247,6 +247,7 @@ const KakaoMap = forwardRef(function KakaoMap({
   const favoriteIdsRef = useRef(favoriteIds);
   favoriteIdsRef.current = favoriteIds;
   const openInfoOverlayRef = useRef(null);
+  const openStackPopupRef = useRef(null);
   const focusListingInMapRef = useRef(null);
 
   const closeInfoWindow = () => {
@@ -299,6 +300,88 @@ const KakaoMap = forwardRef(function KakaoMap({
     infoWindowRef.current = overlay;
   };
   openInfoOverlayRef.current = openInfoOverlay;
+
+  /** Open a stack popup listing all nearby same-location listings. */
+  const openStackPopup = (position, bucketItems) => {
+    closeInfoWindow();
+    const totalCount = bucketItems.reduce((sum, it) => sum + (Number(it.group_count) || 1), 0);
+    const platformLabels = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
+
+    const el = document.createElement("div");
+    el.className = "map-stack-popup";
+
+    const header = document.createElement("div");
+    header.className = "map-stack-popup-header";
+    const headerText = document.createElement("span");
+    headerText.textContent = `이 위치 매물 ${totalCount}건`;
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "map-info-overlay-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closeInfoWindow(); });
+    header.appendChild(headerText);
+    header.appendChild(closeBtn);
+    el.appendChild(header);
+
+    bucketItems.forEach((it) => {
+      const pName = platformLabels[it.platform_code] || it.platform_code || "매물";
+      const pColor = PLATFORM_COLORS[it.platform_code] || "#6B7280";
+      const pTextColor = markerTextColor(it.platform_code);
+      const price = normalizeDisplayMoney(it);
+      const rent = price.rent != null ? `월${price.rent}만` : "";
+      const deposit = price.deposit != null ? `보${toMoney(price.deposit)}` : "";
+      const area = it.area_m2 != null ? `${it.area_m2}㎡` : "";
+      const floor = it.floor != null ? `${it.floor}층` : "";
+      const specs = [area, floor].filter(Boolean).join(" · ");
+      const gCount = Number(it.group_count) || 1;
+
+      const row = document.createElement("div");
+      row.className = "map-stack-row";
+
+      const platformBadge = document.createElement("span");
+      platformBadge.className = "map-stack-platform";
+      platformBadge.textContent = pName;
+      platformBadge.style.cssText = `background:${pColor};color:${pTextColor}`;
+
+      const priceEl = document.createElement("span");
+      priceEl.className = "map-stack-price";
+      priceEl.textContent = [deposit, rent].filter(Boolean).join(" / ");
+
+      row.appendChild(platformBadge);
+      row.appendChild(priceEl);
+
+      if (specs) {
+        const specsEl = document.createElement("span");
+        specsEl.className = "map-stack-specs";
+        specsEl.textContent = specs;
+        row.appendChild(specsEl);
+      }
+      if (gCount > 1) {
+        const dupBadge = document.createElement("span");
+        dupBadge.className = "map-stack-dup-badge";
+        dupBadge.textContent = `+${gCount - 1}`;
+        row.appendChild(dupBadge);
+      }
+
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeInfoWindow();
+        onOpenDetailRef.current?.(it.listing_id);
+      });
+      el.appendChild(row);
+    });
+
+    el.addEventListener("click", (e) => e.stopPropagation());
+
+    const overlay = new window.kakao.maps.CustomOverlay({
+      position,
+      content: el,
+      yAnchor: 1.4,
+      zIndex: 10000,
+    });
+    overlay.setMap(mapInstance.current);
+    infoWindowRef.current = overlay;
+  };
+  openStackPopupRef.current = openStackPopup;
 
   const requestMapRelayout = () => {
     if (!mapInstance.current) return;
@@ -598,41 +681,33 @@ const KakaoMap = forwardRef(function KakaoMap({
           item,
           markerLat,
           markerLng,
-          coordinateKey: `${markerLat.toFixed(6)}:${markerLng.toFixed(6)}`,
+          // ~11m buckets — groups same-building listings for stack marker
+          coordinateKey: `${markerLat.toFixed(4)}:${markerLng.toFixed(4)}`,
         };
       })
-      .filter(Boolean)
-      .map(({ item, markerLat, markerLng, coordinateKey }) => ({
-        item,
-        markerLat,
-        markerLng,
-        coordinateKey,
-      }));
+      .filter(Boolean);
 
+    // Group items by lat4+lng4 bucket
     const coordinateBuckets = new Map();
-    normalizedMarkers.forEach(({ coordinateKey }) => {
+    normalizedMarkers.forEach(({ item, coordinateKey }) => {
       const list = coordinateBuckets.get(coordinateKey);
-      if (list) list.push(coordinateKey);
-      else coordinateBuckets.set(coordinateKey, [coordinateKey]);
+      if (list) list.push(item);
+      else coordinateBuckets.set(coordinateKey, [item]);
     });
 
-    const coordinateState = new Map();
-    const getSpreadOffset = (index, total) => {
-      if (total <= 1) return { latOffset: 0, lngOffset: 0 };
-      const radius = 0.00002 * (total - 1);
-      const angle = (Math.PI * 2 * index) / total;
-      return {
-        latOffset: Math.sin(angle) * radius,
-        lngOffset: Math.cos(angle) * (radius / 1.15),
-      };
-    };
-
-    const newMarkers = normalizedMarkers.map(({ item, markerLat, markerLng, coordinateKey }) => {
-      const clusterIndex = coordinateState.get(coordinateKey) || 0;
-      coordinateState.set(coordinateKey, clusterIndex + 1);
-      const sameCount = coordinateBuckets.get(coordinateKey)?.length || 1;
-      const offset = getSpreadOffset(clusterIndex, sameCount);
-      const pos = new window.kakao.maps.LatLng(markerLat + offset.latOffset, markerLng + offset.lngOffset);
+    // Only render the first (representative) item per bucket
+    const seenBuckets = new Set();
+    const newMarkers = normalizedMarkers
+      .filter(({ coordinateKey }) => {
+        if (seenBuckets.has(coordinateKey)) return false;
+        seenBuckets.add(coordinateKey);
+        return true;
+      })
+      .map(({ item, markerLat, markerLng, coordinateKey }) => {
+        const bucketItems = coordinateBuckets.get(coordinateKey) || [item];
+        const totalCount = bucketItems.reduce((sum, it) => sum + (Number(it.group_count) || 1), 0);
+        const isStack = totalCount > 1;
+        const pos = new window.kakao.maps.LatLng(markerLat, markerLng);
         const color = PLATFORM_COLORS[item.platform_code] || "#6B7280";
         const textColor = markerTextColor(item.platform_code);
         const isSelected = String(item.listing_id) === String(selectedId);
@@ -726,6 +801,13 @@ const KakaoMap = forwardRef(function KakaoMap({
               : "0 2px 6px rgba(0,0,0,0.25)";
             content.style.zIndex = isFav ? "10" : "1";
           });
+
+          if (isStack) {
+            const badge = document.createElement("div");
+            badge.className = "map-marker-badge";
+            badge.textContent = `+${totalCount - 1}`;
+            content.appendChild(badge);
+          }
         }
 
         const marker = new window.kakao.maps.CustomOverlay({
@@ -734,43 +816,43 @@ const KakaoMap = forwardRef(function KakaoMap({
           yAnchor: 1.3,
         });
 
-        /* Mobile: single tap opens detail directly; Desktop: single click = tooltip, dblclick = detail */
         const isMobile = () => window.innerWidth <= 767;
         let clickTimer = null;
         content.addEventListener("click", () => {
+          const curLevel = mapInstance.current?.getLevel?.();
           if (isMobile()) {
-            /* 모바일: 즉시 상세 열기 */
-            onMarkerClickRef.current?.(item);
-            const curLevel = mapInstance.current?.getLevel?.();
-            if (typeof curLevel === "number" && curLevel > 5) {
-              applyMapLevel(5);
+            if (isStack) {
+              openStackPopupRef.current?.(pos, bucketItems);
+            } else {
+              onMarkerClickRef.current?.(item);
+              if (typeof curLevel === "number" && curLevel > 5) applyMapLevel(5);
             }
             return;
           }
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
           clickTimer = setTimeout(() => {
             clickTimer = null;
-            /* CustomOverlay popup — no auto-pan, no map movement */
-            openInfoOverlayRef.current?.(pos, item);
-            /* Zoom in if zoomed out, like other real estate platforms */
-            const curLevel = mapInstance.current?.getLevel?.();
-            if (typeof curLevel === "number" && curLevel > 5) {
-              applyMapLevel(5);
+            if (isStack) {
+              openStackPopupRef.current?.(pos, bucketItems);
+            } else {
+              openInfoOverlayRef.current?.(pos, item);
+              onMarkerClickRef.current?.(item);
             }
-            onMarkerClickRef.current?.(item);
+            if (typeof curLevel === "number" && curLevel > 5) applyMapLevel(5);
           }, 250);
         });
 
-        /* Double click = open detail modal (desktop only) */
         content.addEventListener("dblclick", (e) => {
           e.preventDefault();
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
           onOpenDetailRef.current?.(item.listing_id);
         });
 
-        markerEntriesRef.current.set(String(item.listing_id), {
-          item,
-          position: pos,
+        markerEntriesRef.current.set(String(item.listing_id), { item, position: pos });
+        bucketItems.forEach((bi) => {
+          if (String(bi.listing_id) !== String(item.listing_id)) {
+            markerEntriesRef.current.set(String(bi.listing_id), { item: bi, position: pos });
+          }
         });
 
         return marker;
