@@ -13,12 +13,17 @@ function sleep(ms) {
 }
 
 await withDbClient(async (db) => {
+  const MIN_IMAGES = parseInt(process.argv.find(a => a.startsWith('--min-images='))?.split('=')[1] ?? '3', 10);
+
   const { rows } = await db.query(`
-    SELECT listing_id, source_ref, raw_id, direction, floor, total_floor
-    FROM normalized_listings
-    WHERE platform_code = 'zigbang' AND deleted_at IS NULL
-    ORDER BY listing_id
-  `);
+    SELECT nl.listing_id, nl.source_ref, nl.raw_id, nl.direction, nl.floor, nl.total_floor
+    FROM normalized_listings nl
+    WHERE nl.platform_code = 'zigbang' AND nl.deleted_at IS NULL
+      AND (
+        SELECT COUNT(*) FROM listing_images li WHERE li.listing_id = nl.listing_id
+      ) < $1
+    ORDER BY nl.listing_id
+  `, [MIN_IMAGES]);
 
   console.log(`대상: ${rows.length}개 직방 매물 (dry_run=${DRY_RUN})\n`);
 

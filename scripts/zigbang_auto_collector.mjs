@@ -306,29 +306,34 @@ export async function fetchZigbangV3ItemDetail(itemId) {
   const detailUrl =
     `https://apis.zigbang.com/v3/items/${encodeURIComponent(safeId)}?version=&domain=zigbang`;
 
-  try {
-    const response = await withTimeout(
-      fetch(detailUrl, {
-        headers: {
-          ...ZIGBANG_HEADERS,
-        },
-      }),
-      12000,
-      `item detail ${safeId}`,
-    );
-
-    if (!response.ok) {
-      vlog(`Detail API HTTP ${response.status} for item ${safeId}`);
-      return null;
+  const MAX_RETRIES = 2;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 1000 * attempt));
     }
+    try {
+      const response = await withTimeout(
+        fetch(detailUrl, { headers: { ...ZIGBANG_HEADERS } }),
+        12000,
+        `item detail ${safeId}`,
+      );
 
-    const body = await response.json();
-    const detail = normalizeDetailItem(body);
-    return detail && typeof detail === "object" ? detail : null;
-  } catch (err) {
-    vlog(`Detail API error for item ${safeId}: ${err.message}`);
-    return null;
+      if (!response.ok) {
+        vlog(`Detail API HTTP ${response.status} for item ${safeId} (attempt ${attempt + 1})`);
+        // 429/503은 rate limit — 재시도
+        if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES) continue;
+        return null;
+      }
+
+      const body = await response.json();
+      const detail = normalizeDetailItem(body);
+      return detail && typeof detail === "object" ? detail : null;
+    } catch (err) {
+      vlog(`Detail API error for item ${safeId} (attempt ${attempt + 1}): ${err.message}`);
+      if (attempt < MAX_RETRIES) continue;
+    }
   }
+  return null;
 }
 
 export function mergeZigbangDetail(item, detailItem) {
