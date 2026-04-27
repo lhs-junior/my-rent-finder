@@ -90,6 +90,23 @@ const PLATFORM_COLORS = {
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 const PLATFORM_LABELS = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
 
+// Normalize address to building-level key (strips Seoul prefix + unit numbers)
+function normalizeAddressForBucket(addressText) {
+  if (!addressText) return null;
+  let addr = String(addressText).trim();
+  addr = addr.replace(/^서울특별시\s*/, "").replace(/^서울시\s*/, "").replace(/^서울\s+/, "");
+  if (!addr) return null;
+  const tokens = addr.split(/\s+/);
+  const result = [];
+  for (const tok of tokens) {
+    const t = tok.replace(/번지$/, "");
+    result.push(t);
+    // Stop at land lot / road number token (digits, optionally hyphenated)
+    if (/^\d[\d-]*$/.test(t)) break;
+  }
+  return result.join(" ").toLowerCase() || null;
+}
+
 function toMoney(v) {
   if (v == null) return "-";
   const n = Math.round(Number(v));
@@ -367,14 +384,28 @@ const KakaoMap = forwardRef(function KakaoMap({
 
     el.addEventListener("click", (e) => e.stopPropagation());
 
-    const overlay = new window.kakao.maps.CustomOverlay({
-      position,
-      content: el,
-      yAnchor: 1.4,
-      zIndex: 10000,
-    });
-    overlay.setMap(mapInstance.current);
-    infoWindowRef.current = overlay;
+    if (window.innerWidth <= 767) {
+      // Mobile: bottom sheet appended to document.body
+      el.classList.add("map-stack-popup--mobile-sheet");
+      const backdrop = document.createElement("div");
+      backdrop.className = "map-stack-backdrop";
+      backdrop.addEventListener("click", () => closeInfoWindow());
+      document.body.appendChild(backdrop);
+      document.body.appendChild(el);
+      infoWindowRef.current = {
+        setMap: (m) => { if (m === null) { backdrop.remove(); el.remove(); } },
+        close: () => { backdrop.remove(); el.remove(); },
+      };
+    } else {
+      const overlay = new window.kakao.maps.CustomOverlay({
+        position,
+        content: el,
+        yAnchor: 1.4,
+        zIndex: 10000,
+      });
+      overlay.setMap(mapInstance.current);
+      infoWindowRef.current = overlay;
+    }
   };
   openStackPopupRef.current = openStackPopup;
 
@@ -672,12 +703,15 @@ const KakaoMap = forwardRef(function KakaoMap({
         const markerLat = Number(item?.lat);
         const markerLng = Number(item?.lng);
         if (!Number.isFinite(markerLat) || !Number.isFinite(markerLng)) return null;
+        const normalizedAddr = normalizeAddressForBucket(item.address_text);
         return {
           item,
           markerLat,
           markerLng,
-          // ~11m buckets — groups same-building listings for stack marker
-          coordinateKey: `${markerLat.toFixed(4)}:${markerLng.toFixed(4)}`,
+          // address-first bucket key; falls back to ~11m lat4:lng4 when address missing
+          coordinateKey: normalizedAddr
+            ? `a:${normalizedAddr}`
+            : `c:${markerLat.toFixed(4)}:${markerLng.toFixed(4)}`,
         };
       })
       .filter(Boolean);
@@ -839,6 +873,7 @@ const KakaoMap = forwardRef(function KakaoMap({
 
         content.addEventListener("dblclick", (e) => {
           e.preventDefault();
+          if (isMobile()) return; // mobile double-tap is map zoom, not detail open
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
           onOpenDetailRef.current?.(item.listing_id);
         });

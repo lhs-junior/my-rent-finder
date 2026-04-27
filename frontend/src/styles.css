@@ -840,6 +840,28 @@ body {
   .map-bottom-sheet--hidden {
     display: none !important;
   }
+
+  /* Stack popup → bottom sheet on mobile */
+  .map-stack-popup--mobile-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    min-width: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.22);
+  }
+}
+
+.map-stack-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9998;
 }
 
 .kakao-map,
