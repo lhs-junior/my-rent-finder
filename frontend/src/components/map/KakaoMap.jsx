@@ -88,6 +88,7 @@ const PLATFORM_COLORS = {
   serve: "#10B981",
 };
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
+const PLATFORM_LABELS = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
 
 function toMoney(v) {
   if (v == null) return "-";
@@ -171,11 +172,7 @@ function markerTextColor(platformCode) {
 }
 
 function getMarkerInfoHtml(item) {
-  const platformLabels = {
-    naver: "네이버", zigbang: "직방", dabang: "다방",
-    kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브"
-  };
-  const platformName = platformLabels[item?.platform_code] || item?.platform_code || "매물";
+  const platformName = PLATFORM_LABELS[item?.platform_code] || item?.platform_code || "매물";
   const platformColor = PLATFORM_COLORS[item?.platform_code] || "#6B7280";
   const platformTextColor = markerTextColor(item?.platform_code);
 
@@ -305,8 +302,6 @@ const KakaoMap = forwardRef(function KakaoMap({
   const openStackPopup = (position, bucketItems) => {
     closeInfoWindow();
     const totalCount = bucketItems.reduce((sum, it) => sum + (Number(it.group_count) || 1), 0);
-    const platformLabels = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
-
     const el = document.createElement("div");
     el.className = "map-stack-popup";
 
@@ -323,7 +318,7 @@ const KakaoMap = forwardRef(function KakaoMap({
     el.appendChild(header);
 
     bucketItems.forEach((it) => {
-      const pName = platformLabels[it.platform_code] || it.platform_code || "매물";
+      const pName = PLATFORM_LABELS[it.platform_code] || it.platform_code || "매물";
       const pColor = PLATFORM_COLORS[it.platform_code] || "#6B7280";
       const pTextColor = markerTextColor(it.platform_code);
       const price = normalizeDisplayMoney(it);
