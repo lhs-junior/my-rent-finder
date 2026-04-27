@@ -301,7 +301,7 @@ const KakaoMap = forwardRef(function KakaoMap({
   /** Open a stack popup listing all nearby same-location listings. */
   const openStackPopup = (position, bucketItems) => {
     closeInfoWindow();
-    const totalCount = bucketItems.reduce((sum, it) => sum + (Number(it.group_count) || 1), 0);
+    const totalCount = bucketItems.length;
     const el = document.createElement("div");
     el.className = "map-stack-popup";
 
@@ -700,7 +700,7 @@ const KakaoMap = forwardRef(function KakaoMap({
       })
       .map(({ item, markerLat, markerLng, coordinateKey }) => {
         const bucketItems = coordinateBuckets.get(coordinateKey) || [item];
-        const totalCount = bucketItems.reduce((sum, it) => sum + (Number(it.group_count) || 1), 0);
+        const totalCount = bucketItems.length;
         const isStack = totalCount > 1;
         const pos = new window.kakao.maps.LatLng(markerLat, markerLng);
         const color = PLATFORM_COLORS[item.platform_code] || "#6B7280";
