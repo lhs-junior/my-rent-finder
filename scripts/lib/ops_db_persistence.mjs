@@ -277,6 +277,14 @@ export function consumeRawIdCleanupToken(cleanedRawIds, rawId) {
   return true;
 }
 
+function consumeSourceUrlCleanupToken(cleanedSourceUrls, platform, sourceUrl) {
+  if (!cleanedSourceUrls) return true;
+  const key = `${platform}::${sourceUrl}`;
+  if (cleanedSourceUrls.has(key)) return false;
+  cleanedSourceUrls.add(key);
+  return true;
+}
+
 function collectCandidateTexts(value, out) {
   if (value === null || value === undefined) return;
   if (Array.isArray(value)) {
@@ -418,19 +426,21 @@ function selectBestDaangnExternalId(candidates = []) {
   return bestWithLetters || bestFallback;
 }
 
-async function cleanupNormalizedRowsForSourceRef(client, platform, sourceRef) {
+async function cleanupNormalizedRowsForSourceRef(client, platform, sourceRef, selfExternalId = null) {
   const platformCode = normalizePlatform(platform);
   const normalizedSourceRef = normalizePlatformSourceRef(platformCode, toText(sourceRef, ""));
   if (!platformCode || !normalizedSourceRef) return;
 
+  const selfId = selfExternalId != null ? String(selfExternalId) : null;
   const lookup = await client.query(
     `
       SELECT listing_id
       FROM normalized_listings
       WHERE platform_code = $1
         AND source_ref = $2
+        ${selfId ? "AND external_id IS DISTINCT FROM $3" : ""}
     `,
-    [platformCode, normalizedSourceRef],
+    selfId ? [platformCode, normalizedSourceRef, selfId] : [platformCode, normalizedSourceRef],
   );
 
   const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
@@ -1097,7 +1107,7 @@ async function resolveRawExternalIdByRawId(client, rawId) {
  *   rawExternalId — original raw external id (for rawIdByExternal map update)
  *   imageUrls  — ordered image URLs for this item
  */
-async function prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds) {
+async function prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds, cleanedSourceUrls) {
   const platform = normalizePlatform(platformCode);
   if (!platform) return null;
 
@@ -1242,7 +1252,7 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
 
   if (!sourceRef) sourceRef = externalId;
   if (platform === "daangn" && sourceRef) {
-    await cleanupNormalizedRowsForSourceRef(client, platform, sourceRef);
+    await cleanupNormalizedRowsForSourceRef(client, platform, sourceRef, externalId);
   }
 
   if (consumeRawIdCleanupToken(cleanedRawIds, rawId)) {
@@ -1284,7 +1294,9 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
     }
   }
 
-  await cleanupNormalizedRowsForSourceUrl(client, platform, finalSourceUrl, externalId);
+  if (consumeSourceUrlCleanupToken(cleanedSourceUrls, platform, finalSourceUrl)) {
+    await cleanupNormalizedRowsForSourceUrl(client, platform, finalSourceUrl, externalId);
+  }
 
   const canonicalKey = buildCanonicalKey(
     platform,
@@ -1361,8 +1373,8 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
 }
 
 // Legacy single-row path — used internally when batch is not applicable.
-async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue, cleanedRawIds) {
-  const prepared = await prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds);
+async function upsertNormalizedListing(client, item, platformCode, runId, rawIdByExternal, imageQueue, cleanedRawIds, cleanedSourceUrls) {
+  const prepared = await prepareNormalizedListingRow(client, item, platformCode, rawIdByExternal, cleanedRawIds, cleanedSourceUrls);
   if (!prepared) return null;
 
   const { rowValues, rawId, externalId, imageUrls } = prepared;
@@ -1742,6 +1754,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
   if (!platformRuns.length) return { priceChanged: 0, inserted: 0, updated: 0 };
   const platformRunId = resolveBaseRunId(baseRunId, platform);
   const cleanedRawIds = new Set();
+  const cleanedSourceUrls = new Set();
   let platformPriceChanged = 0;
   let platformInserted = 0;
   let platformUpdated = 0;
@@ -1838,7 +1851,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
     // 1. Prepare all rows (per-item async: rawId resolution, cleanup, daangn checks)
     const preparedRows = [];
     for (const item of normalizedItems) {
-      const prepared = await prepareNormalizedListingRow(client, item, platform, rawIdByExternal, cleanedRawIds);
+      const prepared = await prepareNormalizedListingRow(client, item, platform, rawIdByExternal, cleanedRawIds, cleanedSourceUrls);
       if (prepared) preparedRows.push(prepared);
     }
 
