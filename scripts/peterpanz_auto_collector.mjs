@@ -92,6 +92,7 @@ const DISTRICT_COORDS = {
 };
 
 const DISTRICT_BBOX = {
+  "노원구":   { sw_lat: 37.6100, sw_lng: 127.0200, ne_lat: 37.7000, ne_lng: 127.1100 },
   "중랑구":   { sw_lat: 37.5700, sw_lng: 127.0550, ne_lat: 37.6350, ne_lng: 127.1200 },
   "동대문구": { sw_lat: 37.5550, sw_lng: 127.0100, ne_lat: 37.6100, ne_lng: 127.0850 },
   "광진구":   { sw_lat: 37.5200, sw_lng: 127.0550, ne_lat: 37.5700, ne_lng: 127.1100 },
@@ -109,6 +110,11 @@ if (!district) {
 }
 
 const bbox = DISTRICT_BBOX[sigungu];
+if (!bbox) {
+  console.error(`[peterpanz] ERROR: No bbox defined for district: ${sigungu}`);
+  console.error(`[peterpanz] Add bbox to DISTRICT_BBOX for: ${sigungu}`);
+  process.exit(1);
+}
 
 // ============================================================================
 // Helpers
