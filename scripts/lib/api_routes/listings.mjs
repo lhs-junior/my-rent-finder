@@ -939,9 +939,9 @@ export async function handleListingsGeo(req, res) {
             PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
             ORDER BY _plat_pri, listing_id
           ) AS _cross_rk,
-          COUNT(*)::int OVER (
+          (COUNT(*) OVER (
             PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
-          ) AS group_count,
+          ))::int AS group_count,
           ARRAY_AGG(listing_id) OVER (
             PARTITION BY _lat4, _lng4, rent_amount, deposit_amount
             ORDER BY _plat_pri, listing_id
