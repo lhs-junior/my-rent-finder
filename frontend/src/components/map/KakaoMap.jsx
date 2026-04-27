@@ -90,7 +90,8 @@ const PLATFORM_COLORS = {
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 const PLATFORM_LABELS = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
 
-// Normalize address to building-level key (strips Seoul prefix + unit numbers)
+// Normalize address to building-level key (strips Seoul prefix + unit numbers).
+// Returns null if no specific lot/road number found — caller falls back to coordinates.
 function normalizeAddressForBucket(addressText) {
   if (!addressText) return null;
   let addr = String(addressText).trim();
@@ -102,9 +103,10 @@ function normalizeAddressForBucket(addressText) {
     const t = tok.replace(/번지$/, "");
     result.push(t);
     // Stop at land lot / road number token (digits, optionally hyphenated)
-    if (/^\d[\d-]*$/.test(t)) break;
+    if (/^\d[\d-]*$/.test(t)) return result.join(" ").toLowerCase();
   }
-  return result.join(" ").toLowerCase() || null;
+  // No specific number found (address too vague) → fall back to coordinates
+  return null;
 }
 
 function toMoney(v) {
