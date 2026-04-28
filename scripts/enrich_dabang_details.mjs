@@ -80,58 +80,57 @@ async function main() {
     const { listing_id, external_id } = rows[i];
     vlog(`[${i + 1}/${rows.length}] ${external_id} 조회 중...`);
 
-    let room;
     try {
-      room = await fetchDabangDetail(external_id);
-    } catch (err) {
-      vlog(`  오류: ${err.message}`);
-      failCount++;
-      await sleep(DETAIL_DELAY_MS);
-      continue;
-    }
-
-    if (!room) {
-      vlog(`  스킵 (room 없음 — 매물 종료 가능성)`);
-      skipCount++;
-      await sleep(DETAIL_DELAY_MS);
-      continue;
-    }
-
-    const rawMemo = typeof room.memo === "string" ? room.memo.trim() : null;
-    const descriptionText =
-      rawMemo && rawMemo.length >= MIN_MEMO_LEN && !/^\d+[\s/]*\d*$/.test(rawMemo)
-        ? rawMemo
-        : null;
-
-    vlog(`  memo=${JSON.stringify(descriptionText?.slice(0, 60))}`);
-
-    if (!descriptionText) {
-      vlog(`  스킵 (유효한 memo 없음)`);
-      skipCount++;
-      await sleep(DETAIL_DELAY_MS);
-      continue;
-    }
-
-    if (applyMode) {
+      let room;
       try {
-        await withDbClient(async (client) => {
-          await client.query(
-            `UPDATE normalized_listings
-             SET description_text = $1, updated_at = NOW()
-             WHERE listing_id = $2`,
-            [descriptionText, listing_id],
-          );
-        });
-        successCount++;
+        room = await fetchDabangDetail(external_id);
       } catch (err) {
-        vlog(`  DB 업데이트 오류: ${err.message}`);
+        vlog(`  오류: ${err.message}`);
         failCount++;
+        continue;
       }
-    } else {
-      successCount++;
-    }
 
-    await sleep(DETAIL_DELAY_MS);
+      if (!room) {
+        vlog(`  스킵 (room 없음 — 매물 종료 가능성)`);
+        skipCount++;
+        continue;
+      }
+
+      const rawMemo = typeof room.memo === "string" ? room.memo.trim() : null;
+      const descriptionText =
+        rawMemo && rawMemo.length >= MIN_MEMO_LEN && !/^\d+[\s/]*\d*$/.test(rawMemo)
+          ? rawMemo
+          : null;
+
+      vlog(`  memo=${JSON.stringify(descriptionText?.slice(0, 60))}`);
+
+      if (!descriptionText) {
+        vlog(`  스킵 (유효한 memo 없음)`);
+        skipCount++;
+        continue;
+      }
+
+      if (applyMode) {
+        try {
+          await withDbClient(async (client) => {
+            await client.query(
+              `UPDATE normalized_listings
+               SET description_text = $1, updated_at = NOW()
+               WHERE listing_id = $2`,
+              [descriptionText, listing_id],
+            );
+          });
+          successCount++;
+        } catch (err) {
+          vlog(`  DB 업데이트 오류: ${err.message}`);
+          failCount++;
+        }
+      } else {
+        successCount++;
+      }
+    } finally {
+      await sleep(DETAIL_DELAY_MS);
+    }
   }
 
   log("");
