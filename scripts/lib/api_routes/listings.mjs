@@ -796,6 +796,170 @@ export async function handleListingVerify(req, res, id) {
 }
 
 // ---------------------------------------------------------------------------
+// /api/listings/my-pick
+// ---------------------------------------------------------------------------
+
+const MY_PICK_TARGET_STATIONS = [
+  "청량리", "회기", "외대앞", "중랑", "상봉", "중화", "면목", "사가정",
+  "용마산", "중곡", "군자", "답십리", "장한평", "왕십리",
+];
+
+const MY_PICK_DONG_PATTERN =
+  "(군자동|능동|답십리동|마장동|망우동|면목동|묵동|사근동|상봉동|송정동|용답동|용두동|이문동|장안동|전농동|제기동|중곡동|중화동|청량리동|하왕십리동|행당동|홍익동|회기동|휘경동)";
+
+const MY_PICK_EXCLUDED_BUILDING_USE = new Set([
+  "제1종근린생활시설",
+  "제2종근린생활시설",
+  "업무시설",
+]);
+
+const MY_PICK_KNOWN_SMALL_USES = new Set(["원룸", "투룸", "투룸 • 단기"]);
+
+export async function handleMyPick(req, res) {
+  try {
+    const result = await withDbClient(async (client) => {
+      // Build the station placeholder list: $1, $2, ...
+      const stationParams = MY_PICK_TARGET_STATIONS.map((_, i) => `$${i + 1}`).join(", ");
+
+      const query = `
+        WITH target_stations AS (
+          SELECT DISTINCT ON (name) name, lat, lng
+          FROM subway_stations
+          WHERE name IN (${stationParams})
+          ORDER BY name, station_id
+        ),
+        in_range_ids AS (
+          SELECT n.listing_id
+          FROM normalized_listings n CROSS JOIN target_stations s
+          WHERE n.deleted_at IS NULL AND n.lat IS NOT NULL AND n.lng IS NOT NULL
+          GROUP BY n.listing_id
+          HAVING MIN(6371000 * acos(LEAST(1.0,
+            cos(radians(s.lat)) * cos(radians(n.lat)) * cos(radians(n.lng) - radians(s.lng))
+            + sin(radians(s.lat)) * sin(radians(n.lat))
+          ))) <= 1000
+        ),
+        dong_fallback_ids AS (
+          SELECT listing_id FROM normalized_listings
+          WHERE deleted_at IS NULL AND lat IS NULL
+            AND address_text ~ $${MY_PICK_TARGET_STATIONS.length + 1}
+        )
+        SELECT
+          n.listing_id,
+          n.platform_code,
+          n.address_text,
+          n.rent_amount,
+          n.deposit_amount,
+          COALESCE(n.area_exclusive_m2, n.area_supply_m2) AS area_m2,
+          n.area_exclusive_m2,
+          n.floor,
+          n.room_count,
+          n.building_use,
+          n.lat,
+          n.lng,
+          n.description_text,
+          n.nearest_subway_station,
+          n.subway_distance_m,
+          n.nearest_subway_line,
+          n.subway_walk_min,
+          n.listed_at,
+          n.created_at,
+          n.building_year
+        FROM normalized_listings n
+        WHERE n.listing_id IN (
+          SELECT listing_id FROM in_range_ids
+          UNION
+          SELECT listing_id FROM dong_fallback_ids
+        )
+          AND n.deleted_at IS NULL
+          AND n.rent_amount <= 90
+          AND (
+            n.building_use IS NULL
+            OR n.building_use NOT IN ('제1종근린생활시설', '제2종근린생활시설', '업무시설')
+          )
+          AND (
+            n.room_count >= 3
+            OR n.building_use ILIKE '%쓰리룸%'
+            OR (n.room_count IS NULL AND n.building_use NOT IN ('원룸', '투룸', '투룸 • 단기'))
+            OR (n.room_count IS NULL AND n.building_use IS NULL)
+          )
+        ORDER BY n.rent_amount ASC, n.deposit_amount ASC
+      `;
+
+      const params = [...MY_PICK_TARGET_STATIONS, MY_PICK_DONG_PATTERN];
+      const { rows } = await client.query(query, params);
+
+      const listingIds = rows.map((r) => toInt(r.listing_id, null)).filter(Boolean);
+      const [imageCountRows, firstImageRows] = listingIds.length
+        ? await Promise.all([
+            client.query(
+              `SELECT listing_id, COUNT(*) AS image_count FROM listing_images WHERE listing_id = ANY($1) GROUP BY listing_id`,
+              [listingIds],
+            ),
+            client.query(
+              `SELECT DISTINCT ON (listing_id) listing_id, source_url
+               FROM listing_images
+               WHERE listing_id = ANY($1) AND source_url IS NOT NULL AND source_url != ''
+               ORDER BY listing_id, is_primary DESC, image_id ASC`,
+              [listingIds],
+            ),
+          ])
+        : [{ rows: [] }, { rows: [] }];
+
+      const imageCountMap = parseImageMap(imageCountRows.rows || []);
+      const firstImageMap = new Map();
+      for (const row of firstImageRows.rows || []) {
+        const lid = toInt(row.listing_id, null);
+        if (lid !== null) firstImageMap.set(lid, row.source_url);
+      }
+
+      const listings = rows.map((row) => {
+        const listingId = toInt(row.listing_id, null);
+        const descText = safeText(row.description_text, null);
+        const buildingUse = safeText(row.building_use, null);
+        const roomCount = toInt(row.room_count, null);
+        const lienWarning = descText
+          ? descText.includes("융자") || descText.includes("근저당")
+          : false;
+        const roomCountUnknown =
+          roomCount === null && (buildingUse === null || !MY_PICK_KNOWN_SMALL_USES.has(buildingUse));
+        return {
+          listing_id: listingId,
+          platform_code: safeText(row.platform_code, ""),
+          address_text: safeText(row.address_text, ""),
+          rent_amount: toNumber(row.rent_amount, null),
+          deposit_amount: toNumber(row.deposit_amount, null),
+          area_m2: toNumber(row.area_m2, null),
+          floor: toInt(row.floor, null),
+          room_count: roomCount,
+          building_use: buildingUse,
+          lat: toNumber(row.lat, null),
+          lng: toNumber(row.lng, null),
+          image_count: Number(imageCountMap.get(listingId) || 0),
+          first_image_url: firstImageMap.get(listingId) || null,
+          description_text: descText,
+          lien_warning: lienWarning,
+          room_count_unknown: roomCountUnknown,
+          nearest_subway_station: safeText(row.nearest_subway_station, null),
+          nearest_subway_line: safeText(row.nearest_subway_line, null),
+          subway_distance_m: toInt(row.subway_distance_m, null),
+          subway_walk_min: toInt(row.subway_walk_min, null),
+          listed_at: safeText(row.listed_at, null),
+          created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+          building_year: toInt(row.building_year, null),
+        };
+      });
+
+      return { listings, total: listings.length };
+    });
+
+    sendJson(res, 200, result);
+  } catch (e) {
+    console.error("[my-pick] error:", e.message);
+    sendJson(res, 500, { error: "DB error" });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // /api/listings/geo
 // ---------------------------------------------------------------------------
 

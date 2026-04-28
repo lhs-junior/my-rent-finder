@@ -11,6 +11,7 @@ import FavoritesView from "./components/FavoritesView.jsx";
 import ScoresView from "./components/ScoresView.jsx";
 import MapView from "./components/map/MapView.jsx";
 import { SaleListingsView } from "./components/SaleListingsView.jsx";
+import MyPickView from "./components/MyPickView.jsx";
 import { SettingsModal } from "./components/SettingsModal.jsx";
 
 class MapErrorBoundary extends Component {
@@ -238,6 +239,13 @@ export default function App() {
           >
             매매
           </button>
+          <button
+            type="button"
+            className={`nav-tab ${activeView === "mypick" ? "nav-tab--active" : ""}`}
+            onClick={() => setActiveView("mypick")}
+          >
+            내 조건
+          </button>
         </nav>
         <SettingsMenu
           activeView={activeView}
@@ -287,6 +295,7 @@ export default function App() {
         {activeView === "scores" && <ScoresView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} onViewOnMap={onViewOnMap} gradeFilter={sharedGradeFilter} onGradeFilterChange={setSharedGradeFilter} />}
         {activeView === "favorites" && <FavoritesView apiBase={apiBase} favoriteIds={favoriteIds} toggleFavorite={toggleFavorite} authenticated={authenticated} pin={pin} getFavoriteGrade={authenticated ? getFavoriteGrade : null} onViewOnMap={onViewOnMap} gradeFilter={sharedGradeFilter} onGradeFilterChange={setSharedGradeFilter} />}
         {activeView === "sale" && <SaleListingsView apiBase={apiBase} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />}
+        {activeView === "mypick" && <MyPickView apiBase={apiBase} />}
       </main>
     </div>
   );

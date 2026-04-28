@@ -129,5 +129,5 @@ export function normalizeImageUrl(url) {
 }
 
 export function normalizeView(value) {
-  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "scores" || value === "ops" || value === "sale" ? value : "map";
+  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "scores" || value === "ops" || value === "sale" || value === "mypick" ? value : "map";
 }
