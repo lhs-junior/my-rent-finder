@@ -178,6 +178,10 @@ export async function handleListings(req, res) {
   const favoriteIdsList = favoriteIdsParam
     ? favoriteIdsParam.split(",").map(s => parseInt(s.trim(), 10)).filter(n => Number.isFinite(n) && n > 0)
     : null;
+  const gradeParam = safeText(url.searchParams.get("grade"), null);
+  const gradeList = gradeParam
+    ? gradeParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean)
+    : null;
 
   const listingRows = await withDbClient(async (client) => {
     const cond = ["1=1", "nl.deleted_at IS NULL"];
@@ -249,6 +253,10 @@ export async function handleListings(req, res) {
       params.push(maxSubwayM);
       cond.push(`nl.subway_distance_m IS NOT NULL AND nl.subway_distance_m <= $${params.length}`);
     }
+    if (gradeList && gradeList.length > 0) {
+      params.push(gradeList);
+      cond.push(`sl.grade = ANY($${params.length})`);
+    }
 
     // Dedup: prefer stable identity keys (source_ref / external_id) and fallback signature
     const DEDUP_RK = dedupRankExpression("nl");
@@ -259,6 +267,7 @@ export async function handleListings(req, res) {
         SELECT nl.listing_id, ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
+        LEFT JOIN scored_listings sl ON sl.listing_id = nl.listing_id
         WHERE ${cond.join(" AND ")}
       ) _d WHERE _d._rk = 1
     `,
@@ -291,9 +300,11 @@ export async function handleListings(req, res) {
                nl.nearest_subway_station, nl.nearest_subway_line,
                nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at, rl.run_id, rl.payload_json AS raw_payload_json,
+               sl.grade, sl.total_score, sl.effective_monthly_cost, sl.scores,
                ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
+        LEFT JOIN scored_listings sl ON sl.listing_id = nl.listing_id
         WHERE ${cond.join(" AND ")}
       ) _d WHERE _d._rk = 1
       ORDER BY ${sort === "newest" ? "_d.listed_at DESC NULLS LAST, _d.created_at DESC" : "_d.created_at DESC"}
@@ -386,6 +397,10 @@ export async function handleListings(req, res) {
         nearest_subway_line: safeText(row.nearest_subway_line, null),
         subway_distance_m: toInt(row.subway_distance_m, null),
         subway_walk_min: toInt(row.subway_walk_min, null),
+        grade: safeText(row.grade, null),
+        total_score: row.total_score !== null && row.total_score !== undefined ? toNumber(row.total_score, null) : null,
+        effective_monthly_cost: row.effective_monthly_cost !== null && row.effective_monthly_cost !== undefined ? toNumber(row.effective_monthly_cost, null) : null,
+        scores: row.scores ?? null,
       };
     });
 
@@ -890,8 +905,13 @@ export async function handleMyPick(req, res) {
           n.subway_walk_min,
           n.listed_at,
           n.created_at,
-          n.building_year
+          n.building_year,
+          sl.grade,
+          sl.total_score,
+          sl.effective_monthly_cost,
+          sl.scores
         FROM normalized_listings n
+        LEFT JOIN scored_listings sl ON sl.listing_id = n.listing_id
         WHERE n.listing_id IN (
           SELECT listing_id FROM in_range_ids
           UNION
@@ -973,6 +993,10 @@ export async function handleMyPick(req, res) {
           listed_at: safeText(row.listed_at, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
           building_year: toInt(row.building_year, null),
+          grade: safeText(row.grade, null),
+          total_score: row.total_score !== null && row.total_score !== undefined ? toNumber(row.total_score, null) : null,
+          effective_monthly_cost: row.effective_monthly_cost !== null && row.effective_monthly_cost !== undefined ? toNumber(row.effective_monthly_cost, null) : null,
+          scores: row.scores ?? null,
         };
       });
 
@@ -1036,6 +1060,10 @@ export async function handleListingsGeo(req, res) {
   const limit = Math.min(500, Math.max(1, parseQueryInt(url.searchParams.get("limit"), 500)));
   const sort = safeText(url.searchParams.get("sort"), null);
   const maxSubwayM = url.searchParams.has("max_subway_m") ? parseQueryInt(url.searchParams.get("max_subway_m"), null) : null;
+  const geoGradeParam = safeText(url.searchParams.get("grade"), null);
+  const geoGradeList = geoGradeParam
+    ? geoGradeParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean)
+    : null;
 
   const result = await withDbClient(async (client) => {
     const cond = ["nl.lat IS NOT NULL", "nl.lng IS NOT NULL", "nl.deleted_at IS NULL"];
@@ -1102,6 +1130,10 @@ export async function handleListingsGeo(req, res) {
       params.push(maxSubwayM);
       cond.push(`nl.subway_distance_m IS NOT NULL AND nl.subway_distance_m <= $${params.length}`);
     }
+    if (geoGradeList && geoGradeList.length > 0) {
+      params.push(geoGradeList);
+      cond.push(`sl.grade = ANY($${params.length})`);
+    }
 
     // Dedup: 1) signature dedup (same platform+address+price) 2) cross-platform dedup (lat4+lng4+rent+deposit)
     const GEO_DEDUP_RK = dedupRankExpression("nl");
@@ -1123,11 +1155,13 @@ export async function handleListingsGeo(req, res) {
                nl.nearest_subway_station, nl.nearest_subway_line,
                nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at,
+               sl.grade, sl.total_score,
                ROUND(nl.lat::numeric, 4) AS _lat4,
                ROUND(nl.lng::numeric, 4) AS _lng4,
                ${GEO_PLAT_PRI} AS _plat_pri,
                ${GEO_DEDUP_RK} AS _sig_rk
         FROM normalized_listings nl
+        LEFT JOIN scored_listings sl ON sl.listing_id = nl.listing_id
         WHERE ${cond.join(" AND ")}
       ),
       _sig_deduped AS (
@@ -1166,6 +1200,7 @@ export async function handleListingsGeo(req, res) {
                ${GEO_PLAT_PRI} AS _plat_pri,
                ${GEO_DEDUP_RK} AS _sig_rk
         FROM normalized_listings nl
+        LEFT JOIN scored_listings sl ON sl.listing_id = nl.listing_id
         WHERE ${cond.join(" AND ")}
       ),
       _sig_deduped AS (SELECT * FROM _base WHERE _sig_rk = 1)
@@ -1211,6 +1246,8 @@ export async function handleListingsGeo(req, res) {
           group_count: toInt(row.group_count, 1),
           group_listing_ids: (Array.isArray(row.group_listing_ids) ? row.group_listing_ids : [])
             .map((id) => toInt(id, null)).filter(Boolean),
+          grade: safeText(row.grade, null),
+          total_score: row.total_score !== null && row.total_score !== undefined ? toNumber(row.total_score, null) : null,
         };
       }),
       total_in_bounds: parseInt(countResult.rows?.[0]?.total || "0", 10),
