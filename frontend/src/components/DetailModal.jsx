@@ -64,6 +64,100 @@ function Violations({ violations }) {
   );
 }
 
+function FeaturesSection({ features }) {
+  if (!features || typeof features !== "object") return null;
+
+  const chipGroups = [
+    { key: "options", label: "옵션" },
+    { key: "safeties", label: "안전시설" },
+    { key: "tags", label: "특징" },
+  ];
+
+  const scalarRows = [
+    { key: "heating", label: "난방" },
+    { key: "elevator", label: "승강기" },
+    { key: "entrance", label: "현관" },
+    { key: "households", label: "세대수" },
+    { key: "balcony", label: "발코니" },
+    { key: "built_in", label: "빌트인" },
+    { key: "duplex", label: "복층" },
+    { key: "moving_date", label: "입주" },
+  ];
+
+  const renderedChips = chipGroups
+    .map(({ key, label }) => ({ key, label, items: Array.isArray(features[key]) ? features[key] : null }))
+    .filter((g) => g.items && g.items.length > 0);
+
+  const renderedScalars = scalarRows.filter((r) => typeof features[r.key] === "string" && features[r.key]);
+
+  const parking = features.parking;
+  const maintenance = features.maintenance;
+
+  const hasContent =
+    renderedChips.length > 0 || renderedScalars.length > 0 || parking || maintenance;
+  if (!hasContent) return null;
+
+  return (
+    <div className="mdl-section">
+      <h3 className="mdl-section-title">옵션·시설</h3>
+      {renderedChips.map(({ key, label, items }) => (
+        <div key={key} style={{ marginBottom: 10 }}>
+          <p style={{ fontWeight: 600, marginBottom: 6, fontSize: "0.85rem", color: "var(--text-soft)" }}>{label}</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {items.map((it, i) => (
+              <span key={i} className="chip">{it}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+      {(renderedScalars.length > 0 || parking) && (
+        <div className="mdl-info-grid" style={{ marginTop: 8 }}>
+          {parking && (
+            <div className="mdl-info-cell">
+              <span className="mdl-info-label">주차</span>
+              <span className="mdl-info-value">
+                {parking.label || (parking.possible ? "가능" : "불가")}
+                {parking.count != null ? ` (${parking.count}대)` : ""}
+              </span>
+            </div>
+          )}
+          {renderedScalars.map(({ key, label }) => (
+            <div key={key} className="mdl-info-cell">
+              <span className="mdl-info-label">{label}</span>
+              <span className="mdl-info-value">{features[key]}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {maintenance && (
+        <div style={{ marginTop: 12 }}>
+          <p style={{ fontWeight: 600, marginBottom: 6, fontSize: "0.85rem", color: "var(--text-soft)" }}>관리비</p>
+          <div className="mdl-info-grid">
+            {maintenance.cost_label && (
+              <div className="mdl-info-cell">
+                <span className="mdl-info-label">금액</span>
+                <span className="mdl-info-value">{maintenance.cost_label}</span>
+              </div>
+            )}
+            {maintenance.items && (
+              <div className="mdl-info-cell">
+                <span className="mdl-info-label">포함</span>
+                <span className="mdl-info-value">{maintenance.items}</span>
+              </div>
+            )}
+            {maintenance.month_total && (
+              <div className="mdl-info-cell">
+                <span className="mdl-info-label">월 총비용</span>
+                <span className="mdl-info-value">{maintenance.month_total}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DetailModal({ detailId, onClose, onExpired, onOpenExternal, isFavorite, toggleFavorite, apiBase }) {
   const overlayRef = useRef(null);
   const galleryRef = useRef(null);
@@ -350,6 +444,10 @@ export default function DetailModal({ detailId, onClose, onExpired, onOpenExtern
                 )}
               </div>
             </div>
+
+            {displayDetail.features && (
+              <FeaturesSection features={displayDetail.features} />
+            )}
 
             {displayDetail.description_text && (
               <div className="mdl-section">
