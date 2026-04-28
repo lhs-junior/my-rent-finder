@@ -134,6 +134,10 @@ const DAANGN_FETCH_HEADERS = {
   "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
 };
 
+const DAANGN_GRAPHQL_URL = "https://realty.kr.karrotmarket.com/graphql";
+const DAANGN_ARTICLE_QUERY_HASH =
+  "0065aa69a4cc93a814e30877615c8793479e18b78d485e32bebd9486575a7124";
+
 // ── 구별 당근 location ID 매핑 ──
 // 당근 URL: https://www.daangn.com/kr/realty/?in=x-{id}
 // ID는 동네 단위이지만, 해당 구의 매물을 가장 많이 포함하는 ID를 선택
@@ -1154,32 +1158,46 @@ function extractArticleId(value) {
 async function fetchDaangnArticleData(articleId) {
   if (!articleId) return null;
   try {
-    const url = `https://realty.daangn.com/articles/${articleId}`;
-    const res = await fetch(url, {
-      headers: DAANGN_FETCH_HEADERS,
-      signal: AbortSignal.timeout(5000),
+    const res = await fetch(DAANGN_GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": DAANGN_FETCH_HEADERS["User-Agent"],
+        "Accept-Language": DAANGN_FETCH_HEADERS["Accept-Language"],
+        Origin: "https://realty.daangn.com",
+        Referer: "https://realty.daangn.com/",
+      },
+      body: JSON.stringify({
+        variables: { articleId: String(articleId) },
+        extensions: {
+          persistedQuery: { version: 1, sha256Hash: DAANGN_ARTICLE_QUERY_HASH },
+        },
+      }),
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
-    const html = await res.text();
-    for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
-      try {
-        const ld = JSON.parse(m[1]);
-        const graphs = Array.isArray(ld["@graph"]) ? ld["@graph"] : [ld];
-        for (const g of graphs) {
-          if (g.geo?.latitude && g.geo?.longitude) {
-            return {
-              lat: parseFloat(g.geo.latitude),
-              lng: parseFloat(g.geo.longitude),
-              roomCount: g.numberOfRooms ?? null,
-              bathroomCount: g.numberOfBathroomsTotal ?? null,
-            };
-          }
-        }
-      } catch {
-        // noop
-      }
-    }
-    return null;
+    const json = await res.json();
+    const a = json?.data?.articleByOriginalArticleId;
+    if (!a) return null;
+
+    const lat = parseFloat(a.publicCoordinate?.lat);
+    const lng = parseFloat(a.publicCoordinate?.lon);
+    return {
+      lat: Number.isFinite(lat) ? lat : null,
+      lng: Number.isFinite(lng) ? lng : null,
+      roomCount: a.roomCnt ?? null,
+      bathroomCount: a.bathroomCnt ?? null,
+      floor: a.floor != null ? parseFloat(a.floor) : null,
+      topFloor: a.topFloor != null ? parseInt(a.topFloor, 10) : null,
+      buildingApprovalDate: a.buildingApprovalDate ?? null,
+      nearbySubwayStation: a.nearbySubwayStationName ?? null,
+      area: a.area != null ? parseFloat(a.area) : null,
+      publicAddress: a.publicAddress ?? null,
+      images: Array.isArray(a.images) ? a.images.map((img) => img.url).filter(Boolean) : [],
+      status: a.status ?? null,
+      publishedAt: a.publishedAt ?? null,
+    };
   } catch {
     return null;
   }
@@ -1670,11 +1688,13 @@ async function main() {
           lng: item._articleData?.lng ?? null,
           roomCnt: item._articleData?.roomCount ?? detail.roomCnt ?? null,
           bathroomCnt: item._articleData?.bathroomCount ?? detail.bathroomCnt ?? null,
+          total_floor: item._articleData?.topFloor ?? null,
+          nearbySubwayStation: item._articleData?.nearbySubwayStation ?? null,
           manageCost: detail.manageCost ?? null,
           buildingName: detail.buildingName || null,
-          buildingApprovalDate: detail.buildingApprovalDate || null,
-          createdAt: detail.createdAt || null,
-          status: detail.status || null,
+          buildingApprovalDate: item._articleData?.buildingApprovalDate ?? detail.buildingApprovalDate ?? null,
+          createdAt: item._articleData?.publishedAt ?? detail.createdAt ?? null,
+          status: item._articleData?.status ?? detail.status ?? null,
           webUrl: item.webUrl || null,
           detailSource: detail.__typename || "listing_page",
         },
@@ -1686,7 +1706,7 @@ async function main() {
           propertyType: parsed.propertyType,
           floor: parsed.floor,
           floorText: detail.floorText || "",
-          total_floor: null,
+          total_floor: item._articleData?.topFloor ?? null,
           direction: directionHint,
           directionText: directionHint,
           imgUrlList: sourceImageUrls.map((img) => img.replace(/&amp;/g, "&")),

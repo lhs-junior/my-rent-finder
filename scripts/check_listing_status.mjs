@@ -265,6 +265,10 @@ async function checkNaverListing(externalId) {
 
 // ── 당근 부동산 상태 체크 ──
 
+const DAANGN_GRAPHQL_URL = "https://realty.kr.karrotmarket.com/graphql";
+const DAANGN_ARTICLE_QUERY_HASH =
+  "0065aa69a4cc93a814e30877615c8793479e18b78d485e32bebd9486575a7124";
+
 function extractDaangnArticleId(value) {
   if (!value) return null;
   const s = String(value);
@@ -278,54 +282,58 @@ async function checkDaangnListing(externalId, _row) {
   const sourceUrl = _row?.source_url;
   const payloadWebUrl = _row?.payload_json?.webUrl;
 
-  // article ID 추출 (새 API: numeric ID, 구 API: slug)
   const articleId = extractDaangnArticleId(payloadWebUrl)
     || extractDaangnArticleId(sourceUrl)
     || extractDaangnArticleId(externalId);
 
-  const url = articleId
-    ? `https://realty.daangn.com/articles/${articleId}`
-    : (sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`);
+  // numeric articleId → GraphQL API (빠르고 정확)
+  if (articleId) {
+    try {
+      const res = await fetch(DAANGN_GRAPHQL_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": COMMON_UA,
+          Origin: "https://realty.daangn.com",
+          Referer: "https://realty.daangn.com/",
+        },
+        body: JSON.stringify({
+          variables: { articleId: String(articleId) },
+          extensions: {
+            persistedQuery: { version: 1, sha256Hash: DAANGN_ARTICLE_QUERY_HASH },
+          },
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) return { status: "error", httpStatus: res.status };
+      const json = await res.json();
+      const a = json?.data?.articleByOriginalArticleId;
+      if (!a) return { status: "expired", resultCode: "not_found" };
+      if (a.isHide === true) return { status: "expired", resultCode: "hidden" };
+      if (a.status === "CLOSED") return { status: "expired", resultCode: "closed" };
+      if (a.status === "ON_GOING" || a.status === "RESERVED") return { status: "active" };
+      return { status: "unknown", resultCode: a.status };
+    } catch {
+      // GraphQL 실패 시 HTML 폴백
+    }
+  }
 
-  // redirect: "follow" — 당근은 301→410 패턴으로 거래완료 매물을 반환하므로
-  // manual 사용 시 301에서 멈춰 활성으로 오판함
+  // articleId 없는 구형 매물 → HTML 폴백
+  const url = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
   const res = await fetch(url, {
     headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
     redirect: "follow",
     signal: AbortSignal.timeout(8000),
   });
-
-  // 410 Gone — 당근이 거래완료/삭제 매물에 사용하는 표준 응답
   if (res.status === 410) return { status: "expired", resultCode: "gone" };
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
-
   if (res.status === 200) {
     const html = await res.text();
-    // 거래완료/삭제 텍스트 감지
-    if (
-      html.includes("이미 거래된 매물") ||
-      html.includes("이미 거래") ||
-      html.includes("거래가 완료") ||
-      html.includes("거래완료") ||
-      html.includes("판매완료")
-    ) {
+    if (/이미 거래된 매물|거래가 완료|거래완료|판매완료/.test(html)) {
       return { status: "expired", resultCode: "traded" };
     }
-    if (html.includes("삭제") || html.includes("존재하지 않") || html.includes("만료")) {
-      return { status: "expired", resultCode: "page_expired" };
-    }
-    // 새 URL (realty.daangn.com): 200이면 활성으로 판단
-    if (articleId) {
-      return { status: "active" };
-    }
-    // 구 URL 폴백: 기존 텍스트 패턴 체크
-    if (html.includes("RealEstateListing") || html.includes("realty_post")) {
-      return { status: "active" };
-    }
-    // remixContext 여부 확인
-    if (html.includes("__remixContext")) {
-      return { status: "active" };
-    }
+    if (html.includes("__remixContext")) return { status: "active" };
     return { status: "unknown", resultCode: "unrecognized_page" };
   }
   return { status: "error", httpStatus: res.status };
