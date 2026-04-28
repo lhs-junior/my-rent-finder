@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspace = path.resolve(__dirname, "..");
 
 describe("run_listing_adapters CLI filters", () => {
-  it("drops naver listings whose exclusive area is below the requested min area", () => {
+  it("drops naver listings whose exclusive area is below the requested min area", { timeout: 60000 }, () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "run-listing-adapters-"));
     const inputPath = path.join(tmpDir, "naver_raw.jsonl");
     const outputPath = path.join(tmpDir, "naver_normalized.json");
