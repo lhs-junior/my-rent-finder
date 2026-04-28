@@ -3,14 +3,13 @@
 /**
  * 다방 매물 jibun_address + 정확 좌표 보강 스크립트
  *
- * 기존에 수집된 다방 매물(jibun_address NULL)에 대해
  * /api/v5/room/{external_id}/near 를 호출하여
  *   - normalized_listings.jibun_address (예: "공릉동 683-20")
  *   - normalized_listings.lat / lng (정확한 좌표, randomLocation 대체)
  * 를 채웁니다.
  *
- * /near endpoint는 다방 anti-bot에 막혀 bare fetch로는 호출 불가.
- * Playwright로 dabang 도메인 컨텍스트에서 호출해야 정상 응답을 받는다.
+ * 다방 anti-bot은 csrf + d-api-version 같은 magic 헤더로 우회 가능.
+ * Playwright 없이 pure Node fetch로 ~500ms/건.
  *
  * 사용법:
  *   node scripts/enrich_dabang_jibun.mjs                     # dry-run (기본)
@@ -19,9 +18,8 @@
  *   node scripts/enrich_dabang_jibun.mjs --verbose
  */
 
-import { chromium } from "playwright";
 import { withDbClient } from "./lib/db_client.mjs";
-import { extractJibunKey } from "./adapters/dabang_listings_adapter.mjs";
+import { extractJibunKey, fetchDabangNear } from "./adapters/dabang_listings_adapter.mjs";
 
 const args = process.argv.slice(2);
 function getArg(name, fallback = null) {
@@ -37,18 +35,11 @@ const verbose = hasFlag("--verbose");
 const limitArg = getArg("--limit", null);
 const limit = limitArg !== null ? Math.max(1, Math.floor(Number(limitArg))) : null;
 
-const NEAR_DELAY_MS = 800;
+const NEAR_DELAY_MS = 400;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (msg) => console.log(`[enrich-jibun] ${msg}`);
 const vlog = (msg) => { if (verbose) process.stderr.write(`[enrich-jibun]   ${msg}\n`); };
-
-async function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout`)), ms)),
-  ]);
-}
 
 async function main() {
   log(`모드: ${applyMode ? "APPLY" : "DRY-RUN"}${limit !== null ? ` (최대 ${limit}건)` : ""}`);
@@ -67,32 +58,7 @@ async function main() {
   });
 
   log(`대상 매물: ${rows.length}건 (jibun_address NULL)`);
-
-  if (rows.length === 0) {
-    log("처리할 매물이 없습니다.");
-    return;
-  }
-
-  // Playwright 세션 — dabang 메인페이지 한 번 열어 쿠키 확보
-  log("Playwright 브라우저 시작...");
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  });
-  const page = await context.newPage();
-
-  try {
-    await withTimeout(
-      page.goto("https://www.dabangapp.com", { waitUntil: "domcontentloaded", timeout: 20000 }),
-      30000,
-      "dabang main page",
-    );
-    await sleep(2000);
-  } catch {
-    vlog("메인페이지 로드 실패 — 그대로 진행");
-  }
+  if (rows.length === 0) return;
 
   let jibunFilled = 0;
   let coordFixed = 0;
@@ -101,36 +67,20 @@ async function main() {
 
   for (let i = 0; i < rows.length; i++) {
     const { listing_id, external_id, lat: oldLat, lng: oldLng } = rows[i];
-    vlog(`[${i + 1}/${rows.length}] ${external_id} 조회 중...`);
+    vlog(`[${i + 1}/${rows.length}] ${external_id}`);
 
     let near = null;
     try {
-      const result = await withTimeout(
-        page.evaluate(async (id) => {
-          try {
-            const res = await fetch(`https://www.dabangapp.com/api/v5/room/${id}/near`, {
-              headers: { accept: "application/json, text/plain, */*" },
-              credentials: "include",
-            });
-            if (!res.ok) return { ok: false, status: res.status };
-            return { ok: true, data: await res.json() };
-          } catch (err) {
-            return { ok: false, error: err.message };
-          }
-        }, external_id),
-        15000,
-        `near ${external_id}`,
-      );
-      if (result.ok && result.data?.result) {
-        near = result.data.result;
-      } else {
-        vlog(`  near 실패: ${result.ok ? "no result" : result.status || result.error || "unknown"}`);
-        failCount++;
-        await sleep(NEAR_DELAY_MS);
-        continue;
-      }
+      near = await fetchDabangNear(external_id);
     } catch (err) {
       vlog(`  near 오류: ${err.message}`);
+      failCount++;
+      await sleep(NEAR_DELAY_MS);
+      continue;
+    }
+
+    if (!near) {
+      vlog(`  near 응답 없음`);
       failCount++;
       await sleep(NEAR_DELAY_MS);
       continue;
@@ -174,7 +124,7 @@ async function main() {
         jibunFilled++;
         if (validNewCoord && (oldLat !== newLat || oldLng !== newLng)) coordFixed++;
       } catch (err) {
-        vlog(`  DB 업데이트 오류: ${err.message}`);
+        vlog(`  DB 오류: ${err.message}`);
         failCount++;
       }
     } else {
@@ -185,8 +135,6 @@ async function main() {
     await sleep(NEAR_DELAY_MS);
   }
 
-  await browser.close();
-
   log("");
   log(
     `완료: jibun ${jibunFilled}건${applyMode ? " 업데이트" : " (예정)"}, 좌표 ${coordFixed}건 정정, 추출불가 ${noJibunCount}건, 실패 ${failCount}건`,
@@ -196,8 +144,10 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(`[enrich-jibun] Fatal error: ${err.message}`);
-  console.error(err.stack);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(`[enrich-jibun] Fatal error: ${err.message}`);
+    console.error(err.stack);
+    process.exit(1);
+  });

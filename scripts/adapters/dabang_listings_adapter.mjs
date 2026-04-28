@@ -3,6 +3,32 @@
 import { BaseUserOnlyAdapter, parseMoneyPair } from "./user_only_listing_adapter.mjs";
 import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
+// 다방 anti-bot 우회용 magic 헤더 — 페이지 axios가 인터셉터로 추가하는 헤더 모방.
+// 이 헤더가 있으면 pure Node fetch로도 200 응답을 받는다. (probe 검증)
+const DABANG_API_HEADERS = {
+  "user-agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "accept": "application/json, text/plain, */*",
+  "csrf": "token",
+  "d-api-version": "5.0.0",
+  "d-app-version": "1",
+  "d-call-type": "web",
+};
+
+export async function fetchDabangNear(roomId, { timeoutMs = 8000 } = {}) {
+  const url = `https://www.dabangapp.com/api/v5/room/${encodeURIComponent(roomId)}/near`;
+  const res = await fetch(url, {
+    headers: {
+      ...DABANG_API_HEADERS,
+      referer: `https://www.dabangapp.com/map/onetwo?detail_type=room&detail_id=${encodeURIComponent(roomId)}`,
+    },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return json?.result ?? null;
+}
+
 export function extractJibunKey(addr) {
   if (!addr) return null;
   // 콤마/공백 모두 토큰 구분자로 처리. 예: "서울시 노원구 공릉동 683-20, 1동" / "서울특별시 중랑구 중화동 295-20"

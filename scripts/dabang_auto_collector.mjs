@@ -17,6 +17,7 @@ import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "node:fs";
 import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
+import { fetchDabangNear } from "./adapters/dabang_listings_adapter.mjs";
 
 chromium.use(StealthPlugin());
 
@@ -555,29 +556,14 @@ async function collectDabang() {
 
             // /api/v5/room/{id}/near — 지번 주소 + 정확한 lat/lng + 편의시설
             // detail 응답은 dong-level까지만 주지만 near는 지번까지 포함된 정확 주소를 반환한다.
-            const nearUrl = `https://www.dabangapp.com/api/v5/room/${item.id}/near`;
+            // pure Node fetch (다방 anti-bot 우회 헤더 사용 — 어댑터의 fetchDabangNear).
             try {
-              const nearRes = await withTimeout(
-                detailPage.evaluate(async (url) => {
-                  try {
-                    const res = await fetch(url, {
-                      headers: { accept: "application/json, text/plain, */*" },
-                      credentials: "include",
-                    });
-                    if (!res.ok) return { ok: false, status: res.status };
-                    return { ok: true, data: await res.json() };
-                  } catch (err) {
-                    return { ok: false, error: err.message };
-                  }
-                }, nearUrl),
-                15000,
-                `near ${item.id}`,
-              );
-              if (nearRes.ok && nearRes.data?.result) {
-                item._detail._near = nearRes.data;
-                vlog(`    near OK addr=${nearRes.data.result.address || ""}`);
+              const nearResult = await fetchDabangNear(item.id, { timeoutMs: 8000 });
+              if (nearResult) {
+                item._detail._near = { result: nearResult };
+                vlog(`    near OK addr=${nearResult.address || ""}`);
               } else {
-                vlog(`    near Failed: ${nearRes.ok ? "no result" : nearRes.status || nearRes.error || "unknown"}`);
+                vlog(`    near: no result`);
               }
             } catch (err) {
               vlog(`    near Error: ${err.message}`);
