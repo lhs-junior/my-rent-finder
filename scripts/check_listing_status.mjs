@@ -517,14 +517,46 @@ async function checkPlatformByDb(platformCode, client) {
 
 // ── 단일 플랫폼 체크 ──
 
+function summarizeResult(row, result, counters, expiredIds) {
+  if (result?.status === "expired") {
+    counters.expired++;
+    expiredIds.push(row.listing_id);
+    console.log(`  ✗ ${row.external_id} — 종료 [${result.resultCode}] (${row.title || "제목없음"})`);
+    return false; // not a timeout
+  }
+  if (result?.status === "active") {
+    counters.active++;
+    if (verbose) console.log(`  ✓ ${row.external_id} — 활성`);
+    return false;
+  }
+  counters.errors++;
+  console.log(`  ? ${row.external_id} — ${result?.status || "error"} (code: ${result?.resultCode || result?.httpStatus})`);
+  return result?.httpStatus === 429; // rate-limit은 timeout-like로 취급
+}
+
+async function persistExpired(client, expiredIds) {
+  if (expiredIds.length === 0) return 0;
+  if (dryRun) {
+    console.log(`[status-check] DRY RUN: ${expiredIds.length}건 soft-delete 예정`);
+    return expiredIds.length;
+  }
+  const placeholders = expiredIds.map((_, i) => `$${i + 1}`).join(",");
+  const result = await client.query(
+    `UPDATE normalized_listings SET deleted_at = NOW() WHERE listing_id IN (${placeholders})`,
+    expiredIds,
+  );
+  console.log(`[status-check] DB 업데이트: ${result.rowCount}건 soft-delete 완료`);
+  return result.rowCount;
+}
+
 async function checkPlatform(platformCode, client) {
-  // DB 기반 만료 플랫폼은 HTTP 체크 대신 DB 판정
   if (DB_ONLY_PLATFORMS.has(platformCode)) {
     return checkPlatformByDb(platformCode, client);
   }
 
-  const checker = CHECKERS[platformCode];
-  if (!checker) {
+  const batchChecker = BATCH_CHECKERS[platformCode];
+  const singleChecker = CHECKERS[platformCode];
+  if (!batchChecker && !singleChecker) {
     console.log(`[status-check] 지원하지 않는 플랫폼: ${platformCode}, 건너뜀`);
     return null;
   }
@@ -547,65 +579,55 @@ async function checkPlatform(platformCode, client) {
     return { platform: platformCode, checked: 0, active: 0, expired: 0, errors: 0 };
   }
 
-  let active = 0;
-  let expired = 0;
-  let errors = 0;
+  const counters = { active: 0, expired: 0, errors: 0 };
   const expiredIds = [];
 
-  let consecutiveTimeouts = 0;
+  if (batchChecker) {
+    // batch 체커: rows를 받아 idx 정합된 result[] 반환 (zigbang 등)
+    const results = await batchChecker(rows);
+    for (let i = 0; i < rows.length; i++) summarizeResult(rows[i], results[i], counters, expiredIds);
+  } else {
+    // 단건 체커: concurrency pool로 처리. 연속 타임아웃 N회면 abort.
+    const concurrency = CONCURRENCY[platformCode] ?? 1;
+    const isNaver = platformCode === "naver";
+    const platformDelay = isNaver ? Math.max(delayMs, NAVER_DELAY_MS) : delayMs;
+    let consecutiveTimeouts = 0;
 
-  for (const row of rows) {
-    if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
-      console.log(`  ⚠ 연속 타임아웃 ${consecutiveTimeouts}회 — ${platformCode} 체크 중단`);
-      errors += rows.length - (active + expired + errors);
-      break;
-    }
-
-    try {
-      const result = await checker(row.external_id, row);
-
-      if (result.status === "expired") {
-        consecutiveTimeouts = 0;
-        expired++;
-        expiredIds.push(row.listing_id);
-        console.log(`  ✗ ${row.external_id} — 종료 [${result.resultCode}] (${row.title || "제목없음"})`);
-      } else if (result.status === "active") {
-        consecutiveTimeouts = 0;
-        active++;
-        if (verbose) console.log(`  ✓ ${row.external_id} — 활성`);
-      } else {
-        // error / unknown — 429 등 rate limit도 연속 에러로 카운트
-        if (result.httpStatus === 429) consecutiveTimeouts++;
+    await runWithConcurrency(rows, concurrency, async (row, _i, abort) => {
+      if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
+        counters.errors++;
+        return { status: "error", resultCode: "aborted" };
+      }
+      let result;
+      try {
+        result = await singleChecker(row.external_id, row);
+      } catch (e) {
+        const isTimeout = e.name === "TimeoutError" || /timeout|aborted/i.test(e.message);
+        if (isTimeout) consecutiveTimeouts++;
         else consecutiveTimeouts = 0;
-        errors++;
-        console.log(`  ? ${row.external_id} — ${result.status} (code: ${result.resultCode || result.httpStatus})`);
+        counters.errors++;
+        console.log(`  ! ${row.external_id} — 오류: ${e.message}`);
+        if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
+          console.log(`  ⚠ 연속 타임아웃 ${consecutiveTimeouts}회 — ${platformCode} 체크 중단`);
+          abort();
+        }
+        await sleep(platformDelay);
+        return { status: "error", resultCode: "exception" };
       }
-    } catch (e) {
-      errors++;
-      if (e.name === "TimeoutError" || /timeout|aborted/i.test(e.message)) {
-        consecutiveTimeouts++;
-      } else {
-        consecutiveTimeouts = 0;
+      const isTimeoutLike = summarizeResult(row, result, counters, expiredIds);
+      if (isTimeoutLike) consecutiveTimeouts++;
+      else consecutiveTimeouts = 0;
+      if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
+        console.log(`  ⚠ 연속 타임아웃 ${consecutiveTimeouts}회 — ${platformCode} 체크 중단`);
+        abort();
       }
-      console.log(`  ! ${row.external_id} — 오류: ${e.message}`);
-    }
-
-    await sleep(platformCode === "naver" ? Math.max(delayMs, NAVER_DELAY_MS) : delayMs);
+      await sleep(platformDelay);
+      return result;
+    });
   }
 
-  // 종료된 매물 soft-delete
-  if (expiredIds.length > 0 && !dryRun) {
-    const placeholders = expiredIds.map((_, i) => `$${i + 1}`).join(",");
-    const result = await client.query(
-      `UPDATE normalized_listings SET deleted_at = NOW() WHERE listing_id IN (${placeholders})`,
-      expiredIds,
-    );
-    console.log(`[status-check] DB 업데이트: ${result.rowCount}건 soft-delete 완료`);
-  } else if (expiredIds.length > 0 && dryRun) {
-    console.log(`[status-check] DRY RUN: ${expiredIds.length}건 soft-delete 예정`);
-  }
-
-  return { platform: platformCode, checked: rows.length, active, expired, errors };
+  await persistExpired(client, expiredIds);
+  return { platform: platformCode, checked: rows.length, ...counters };
 }
 
 // ── 메인 ──
