@@ -37,4 +37,10 @@ caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0 2>&1 | tee -a "$LOG_DIR/harn
 
 EXIT_CODE=${PIPESTATUS[0]}
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 수집 완료 (exit=$EXIT_CODE)" | tee -a "$LOG_DIR/collect.log"
+
+# 직방 이미지 부족 매물 자동 보강 (detail API 실패로 썸네일만 저장된 것 복구)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 직방 이미지 reenrich 시작" | tee -a "$LOG_DIR/collect.log"
+"$NODE_BIN" "$SCRIPT_DIR/zigbang_reenrich.mjs" 2>&1 | tee -a "$LOG_DIR/harness.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 직방 이미지 reenrich 완료" | tee -a "$LOG_DIR/collect.log"
+
 exit $EXIT_CODE
