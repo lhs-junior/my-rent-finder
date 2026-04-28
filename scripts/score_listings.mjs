@@ -303,7 +303,23 @@ scored AS (
       WHEN COALESCE(img.cnt, 0) >= 5 THEN 1
       ELSE 0
     END AS img_score,
-    COALESCE(img.cnt, 0) AS img_count
+    COALESCE(img.cnt, 0) AS img_count,
+
+    -- ⑨ features 0~2점 (주차 +1, 엘리베이터 또는 풀옵션 +1)
+    -- 다방·직방·당근에 features 채워진 매물부터 자동 적용. NULL이면 0점.
+    (CASE
+      WHEN n.features IS NULL THEN 0
+      WHEN (n.features->'parking'->>'possible') = 'true' THEN 1
+      ELSE 0
+    END
+    +
+    CASE
+      WHEN n.features IS NULL THEN 0
+      WHEN n.features->>'elevator' = '있음' THEN 1
+      WHEN jsonb_typeof(n.features->'options') = 'array'
+        AND jsonb_array_length(n.features->'options') >= 5 THEN 1
+      ELSE 0
+    END) AS feature_score
 
   FROM normalized_listings n
   LEFT JOIN district_rpm d ON SPLIT_PART(n.address_text, ' ', 2) = d.district
@@ -331,14 +347,14 @@ ranked AS (
   SELECT
     s.listing_id, s.rent_amount, s.deposit_amount,
     s.eliminate, s.rpm_score, s.subway_score, s.transfer_score,
-    s.area_score, s.floor_score, s.year_score, s.img_score,
-    (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) AS total_score,
+    s.area_score, s.floor_score, s.year_score, s.img_score, s.feature_score,
+    (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score + s.feature_score) AS total_score,
     -- 지번주소 기반 중복 제거: 동+번지+월세 동일 → 사진 많은 쪽 우선 보존
     CASE WHEN n.jibun_address IS NOT NULL
       THEN ROW_NUMBER() OVER (
         PARTITION BY n.jibun_address, n.rent_amount
         ORDER BY s.img_count DESC,
-                 (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
+                 (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score + s.feature_score) DESC,
                  n.listing_id
       )
     END AS jibun_dup_rank,
@@ -346,7 +362,7 @@ ranked AS (
     ROW_NUMBER() OVER (
       PARTITION BY ROUND(n.lat::numeric, 3), ROUND(n.lng::numeric, 3), n.rent_amount, n.deposit_amount
       ORDER BY s.img_count DESC,
-               (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score) DESC,
+               (s.rpm_score + s.subway_score + s.transfer_score + s.area_score + s.floor_score + s.year_score + s.img_score + s.feature_score) DESC,
                n.room_count DESC NULLS LAST, n.listing_id
     ) AS latlng_dup_rank
   FROM scored s
@@ -357,7 +373,7 @@ ranked AS (
 )
 SELECT
   listing_id, rent_amount, deposit_amount,
-  eliminate, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score,
+  eliminate, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, feature_score,
   total_score
 FROM ranked
 WHERE (jibun_dup_rank IS NULL OR jibun_dup_rank = 1)
@@ -451,19 +467,19 @@ async function main() {
       let insertedCount = 0;
       if (graded.length > 0) {
         const values = graded.map((r) =>
-          `(${r.listing_id}, ${r.total_score}, '${r.grade}', ${r.rpm_score}, ${r.subway_score}, ${r.transfer_score}, ${r.area_score}, ${r.floor_score}, ${r.year_score}, ${r.img_score}, ${r.effectiveMonthlyCost})`
+          `(${r.listing_id}, ${r.total_score}, '${r.grade}', ${r.rpm_score}, ${r.subway_score}, ${r.transfer_score}, ${r.area_score}, ${r.floor_score}, ${r.year_score}, ${r.img_score}, ${r.feature_score}, ${r.effectiveMonthlyCost})`
         ).join(",\n");
 
         const result = await client.query(`
-          WITH vals (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost) AS (
+          WITH vals (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, feature_score, effective_monthly_cost) AS (
             VALUES ${values}
           )
           INSERT INTO scored_listings
-            (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, effective_monthly_cost, scored_at)
+            (listing_id, total_score, grade, rpm_score, subway_score, transfer_score, area_score, floor_score, year_score, img_score, feature_score, effective_monthly_cost, scored_at)
           SELECT v.listing_id::integer, v.total_score::smallint, v.grade,
                  v.rpm_score::smallint, v.subway_score::smallint, v.transfer_score::smallint,
                  v.area_score::smallint, v.floor_score::smallint, v.year_score::smallint,
-                 v.img_score::smallint, v.effective_monthly_cost::integer, NOW()
+                 v.img_score::smallint, v.feature_score::smallint, v.effective_monthly_cost::integer, NOW()
           FROM vals v
           JOIN normalized_listings nl ON nl.listing_id = v.listing_id::integer
         `);

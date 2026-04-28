@@ -304,7 +304,7 @@ export async function handleListings(req, res) {
                nl.subway_distance_m, nl.subway_walk_min,
                nl.created_at, rl.run_id, rl.payload_json AS raw_payload_json,
                sl.grade, sl.total_score, sl.effective_monthly_cost,
-               json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score) AS scores,
+               json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score, 'feature', sl.feature_score) AS scores,
                ${DEDUP_RK} AS _rk
         FROM normalized_listings nl
         JOIN raw_listings rl ON rl.raw_id = nl.raw_id
@@ -917,7 +917,7 @@ export async function handleMyPick(req, res) {
           sl.grade,
           sl.total_score,
           sl.effective_monthly_cost,
-          json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score) AS scores
+          json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score, 'feature', sl.feature_score) AS scores
         FROM normalized_listings n
         LEFT JOIN scored_listings sl ON sl.listing_id = n.listing_id
         WHERE n.listing_id IN (

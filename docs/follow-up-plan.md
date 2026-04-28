@@ -56,7 +56,7 @@ raw payload의 옵션/시설/관리비 등 풍부한 attribute를 normalized_lis
 
 ## D. AI 배점 정교화
 
-- [ ] features 활용: 옵션 풍부도(0~2점), 주차 가점, 안전시설 가점
+- [x] features 활용: 0~2점 (주차 +1, 엘리베이터/풀옵션 +1) — migration 030 + score_listings.mjs 확장
 - [ ] 인기도 가점 (week_views 분위수)
 - [ ] 신선도 점수 (listed_at 기반)
 - [ ] 가격 비현실 매물 추가 필터

@@ -113,6 +113,7 @@ export async function handleScores(req, res) {
             floor: toInt(row.floor_score, 0),
             year: toInt(row.year_score, 0),
             img: toInt(row.img_score, 0),
+            feature: toInt(row.feature_score, 0),
           },
           effective_monthly_cost: toInt(row.effective_monthly_cost, null),
           platform_code: safeText(row.platform_code, ""),
