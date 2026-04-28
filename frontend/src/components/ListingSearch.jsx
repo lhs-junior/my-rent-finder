@@ -80,6 +80,8 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastLoadedAt, setLastLoadedAt] = useState("");
   const [searchToken, setSearchToken] = useState(0);
+  const [gradeFilter, setGradeFilter] = useState(""); // "", "SS", "S", "A"
+  const [myPickMode, setMyPickMode] = useState(false);
 
   const buildQuery = useCallback((targetFilters = submittedFilters, targetPage = page) => {
     const safePage = Math.max(1, Number(targetPage) || 1);
@@ -101,15 +103,19 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     }
     if (targetFilters.sort) params.set("sort", targetFilters.sort);
     if (targetFilters.maxSubwayM) params.set("max_subway_m", targetFilters.maxSubwayM);
+    if (gradeFilter) params.set("grade", gradeFilter);
     return params.toString();
-  }, [page, runId, submittedFilters, favoriteIds]);
+  }, [page, runId, submittedFilters, favoriteIds, gradeFilter]);
 
   const loadListings = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
       const query = buildQuery();
-      const payload = await fetchJson(`${apiBase}/api/listings?${query}`);
+      const endpoint = myPickMode
+        ? `${apiBase}/api/listings/my-pick?${query}`
+        : `${apiBase}/api/listings?${query}`;
+      const payload = await fetchJson(endpoint);
       if (payload?.error) throw new Error(`API 오류: ${payload.message || "요청 실패"}`);
       setItems(Array.isArray(payload?.items) ? payload.items : []);
       setTotalCount(typeof payload?.total === "number" ? payload.total : 0);
@@ -123,7 +129,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     } finally {
       setLoading(false);
     }
-  }, [apiBase, buildQuery]);
+  }, [apiBase, buildQuery, myPickMode]);
 
   const openDetail = useCallback((listingId) => {
     const normalizedId = toIdText(listingId);
@@ -178,10 +184,18 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setError("");
     setDetailId(null);
     setPage(1);
+    setGradeFilter("");
+    setMyPickMode(false);
     setSearchToken(t => t + 1);
   }, []);
 
   useEffect(() => { loadListings(); }, [loadListings, searchToken]);
+
+  // gradeFilter 또는 myPickMode 변경 시 자동 재조회
+  useEffect(() => {
+    setPage(1);
+    setSearchToken(t => t + 1);
+  }, [gradeFilter, myPickMode]);
 
   const modalOpen = detailId !== null;
   const totalPages = totalCount > 0 ? Math.ceil(totalCount / Math.max(1, Number(submittedFilters.limit) || 40)) : 0;
@@ -211,14 +225,36 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
 
       {/* 필터 폼 */}
       <form id="ls-form" className="ls-filters" onSubmit={handleSubmit} noValidate>
+        {/* 등급 필터 */}
+        <div className="grade-filter-row">
+          {["", "SS", "S", "A"].map(g => (
+            <button
+              key={g || "all"}
+              type="button"
+              className={`grade-btn${gradeFilter === g && !myPickMode ? " grade-btn--active" : ""}${g ? ` grade-btn--${g.toLowerCase()}` : ""}`}
+              onClick={() => { setGradeFilter(g); setMyPickMode(false); }}
+            >
+              {g || "전체"}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={`grade-btn grade-btn--mypick${myPickMode ? " grade-btn--active" : ""}`}
+            onClick={() => { setMyPickMode(m => !m); setGradeFilter(""); }}
+          >
+            내 조건
+          </button>
+        </div>
+
         {/* 플랫폼 */}
-        <div className="ls-filter-row ls-filter-row--platform">
+        <div className={`ls-filter-row ls-filter-row--platform${myPickMode ? " ls-filter-row--disabled" : ""}`}>
           {PLATFORM_OPTIONS.map(o => (
             <button
               key={o.value || "__all__"}
               type="button"
               className={`ls-chip${filters.platformCode === o.value ? " ls-chip--active" : ""}`}
               onClick={() => set("platformCode", o.value)}
+              disabled={myPickMode}
             >
               {o.label}
             </button>
@@ -226,7 +262,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
         </div>
 
         {/* 주요 필터 */}
-        <div className="ls-filter-row ls-filter-row--main">
+        <div className={`ls-filter-row ls-filter-row--main${myPickMode ? " ls-filter-row--disabled" : ""}`}>
           {/* 주소 */}
           <div className="ls-field">
             <span className="ls-field-label">주소</span>

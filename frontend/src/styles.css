@@ -459,6 +459,12 @@ body {
   color: #fff;
 }
 .map-ai-only-btn--active:hover { background: #6d28d9; }
+.map-my-pick-btn--active {
+  background: #0d9488;
+  border-color: #0d9488;
+  color: #fff;
+}
+.map-my-pick-btn--active:hover { background: #0f766e; }
 
 /* 지도 등급 필터 */
 .map-grade-filter {
@@ -4422,6 +4428,66 @@ pre {
 .ls-chip--fav { border-color: #f87171; color: #ef4444; }
 .ls-chip--fav.ls-chip--active { background: #ef4444; border-color: #ef4444; color: #fff; }
 .ls-chip--disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 등급 필터 행 */
+.grade-filter-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+.grade-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  color: var(--text-muted);
+}
+.grade-btn:hover { border-color: var(--primary); color: var(--primary); }
+.grade-btn--active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.grade-btn--ss  { color: #9b2c2c; border-color: #fc8181; }
+.grade-btn--ss.grade-btn--active  { background: #e53e3e; border-color: #e53e3e; color: #fff; }
+.grade-btn--s   { color: #7b341e; border-color: #f6ad55; }
+.grade-btn--s.grade-btn--active   { background: #dd6b20; border-color: #dd6b20; color: #fff; }
+.grade-btn--a   { color: #744210; border-color: #f6e05e; }
+.grade-btn--a.grade-btn--active   { background: #d69e2e; border-color: #d69e2e; color: #fff; }
+.grade-btn--mypick { color: #2b6cb0; border-color: #90cdf4; }
+.grade-btn--mypick.grade-btn--active { background: #2b6cb0; border-color: #2b6cb0; color: #fff; }
+
+/* myPickMode 시 필터 비활성화 */
+.ls-filter-row--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 등급 배지 */
+.listing-card-grade-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.listing-grade-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+.listing-grade-badge--ss { background: #e53e3e; }
+.listing-grade-badge--s  { background: #dd6b20; }
+.listing-grade-badge--a  { background: #d69e2e; }
+.listing-card-effective-cost {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
 
 /* 찜 활성 태그 */
 .ls-active-tag { display: flex; gap: 6px; flex-wrap: wrap; }

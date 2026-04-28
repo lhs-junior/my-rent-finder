@@ -187,6 +187,14 @@ export default function ListingCard({
               {isLoadingDetail && <span className="listing-card-action-hint">상세 불러오는 중...</span>}
             </div>
           )}
+          {item.grade && (
+            <div className="listing-card-grade-row">
+              <span className={`listing-grade-badge listing-grade-badge--${item.grade.toLowerCase()}`}>{item.grade}</span>
+              {item.effective_monthly_cost != null && (
+                <span className="listing-card-effective-cost">실질 {Math.round(item.effective_monthly_cost)}만/월</span>
+              )}
+            </div>
+          )}
           {item.lease_type === "매매" ? (
             <div className="listing-card-rent">{item.sale_price != null ? toMoney(item.sale_price) : "가격 미정"}</div>
           ) : (
