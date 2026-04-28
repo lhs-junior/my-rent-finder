@@ -3,15 +3,23 @@
 import { BaseUserOnlyAdapter, parseMoneyPair } from "./user_only_listing_adapter.mjs";
 import { normalizeListedAt } from "../lib/listed_at_normalizer.mjs";
 
-function extractJibunKey(addr) {
+export function extractJibunKey(addr) {
   if (!addr) return null;
-  const parts = String(addr).trim().split(/\s+/);
-  if (parts.length < 2) return null;
-  const lot = parts[parts.length - 1];
-  const dong = parts[parts.length - 2];
-  if (!/^\d+(?:-\d+)*$/.test(lot)) return null;
-  if (!/(?:동|가|리)\d*$/.test(dong)) return null;
-  return `${dong} ${lot}`;
+  // 콤마/공백 모두 토큰 구분자로 처리. 예: "서울시 노원구 공릉동 683-20, 1동" / "서울특별시 중랑구 중화동 295-20"
+  const tokens = String(addr).trim().split(/\s+|,\s*/).filter(Boolean);
+  if (tokens.length < 2) return null;
+  // 동/가/리로 끝나는 토큰을 우측에서부터 찾되, 최소 1자 한글 prefix 요구 — "1동" 같은 호수 토큰 제외
+  let dongIdx = -1;
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (/^[가-힣]+[가-힣A-Za-z0-9]*(?:동|가|리)\d*$/.test(tokens[i])) {
+      dongIdx = i;
+      break;
+    }
+  }
+  if (dongIdx < 0) return null;
+  const next = tokens[dongIdx + 1];
+  if (!next || !/^\d+(?:-\d+)*$/.test(next)) return null;
+  return `${tokens[dongIdx]} ${next}`;
 }
 
 const DEFAULT_CITY = "서울특별시";
@@ -457,6 +465,22 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
       }
       if (urls.length > 0) {
         normalized.image_urls = urls.slice(0, 12);
+      }
+    }
+
+    // /api/v5/room/{id}/near — 지번 주소 + 정확한 lat/lng (수집기에서 _near로 보존).
+    // detail의 address가 dong-level까지만 오는 한계를 보완.
+    const near = mergedRow?._near?.result || null;
+    if (near) {
+      if (typeof near.address === "string" && near.address.trim()) {
+        const j = extractJibunKey(near.address);
+        if (j) normalized.jibun_address = j;
+      }
+      const nLat = Number(near?.location?.lat);
+      const nLng = Number(near?.location?.lng);
+      if (Number.isFinite(nLat) && Number.isFinite(nLng) && nLat !== 0 && nLng !== 0) {
+        normalized.lat = nLat;
+        normalized.lng = nLng;
       }
     }
 

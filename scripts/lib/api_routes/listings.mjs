@@ -141,11 +141,13 @@ function normalizeListingMoney({ platformCode, leaseType, rawText, rentAmount, d
 }
 
 function dedupRankExpression(alias = "nl") {
+  // 시그니처 우선순위: jibun_address(지번까지 정확) > address_text(dong-level fallback)
+  // 다방처럼 동일 물건을 여러 매물ID로 노출하는 플랫폼은 jibun이 있으면 floor/room_count 파싱 차이와 무관하게 묶인다.
   return `ROW_NUMBER() OVER (
            PARTITION BY md5(CONCAT_WS(
              '|',
              COALESCE(${alias}.platform_code, ''),
-             COALESCE(${alias}.address_text, ''),
+             COALESCE(NULLIF(${alias}.jibun_address, ''), ${alias}.address_text, ''),
              COALESCE(${alias}.rent_amount::text, ''),
              COALESCE(${alias}.deposit_amount::text, ''),
              COALESCE(${alias}.room_count::text, '0'),

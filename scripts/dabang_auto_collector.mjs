@@ -552,6 +552,36 @@ async function collectDabang() {
             };
             detailSuccessCount++;
             vlog(`    OK lat=${item._detail.lat} lng=${item._detail.lng}`);
+
+            // /api/v5/room/{id}/near — 지번 주소 + 정확한 lat/lng + 편의시설
+            // detail 응답은 dong-level까지만 주지만 near는 지번까지 포함된 정확 주소를 반환한다.
+            const nearUrl = `https://www.dabangapp.com/api/v5/room/${item.id}/near`;
+            try {
+              const nearRes = await withTimeout(
+                detailPage.evaluate(async (url) => {
+                  try {
+                    const res = await fetch(url, {
+                      headers: { accept: "application/json, text/plain, */*" },
+                      credentials: "include",
+                    });
+                    if (!res.ok) return { ok: false, status: res.status };
+                    return { ok: true, data: await res.json() };
+                  } catch (err) {
+                    return { ok: false, error: err.message };
+                  }
+                }, nearUrl),
+                15000,
+                `near ${item.id}`,
+              );
+              if (nearRes.ok && nearRes.data?.result) {
+                item._detail._near = nearRes.data;
+                vlog(`    near OK addr=${nearRes.data.result.address || ""}`);
+              } else {
+                vlog(`    near Failed: ${nearRes.ok ? "no result" : nearRes.status || nearRes.error || "unknown"}`);
+              }
+            } catch (err) {
+              vlog(`    near Error: ${err.message}`);
+            }
           } else {
             vlog(`    Failed: ${result.ok ? "no room field" : result.status || result.error || "unknown"}`);
           }
@@ -559,7 +589,7 @@ async function collectDabang() {
           vlog(`    Error: ${err.message}`);
         }
 
-        // Rate limit
+        // Rate limit (detail + near 모두 끝난 후 1회)
         await sleep(800 + Math.random() * 400);
       }
 
