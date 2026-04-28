@@ -7,7 +7,7 @@ import { toText } from "../db_client.mjs";
 import { sendJson, send404 } from "../api_helpers.mjs";
 import { handleHealth } from "./health.mjs";
 import { handleOps, handleCollectionRuns } from "./ops.mjs";
-import { handleListings, handleListingDetail, handleListingsGeo, handleListingVerify, handleMyPick } from "./listings.mjs";
+import { handleListings, handleListingDetail, handleListingsGeo, handleListingVerify, handleMyPick, handleMyPickConfig } from "./listings.mjs";
 import { handleMatches, handleMatchGroup } from "./matches.mjs";
 import { handleFavorites, handleFavoriteIds, handleAddFavorite, handleRemoveFavorite } from "./favorites.mjs";
 import { handleSettings } from "./settings.mjs";
@@ -42,6 +42,10 @@ export async function dispatchApiRoute(req, res, pathname, parseJsonBody) {
   }
   if (pathname === "/api/listings/geo") {
     await handleListingsGeo(req, res);
+    return true;
+  }
+  if (pathname === "/api/listings/my-pick/config" && req.method === "GET") {
+    await handleMyPickConfig(req, res);
     return true;
   }
   if (pathname === "/api/listings/my-pick") {

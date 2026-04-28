@@ -11,6 +11,26 @@ import {
   extractImageUrlsFromPayload,
   buildFallbackImageRowsFromPayload,
 } from "../api_helpers.mjs";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const _require = createRequire(import.meta.url);
+const _configPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../config/my_pick_config.json"
+);
+let _myPickConfig = null;
+function loadMyPickConfig() {
+  if (!_myPickConfig) {
+    try {
+      _myPickConfig = _require(_configPath);
+    } catch {
+      _myPickConfig = {};
+    }
+  }
+  return _myPickConfig;
+}
 
 const MONEY_ORIENTED_PLATFORMS = new Set(["dabang", "daangn"]);
 const MONEY_SWAP_RENT_MIN = 500;
@@ -799,29 +819,34 @@ export async function handleListingVerify(req, res, id) {
 // /api/listings/my-pick
 // ---------------------------------------------------------------------------
 
-const MY_PICK_TARGET_STATIONS = [
-  "청량리", "회기", "외대앞", "중랑", "상봉", "중화", "면목", "사가정",
-  "용마산", "중곡", "군자", "답십리", "장한평", "왕십리",
-];
-
-const MY_PICK_DONG_PATTERN =
-  "(군자동|능동|답십리동|마장동|망우동|면목동|묵동|사근동|상봉동|송정동|용답동|용두동|이문동|장안동|전농동|제기동|중곡동|중화동|청량리동|하왕십리동|행당동|홍익동|회기동|휘경동)";
-
-const MY_PICK_EXCLUDED_BUILDING_USE = new Set([
-  "제1종근린생활시설",   // 목록 API (공백 없음)
-  "제2종근린생활시설",
-  "제1종 근린생활시설",  // serve bldUsageCd (공백 있음)
-  "제2종 근린생활시설",
-  "업무시설",
-]);
-
-const MY_PICK_KNOWN_SMALL_USES = new Set(["원룸", "투룸", "투룸 • 단기"]);
-
 export async function handleMyPick(req, res) {
+  const cfg = loadMyPickConfig();
+  const MY_PICK_TARGET_STATIONS = cfg.target_stations ?? [
+    "청량리", "회기", "외대앞", "중랑", "상봉", "중화", "면목", "사가정",
+    "용마산", "중곡", "군자", "답십리", "장한평", "왕십리",
+  ];
+  const MY_PICK_DONG_PATTERN = cfg.dong_pattern ??
+    "(군자동|능동|답십리동|마장동|망우동|면목동|묵동|사근동|상봉동|송정동|용답동|용두동|이문동|장안동|전농동|제기동|중곡동|중화동|청량리동|하왕십리동|행당동|홍익동|회기동|휘경동)";
+  const MY_PICK_MAX_RENT = cfg.max_rent ?? 90;
+  const MY_PICK_RADIUS_M = cfg.radius_m ?? 1000;
+  const MY_PICK_MIN_ROOM = cfg.min_room_count ?? 3;
+  const MY_PICK_EXCLUDED_BUILDING_USE = new Set(cfg.excluded_building_use ?? [
+    "제1종근린생활시설", "제2종근린생활시설",
+    "제1종 근린생활시설", "제2종 근린생활시설", "업무시설",
+  ]);
+  const MY_PICK_KNOWN_SMALL_USES = new Set(cfg.known_small_uses ?? ["원룸", "투룸", "투룸 • 단기"]);
   try {
     const result = await withDbClient(async (client) => {
       // Build the station placeholder list: $1, $2, ...
       const stationParams = MY_PICK_TARGET_STATIONS.map((_, i) => `$${i + 1}`).join(", ");
+
+      // 설정값은 모두 숫자/배열로 검증된 값 — SQL 인젝션 위험 없음
+      const excludedInClause = [...MY_PICK_EXCLUDED_BUILDING_USE]
+        .map((v) => `'${v.replace(/'/g, "''")}'`)
+        .join(", ");
+      const smallUsesInClause = [...MY_PICK_KNOWN_SMALL_USES]
+        .map((v) => `'${v.replace(/'/g, "''")}'`)
+        .join(", ");
 
       const query = `
         WITH target_stations AS (
@@ -838,7 +863,7 @@ export async function handleMyPick(req, res) {
           HAVING MIN(6371000 * acos(LEAST(1.0,
             cos(radians(s.lat)) * cos(radians(n.lat)) * cos(radians(n.lng) - radians(s.lng))
             + sin(radians(s.lat)) * sin(radians(n.lat))
-          ))) <= 1000
+          ))) <= ${MY_PICK_RADIUS_M}
         ),
         dong_fallback_ids AS (
           SELECT listing_id FROM normalized_listings
@@ -873,19 +898,15 @@ export async function handleMyPick(req, res) {
           SELECT listing_id FROM dong_fallback_ids
         )
           AND n.deleted_at IS NULL
-          AND n.rent_amount <= 90
+          AND n.rent_amount <= ${MY_PICK_MAX_RENT}
           AND (
             n.building_use IS NULL
-            OR n.building_use NOT IN (
-              '제1종근린생활시설', '제2종근린생활시설',
-              '제1종 근린생활시설', '제2종 근린생활시설',
-              '업무시설'
-            )
+            OR n.building_use NOT IN (${excludedInClause})
           )
           AND (
-            n.room_count >= 3
+            n.room_count >= ${MY_PICK_MIN_ROOM}
             OR n.building_use ILIKE '%쓰리룸%'
-            OR (n.room_count IS NULL AND n.building_use NOT IN ('원룸', '투룸', '투룸 • 단기'))
+            OR (n.room_count IS NULL AND n.building_use NOT IN (${smallUsesInClause}))
             OR (n.room_count IS NULL AND n.building_use IS NULL)
           )
         ORDER BY n.rent_amount ASC, n.deposit_amount ASC
@@ -963,6 +984,15 @@ export async function handleMyPick(req, res) {
     console.error("[my-pick] error:", e.message);
     sendJson(res, 500, { error: "DB error" });
   }
+}
+
+// ---------------------------------------------------------------------------
+// /api/listings/my-pick/config
+// ---------------------------------------------------------------------------
+
+export function handleMyPickConfig(_req, res) {
+  const cfg = loadMyPickConfig();
+  sendJson(res, 200, cfg);
 }
 
 // ---------------------------------------------------------------------------
