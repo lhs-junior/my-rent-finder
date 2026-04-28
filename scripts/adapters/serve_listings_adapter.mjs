@@ -101,7 +101,9 @@ export class ServeListingAdapter extends BaseListingAdapter {
       floor,
       total_floor: totalFloor,
       direction,
-      building_use: raw.ctgryCd2Nm || null,
+      // bldUsageCd = 건축물대장 실제 용도 (상세 API); ctgryCd2Nm은 목록 API 카테고리 폴백
+      building_use: (raw.bldUsageCd && String(raw.bldUsageCd).trim()) || raw.ctgryCd2Nm || null,
+      description_text: (raw.dtlDesc && String(raw.dtlDesc).trim()) || null,
       room_count: roomCount,
       bathroom_count: bathroomCount,
       lat,
