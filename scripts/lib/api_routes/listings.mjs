@@ -808,8 +808,10 @@ const MY_PICK_DONG_PATTERN =
   "(군자동|능동|답십리동|마장동|망우동|면목동|묵동|사근동|상봉동|송정동|용답동|용두동|이문동|장안동|전농동|제기동|중곡동|중화동|청량리동|하왕십리동|행당동|홍익동|회기동|휘경동)";
 
 const MY_PICK_EXCLUDED_BUILDING_USE = new Set([
-  "제1종근린생활시설",
+  "제1종근린생활시설",   // 목록 API (공백 없음)
   "제2종근린생활시설",
+  "제1종 근린생활시설",  // serve bldUsageCd (공백 있음)
+  "제2종 근린생활시설",
   "업무시설",
 ]);
 
@@ -874,7 +876,11 @@ export async function handleMyPick(req, res) {
           AND n.rent_amount <= 90
           AND (
             n.building_use IS NULL
-            OR n.building_use NOT IN ('제1종근린생활시설', '제2종근린생활시설', '업무시설')
+            OR n.building_use NOT IN (
+              '제1종근린생활시설', '제2종근린생활시설',
+              '제1종 근린생활시설', '제2종 근린생활시설',
+              '업무시설'
+            )
           )
           AND (
             n.room_count >= 3
