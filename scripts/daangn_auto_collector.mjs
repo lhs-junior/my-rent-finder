@@ -1674,7 +1674,6 @@ async function main() {
           _detail: detailForPayload,
           floor: parsed.floor,
           floorText: detail.floorText || null,
-          total_floor: null,
           direction: directionHint,
           directionText: directionHint,
           areaPyeong: detail.areaPyeong || null,

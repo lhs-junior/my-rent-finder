@@ -953,7 +953,6 @@ async function strategyBrowserApi() {
       success: true,
       listings: filtered,
       details: {
-        v2Items: allItems.length,
         v3Items: allListings.length,
         afterFilter: filtered.length,
         returned: filtered.length,
