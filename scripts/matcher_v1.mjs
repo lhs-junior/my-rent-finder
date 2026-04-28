@@ -328,8 +328,10 @@ function candidateKeys(l) {
         addBucket(rb + dr, ab + da);
       }
     }
+  } else {
+    // rent/area 없을 때만 동 전체 비교 bucket 사용
+    keys.add(`${addr}|r*|a*`);
   }
-  keys.add(`${addr}|r*|a*`);
   // jibun_address 기반 크로스플랫폼 버킷 — 동+번지가 같으면 반드시 비교
   if (l.jibunKey) keys.add(`jibun:${l.jibunKey}`);
   return Array.from(keys);
