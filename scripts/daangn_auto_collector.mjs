@@ -1142,6 +1142,15 @@ function parseArea(item) {
   };
 }
 
+function extractArticleId(value) {
+  if (!value) return null;
+  const s = String(value);
+  const match = s.match(/\/articles\/(\d+)/);
+  if (match) return match[1];
+  if (/^\d{5,}$/.test(s.trim())) return s.trim();
+  return null;
+}
+
 function extractListingId(identifier) {
   if (!identifier) return null;
   const normalized = String(identifier).trim();
@@ -1393,118 +1402,102 @@ async function collectDistrict(districtName, locationId) {
   const url = `https://www.daangn.com/kr/realty/?in=x-${locationId}`;
   if (verbose) console.log(`  [${districtName}] Fetching: ${url}`);
 
-  const res = await fetch(url, {
-    headers: DAANGN_FETCH_HEADERS,
-  });
-
+  const res = await fetch(url, { headers: DAANGN_FETCH_HEADERS });
   if (!res.ok) {
     console.error(`  [${districtName}] HTTP ${res.status}`);
     return { items: [], total: 0 };
   }
 
   const html = await res.text();
-  const detailMap = collectDaangnDetails(html);
-  const ldMatch = html.match(
-    /<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
-  );
-  if (!ldMatch) {
-    console.error(`  [${districtName}] No JSON-LD found`);
+  const context = parseRemixContextFromHtml(html);
+  if (!context) {
+    console.error(`  [${districtName}] remixContext 없음`);
     return { items: [], total: 0 };
   }
 
-  let ld;
-  try {
-    ld = JSON.parse(ldMatch[1]);
-  } catch {
-    console.error(`  [${districtName}] JSON-LD parse failed`);
+  const mainRoute = context?.state?.loaderData?.["routes/kr.realty._index"];
+  const allPosts = mainRoute?.realtyPosts?.realtyPosts ||
+    (Array.isArray(mainRoute?.realtyPosts) ? mainRoute.realtyPosts : []);
+
+  if (!Array.isArray(allPosts) || allPosts.length === 0) {
+    console.error(`  [${districtName}] 매물 목록 없음 (remixContext 구조 변경 가능)`);
     return { items: [], total: 0 };
   }
-  const allItems = (ld.itemListElement || []).map((e) => e.item);
-  if (verbose)
-    console.log(
-      `  [${districtName}] JSON-LD: ${allItems.length} items (numberOfItems: ${ld.numberOfItems})`,
-    );
+
+  if (verbose) console.log(`  [${districtName}] 전체: ${allPosts.length}건`);
 
   // 1. 해당 구 매물만 필터링
-  const districtItems = allItems.filter((item) => {
-    const detail = getDaangnDetail(detailMap, item);
-    if (detail?.region?.name2 === districtName) return true;
-    return (
-      item.address?.addressRegion === "서울특별시" &&
-      item.address?.addressLocality === districtName
-    );
+  const districtPosts = allPosts.filter((p) => p.region?.name2 === districtName);
+  if (verbose) console.log(`  [${districtName}] 해당 구: ${districtPosts.length}건`);
+
+  // 2. 주거용 + 진행중만 필터링
+  const residentialPosts = districtPosts.filter((p) => {
+    if (p.status && p.status !== "ON_GOING" && p.status !== "RESERVED") return false;
+    const salesType = p.salesType || p.salesTypeV2;
+    return salesType && RESIDENTIAL_SALES_TYPES.has(salesType);
   });
-  if (verbose)
-    console.log(
-      `  [${districtName}] 해당 구 매물: ${districtItems.length}건`,
-    );
+  if (verbose) console.log(`  [${districtName}] 주거용: ${residentialPosts.length}건`);
 
-  // 2. 주거용 타입만 필터링
-  // JSON-LD @type(구버전) 또는 remixContext salesType(신버전) 기반 판별
-  const residentialItems = districtItems
-    .map((item) => ({
-      ...item,
-      _detail: getDaangnDetail(detailMap, item),
-    }))
-    .filter((item) => {
-      // 신버전: salesType으로 판별
-      const salesType = item._detail?.salesType || item._detail?.salesTypeV2;
-      if (salesType) return RESIDENTIAL_SALES_TYPES.has(salesType);
-      // 구버전: @type으로 판별 (fallback)
-      return RESIDENTIAL_TYPES.has(item["@type"]);
-    });
-  const allDaangnKeys = residentialItems.map(extractDaangnItemKey).filter(Boolean);
-  const knownDaangnIds = await getExistingWithImagesAndFields("daangn", allDaangnKeys, ["description_text"], { maxAgeHours: 72 });
-  if (knownDaangnIds.size > 0) console.log(`  Skipped ${knownDaangnIds.size} known listings (detail fetch)`);
-  await hydrateItemsWithDetail(residentialItems, { knownIds: knownDaangnIds });
-  if (verbose)
-    console.log(
-      `  [${districtName}] 주거용 매물: ${residentialItems.length}건`,
-    );
-
-  // 3. 가격 파싱 및 조건 필터
+  // 3. 가격/면적/조건 필터링 및 아이템 조립
   const filtered = [];
-  for (const item of residentialItems) {
-    const detailPrice = parsePriceFromDetail(item._detail);
-    const price = resolveMonthlyPrice(item.name || "", detailPrice);
-    if (!price) continue;
-    if (price.type !== "monthly") continue; // 월세만
+  for (const post of residentialPosts) {
+    // 월세 trade 파싱
+    const monthlyTrade = post.trades?.find((t) =>
+      ["MONTH", "MONTHLY", "LEASE", "MONTHLY_RENT", "MONTHLY_RENTAL"].includes(
+        String(t?.type || "").toUpperCase(),
+      ),
+    );
+    if (!monthlyTrade) continue;
 
-    // 보증금/월세 조건 체크
+    const rent = toNumber(monthlyTrade.monthlyPay ?? monthlyTrade.rent ?? monthlyTrade.price);
+    const deposit = toNumber(monthlyTrade.deposit);
+    if (rent === null && deposit === null) continue;
+
+    const price = { deposit: deposit ?? 0, rent: rent ?? 0, type: "monthly" };
     if (rentMax > 0 && price.rent > rentMax) continue;
     if (depositMax > 0 && price.deposit > depositMax) continue;
 
-    // 면적 체크 (있으면)
-    const area = parseArea(item);
-    const areaClaim = normalizeDaangnAreaClaim(area?.claimed);
-    const areaValue = Number.isFinite(area.value) ? area.value : null;
-    if (minAreaM2 > 0) {
-      if (areaClaim !== "exclusive" || areaValue === null || areaValue < minAreaM2) continue;
-    }
+    // 면적 파싱 (area 필드: m² 문자열)
+    const areaM2 = toNumber(post.area);
+    const areaClaim = areaM2 !== null ? "exclusive" : null;
+    if (minAreaM2 > 0 && (areaM2 === null || areaM2 < minAreaM2)) continue;
 
-    const floor = parseFloor(item);
+    // 층수 파싱
+    const floor = parseFloorValue(post.floor ?? post.floorText);
 
-    const propertyType = parsePropertyType(item.name || "");
-
-    // 비주거 매물 제외
-    if (NON_RESIDENTIAL_PROPERTY_TYPES.has(propertyType) || NON_RESIDENTIAL_NAME_RE.test(item.name || "")) {
-      if (verbose) console.log(`    [SKIP] 비주거: ${item.name?.slice(0, 60)}`);
+    // 매물 타입 (title에서 추출)
+    const cleanTitle = String(post.title || "").replace(/ \| 당근부동산$/, "");
+    const propertyType = parsePropertyType(cleanTitle);
+    if (NON_RESIDENTIAL_PROPERTY_TYPES.has(propertyType) || NON_RESIDENTIAL_NAME_RE.test(cleanTitle)) {
+      if (verbose) console.log(`    [SKIP] 비주거: ${cleanTitle.slice(0, 60)}`);
       continue;
     }
 
-    filtered.push({
-      ...item,
+    // 기존 item 구조와 호환되도록 조립
+    const item = {
+      name: cleanTitle,
+      identifier: post.id,
+      description: post.content || "",
+      address: {
+        streetAddress: post.address || "",
+        addressRegion: post.region?.name1 || "서울특별시",
+        addressLocality: post.region?.name2 || districtName,
+      },
+      "@type": "RealtyPost",
+      webUrl: post.webUrl,
+      _detail: post,
       _parsed: {
         deposit: price.deposit,
         rent: price.rent,
-        priceType: price.type,
+        priceType: "monthly",
         propertyType,
-        area,
+        area: { value: areaM2, claimed: areaClaim },
         floor,
         district: districtName,
-        hasDetail: Boolean(item._detail),
+        hasDetail: true,
       },
-    });
+    };
+    filtered.push(item);
   }
 
   if (verbose)
@@ -1514,8 +1507,8 @@ async function collectDistrict(districtName, locationId) {
 
   return {
     items: filtered,
-    total: districtItems.length,
-    residential: residentialItems.length,
+    total: allPosts.length,
+    residential: residentialPosts.length,
   };
 }
 
@@ -1554,19 +1547,28 @@ async function main() {
       const directionHint = extractDaangnDirection(detail, item);
       const areaClaim = normalizeDaangnAreaClaim(parsed.area?.claimed);
       const areaValue = Number.isFinite(parsed.area?.value) ? parsed.area.value : null;
-      const sourceImageUrls = normalizeDaangnImageSources(detail, item);
+
+      // 이미지: 새 API는 images 배열 직접 사용
+      const sourceImageUrls = detail.images?.length > 0
+        ? coerceImageUrls(detail.images)
+        : normalizeDaangnImageSources(detail, item);
+
       const normalizedDescription = normalizeDaangnHtmlText(
         `${item.description || ""} ${detail.content || detail.description || ""}`,
       );
       const detailForPayload = detail && typeof detail === "object" ? detail : null;
-      const sourceIdentifier = item.identifier || item.id || item.url || item.href;
       const requestUrl = `https://www.daangn.com/kr/realty/?in=x-${locationId}`;
-      const sourceRef = extractListingId(sourceIdentifier);
-      const sourceUrl = toDaangnUrl(sourceIdentifier)
-        || toDaangnUrl(item?.identifier)
-        || toDaangnUrl(item?.url)
-        || toDaangnUrl(item?.href)
+
+      // source URL: webUrl 우선 사용 (새 API), 없으면 기존 방식
+      const articleId = extractArticleId(item.webUrl);
+      const sourceRef = articleId
+        || extractListingId(item.identifier || item.id || item.url || item.href);
+      const sourceUrl = item.webUrl?.split("?")[0]
+        || toDaangnUrl(item.identifier)
+        || toDaangnUrl(item.url)
+        || toDaangnUrl(item.href)
         || requestUrl;
+
       const dedupeKey = (sourceRef || sourceUrl || "").toLowerCase();
       if (dedupeKey) {
         if (dedupeBySourceRef.has(dedupeKey)) continue;
@@ -1574,15 +1576,12 @@ async function main() {
       }
 
       const externalId = sourceRef || null;
-      const totalFloor = detail.topFloor ?? detail.totalFloor ?? detail.total_floor ?? detail.floor_total;
-      const normalizedTotalFloor =
-        totalFloor != null && String(totalFloor).trim() !== "" ? `${String(totalFloor).trim()}층` : null;
 
       const record = {
         platform_code: "daangn",
         collected_at: new Date().toISOString(),
         source_url: sourceUrl || requestUrl,
-        request_url: `https://www.daangn.com/kr/realty/?in=x-${locationId}`,
+        request_url: requestUrl,
         response_status: 200,
         sigungu: district,
         payload_json: {
@@ -1590,7 +1589,8 @@ async function main() {
           source_ref: sourceRef,
           name: item.name,
           description: normalizedDescription,
-          schemaType: item["@type"],
+          salesType: detail.salesType,
+          salesTypeV2: detail.salesTypeV2,
           propertyType: parsed.propertyType,
           deposit: parsed.deposit,
           rent: parsed.rent,
@@ -1599,46 +1599,40 @@ async function main() {
           _parsed: parsed,
           _detail: detailForPayload,
           floor: parsed.floor,
-          floorLevel: detail.floorLevel || detail.floor_level || detail.floor_level_text,
-          floorSize: detail.floorSize,
-          floorLevelText: detail.floorLevelText,
-          floorText: detail.floorText,
-          topFloor: detail.topFloor,
-          totalFloor: detail.totalFloor,
-          total_floor: normalizedTotalFloor,
-          buildingOrientation: detail.buildingOrientation || detail.building_orientation,
+          floorText: detail.floorText || null,
+          total_floor: null,
           direction: directionHint,
           directionText: directionHint,
-          supplyArea: detail.supplyArea,
-          floorDesc: detail.floorText,
-          floor_desc: detail.floorText,
-          direction_desc: directionHint,
-          areaPyeong: detail.areaPyeong,
-          supplyAreaPyeong: detail.supplyAreaPyeong,
+          areaPyeong: detail.areaPyeong || null,
+          supplyArea: detail.supplyArea || null,
+          supplyAreaPyeong: detail.supplyAreaPyeong || null,
           images: sourceImageUrls,
           address: item.address,
-          lat: detail.coordinate?.lat ?? null,
-          lng: detail.coordinate?.lon ?? detail.coordinate?.lng ?? null,
+          addressInfo: detail.addressInfo || null,
+          region: detail.region || null,
+          lat: null,
+          lng: null,
           roomCnt: detail.roomCnt ?? null,
           bathroomCnt: detail.bathroomCnt ?? null,
           manageCost: detail.manageCost ?? null,
-          detailSource: detail.__typename || "unknown",
+          buildingName: detail.buildingName || null,
+          buildingApprovalDate: detail.buildingApprovalDate || null,
+          createdAt: detail.createdAt || null,
+          status: detail.status || null,
+          webUrl: item.webUrl || null,
+          detailSource: detail.__typename || "listing_page",
         },
         list_data: {
           source_ref: sourceRef,
           priceTitle: `${parsed.deposit}/${parsed.rent}`,
-          roomTitle: item.name?.replace(/ \| 당근부동산$/, "") || "",
-          dongName: item.address?.streetAddress || "",
+          roomTitle: item.name || "",
+          dongName: detail.region?.name || item.address?.streetAddress || "",
           propertyType: parsed.propertyType,
           floor: parsed.floor,
-          floorLevel: detail.floorLevel || detail.floor_level || detail.floorLevelText,
-          total_floor: normalizedTotalFloor,
-          topFloor: detail.topFloor,
           floorText: detail.floorText || "",
+          total_floor: null,
           direction: directionHint,
           directionText: directionHint,
-          floor_desc: detail.floorText,
-          direction_desc: directionHint,
           imgUrlList: sourceImageUrls.map((img) => img.replace(/&amp;/g, "&")),
         },
       };

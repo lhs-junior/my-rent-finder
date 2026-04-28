@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import { withDbClient } from "./lib/db_client.mjs";
 import { TARGET_DISTRICTS } from "./lib/target_districts.mjs";
+import { fetchDabangDetail } from "./adapters/dabang_listings_adapter.mjs";
 
 const args = process.argv.slice(2);
 
@@ -108,7 +109,26 @@ function isActiveDabangRedirect(location, externalId) {
 }
 
 async function checkDabangListing(externalId) {
-  // API requires browser session — use public room page instead
+  // 1차: detail API로 정확하게 판정 (magic 헤더로 anti-bot 우회 가능).
+  // 200 + room.is_contract=false → active, room.is_contract=true → 계약완료(expired).
+  // 400/404 → 매물 없음(expired). 그 외/실패 시 HTML fallback.
+  try {
+    const detail = await fetchDabangDetail(externalId, { timeoutMs: 6000 });
+    if (detail.ok && detail.room) {
+      if (detail.room.is_contract === true) {
+        return { status: "expired", resultCode: "contracted" };
+      }
+      return { status: "active" };
+    }
+    if (detail.status === 400 || detail.status === 404 || detail.status === 410) {
+      return { status: "expired", resultCode: `api_${detail.status}` };
+    }
+    // 그 외 응답 — HTML fallback으로
+  } catch {
+    // detail API 호출 실패 — HTML fallback으로
+  }
+
+  // 2차: HTML 페이지 redirect/문구 검사 (fallback).
   const url = `https://www.dabangapp.com/room/${externalId}`;
   const res = await fetch(url, {
     headers: {
@@ -123,8 +143,6 @@ async function checkDabangListing(externalId) {
   if (res.status === 410) return { status: "expired", resultCode: "gone" };
   if (res.status >= 300 && res.status < 400) {
     const location = res.headers.get("location") || "";
-    // 다방은 /room/{id} → /map/house?...&detail_id={id} 로 리다이렉트함 (활성 매물)
-    // pathname 또는 query param의 정확한 id 일치만 active로 판정
     if (isActiveDabangRedirect(location, externalId)) return { status: "active" };
     return { status: "expired", resultCode: "redirect" };
   }
@@ -227,17 +245,34 @@ async function checkNaverListing(externalId) {
 
 // ── 당근 부동산 상태 체크 ──
 
+function extractDaangnArticleId(value) {
+  if (!value) return null;
+  const s = String(value);
+  const match = s.match(/\/articles\/(\d+)/);
+  if (match) return match[1];
+  if (/^\d{5,}$/.test(s.trim())) return s.trim();
+  return null;
+}
+
 async function checkDaangnListing(externalId, _row) {
-  // Use source_url from DB if available, otherwise construct URL
   const sourceUrl = _row?.source_url;
-  const url = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
+  const payloadWebUrl = _row?.payload_json?.webUrl;
+
+  // article ID 추출 (새 API: numeric ID, 구 API: slug)
+  const articleId = extractDaangnArticleId(payloadWebUrl)
+    || extractDaangnArticleId(sourceUrl)
+    || extractDaangnArticleId(externalId);
+
+  const url = articleId
+    ? `https://realty.daangn.com/articles/${articleId}`
+    : (sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`);
 
   // redirect: "follow" — 당근은 301→410 패턴으로 거래완료 매물을 반환하므로
   // manual 사용 시 301에서 멈춰 활성으로 오판함
   const res = await fetch(url, {
     headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
     redirect: "follow",
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(8000),
   });
 
   // 410 Gone — 당근이 거래완료/삭제 매물에 사용하는 표준 응답
@@ -246,23 +281,31 @@ async function checkDaangnListing(externalId, _row) {
 
   if (res.status === 200) {
     const html = await res.text();
-    // 거래완료/삭제 텍스트 감지 (Remix error 응답 + 페이지 내 문구)
+    // 거래완료/삭제 텍스트 감지
     if (
       html.includes("이미 거래된 매물") ||
       html.includes("이미 거래") ||
       html.includes("거래가 완료") ||
-      html.includes("거래완료")
+      html.includes("거래완료") ||
+      html.includes("판매완료")
     ) {
       return { status: "expired", resultCode: "traded" };
     }
     if (html.includes("삭제") || html.includes("존재하지 않") || html.includes("만료")) {
       return { status: "expired", resultCode: "page_expired" };
     }
-    // 활성 매물 확인
+    // 새 URL (realty.daangn.com): 200이면 활성으로 판단
+    if (articleId) {
+      return { status: "active" };
+    }
+    // 구 URL 폴백: 기존 텍스트 패턴 체크
     if (html.includes("RealEstateListing") || html.includes("realty_post")) {
       return { status: "active" };
     }
-    // 판단 불가 시 — 당근 페이지는 항상 realty_post가 있으므로, 없으면 비정상
+    // remixContext 여부 확인
+    if (html.includes("__remixContext")) {
+      return { status: "active" };
+    }
     return { status: "unknown", resultCode: "unrecognized_page" };
   }
   return { status: "error", httpStatus: res.status };

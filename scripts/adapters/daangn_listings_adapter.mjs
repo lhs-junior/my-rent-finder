@@ -1199,7 +1199,9 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
     }
 
     if (!item.listed_at) {
-      item.listed_at = normalizeListedAt(payload?._detail?.createdAt || null);
+      item.listed_at = normalizeListedAt(
+        payload?._detail?.createdAt || payload?.createdAt || null,
+      );
     }
 
     return item;
