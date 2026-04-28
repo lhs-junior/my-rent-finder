@@ -238,7 +238,7 @@ export function getDbConfig() {
 
 const pool = new pg.Pool({
   ...getDbConfig(),
-  max: 5,
+  max: 15,
   // Neon은 ~5분 idle 후 서버 사이드에서 연결을 끊음. 그 전에 pool이 먼저 정리.
   idleTimeoutMillis: 120_000,
   // TCP keepalive로 죽은 연결을 빠르게 감지

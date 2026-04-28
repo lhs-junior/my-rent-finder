@@ -104,7 +104,7 @@ const probeConditions = resolveAbs(
   path.join("scripts", "platform_search_conditions.json"),
 );
 
-const maxParallel = Math.max(1, getInt(args, "--parallel", 3));
+const maxParallel = Math.max(1, getInt(args, "--parallel", 7));
 const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
 const persistToDb = getBool(args, "--persist-to-db", false);
