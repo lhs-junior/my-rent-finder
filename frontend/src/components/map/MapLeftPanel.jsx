@@ -100,7 +100,7 @@ export default function MapLeftPanel({
             type="button"
             className={`map-favorites-only-btn${filters.only_favorites ? " map-favorites-only-btn--active" : ""}`}
             aria-pressed={!!filters.only_favorites}
-            onClick={() => onFilterChange({ ...filters, only_favorites: !filters.only_favorites, only_ai: false, grade: "" })}
+            onClick={() => onFilterChange({ ...filters, only_favorites: !filters.only_favorites, only_ai: false, only_my_pick: false, grade: "" })}
           >
             ♥ 찜만 보기
           </button>
@@ -108,9 +108,17 @@ export default function MapLeftPanel({
             type="button"
             className={`map-favorites-only-btn map-ai-only-btn${filters.only_ai ? " map-favorites-only-btn--active map-ai-only-btn--active" : ""}`}
             aria-pressed={!!filters.only_ai}
-            onClick={() => onFilterChange({ ...filters, only_ai: !filters.only_ai, only_favorites: false, grade: "" })}
+            onClick={() => onFilterChange({ ...filters, only_ai: !filters.only_ai, only_favorites: false, only_my_pick: false, grade: "" })}
           >
             ★ AI 추천
+          </button>
+          <button
+            type="button"
+            className={`map-favorites-only-btn map-my-pick-btn${filters.only_my_pick ? " map-favorites-only-btn--active map-my-pick-btn--active" : ""}`}
+            aria-pressed={!!filters.only_my_pick}
+            onClick={() => onFilterChange({ ...filters, only_my_pick: !filters.only_my_pick, only_favorites: false, only_ai: false, grade: "" })}
+          >
+            ✓ 내 조건
           </button>
           <button
             type="button"
@@ -120,7 +128,7 @@ export default function MapLeftPanel({
             초기화
           </button>
         </div>
-        {(filters.only_favorites || filters.only_ai) && (
+        {(filters.only_favorites || filters.only_ai || filters.only_my_pick) && (
           <div className="map-grade-filter">
             {[{ v: "", l: "전체" }, { v: "SS", l: "SS" }, { v: "S", l: "S" }, { v: "A", l: "A" }].map(opt => (
               <button

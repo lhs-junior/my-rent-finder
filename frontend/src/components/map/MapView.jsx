@@ -37,6 +37,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
   const [favLoading, setFavLoading] = useState(false);
   const [aiMarkers, setAiMarkers] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [myPickMarkers, setMyPickMarkers] = useState([]);
+  const [myPickLoading, setMyPickLoading] = useState(false);
   const [filters, setFilters] = useState({});
 
   // 찜만 보기 활성화 시 favorites API에서 직접 마커 로드
@@ -128,15 +130,55 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       .finally(() => setAiLoading(false));
   }, [filters.only_ai, apiBase, filters.sort]);
 
-  const hasActiveFilters = hasNonModeFilters(filters);
-  const isLocalMode = filters.only_favorites || filters.only_ai || hasActiveFilters;
+  // 내 조건 보기 활성화 시 my-pick API에서 마커 로드
+  useEffect(() => {
+    if (!filters.only_my_pick) {
+      setMyPickMarkers([]);
+      return;
+    }
+    setMyPickLoading(true);
+    fetch(`${apiBase}/api/listings/my-pick`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
+      .then(data => {
+        const items = data.listings || [];
+        setMyPickMarkers(
+          items
+            .filter(it => it.lat != null && it.lng != null)
+            .map(it => ({
+              listing_id: it.listing_id,
+              lat: it.lat,
+              lng: it.lng,
+              rent_amount: it.rent_amount,
+              deposit_amount: it.deposit_amount,
+              address_text: it.address_text,
+              area_exclusive_m2: it.area_exclusive_m2,
+              floor: it.floor,
+              room_count: it.room_count,
+              lease_type: it.lease_type,
+              platform_code: it.platform_code || null,
+              grade: it.grade || null,
+              total_score: it.total_score || null,
+              listed_at: it.listed_at || null,
+              nearest_subway_station: it.nearest_subway_station || null,
+              nearest_subway_line: it.nearest_subway_line || null,
+              subway_distance_m: it.subway_distance_m ?? null,
+              subway_walk_min: it.subway_walk_min ?? null,
+            }))
+        );
+      })
+      .catch(() => setMyPickMarkers([]))
+      .finally(() => setMyPickLoading(false));
+  }, [filters.only_my_pick, apiBase]);
 
-  const markers = filters.only_ai ? aiMarkers : filters.only_favorites ? favMarkers : geoMarkers;
-  const loading = filters.only_ai ? aiLoading : filters.only_favorites ? favLoading : geoLoading;
+  const hasActiveFilters = hasNonModeFilters(filters);
+  const isLocalMode = filters.only_favorites || filters.only_ai || filters.only_my_pick || hasActiveFilters;
+
+  const markers = filters.only_my_pick ? myPickMarkers : filters.only_ai ? aiMarkers : filters.only_favorites ? favMarkers : geoMarkers;
+  const loading = filters.only_my_pick ? myPickLoading : filters.only_ai ? aiLoading : filters.only_favorites ? favLoading : geoLoading;
 
   const displayedMarkers = (() => {
     let result = markers;
-    if (filters.only_favorites || filters.only_ai) {
+    if (filters.only_favorites || filters.only_ai || filters.only_my_pick) {
       // AI/찜 모드: 서버 필터링 없이 로컬에서 모든 조건 적용
       if (filters.grade) {
         result = result.filter(m => {
@@ -191,13 +233,13 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
 
   const handleBoundsChange = useCallback((bounds) => {
     boundsRef.current = bounds;
-    const localMode = filters.only_favorites || filters.only_ai || hasNonModeFilters(filters);
+    const localMode = filters.only_favorites || filters.only_ai || filters.only_my_pick || hasNonModeFilters(filters);
     if (!localMode) fetchMarkers(bounds, filters);
   }, [fetchMarkers, filters]);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
-    if (newFilters.only_favorites || newFilters.only_ai) return;
+    if (newFilters.only_favorites || newFilters.only_ai || newFilters.only_my_pick) return;
     // 필터 활성 시 지도 뷰포트 제한 없이 서울 전체에서 조회
     const bounds = hasNonModeFilters(newFilters) ? SEOUL_WIDE_BOUNDS : boundsRef.current;
     if (bounds) fetchMarkers(bounds, newFilters);

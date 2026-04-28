@@ -87,6 +87,11 @@ const PLATFORM_COLORS = {
   daangn: "#FBBF24",
   serve: "#10B981",
 };
+const GRADE_COLORS = {
+  SS: "#e53e3e",
+  S: "#dd6b20",
+  A: "#d69e2e",
+};
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 const PLATFORM_LABELS = { naver: "네이버", zigbang: "직방", dabang: "다방", kbland: "KB", peterpanz: "피터팬", daangn: "당근", serve: "써브" };
 
@@ -739,8 +744,9 @@ const KakaoMap = forwardRef(function KakaoMap({
         const totalCount = bucketItems.length;
         const isStack = totalCount > 1;
         const pos = new window.kakao.maps.LatLng(markerLat, markerLng);
-        const color = PLATFORM_COLORS[item.platform_code] || "#6B7280";
-        const textColor = markerTextColor(item.platform_code);
+        const gradeColor = item.grade ? GRADE_COLORS[item.grade] : null;
+        const color = gradeColor || PLATFORM_COLORS[item.platform_code] || "#718096";
+        const textColor = gradeColor ? "#fff" : markerTextColor(item.platform_code);
         const isSelected = String(item.listing_id) === String(selectedId);
         const markerPrice = normalizeDisplayMoney(item);
         const markerLabel = (() => {
