@@ -64,12 +64,17 @@ const minAreaM2 = getIntArg("--min-area", 40); // m²
 const outputRaw = getArg("--output-raw", "scripts/serve_raw_samples.jsonl");
 const outputMeta = getArg("--output-meta", "scripts/serve_capture_results.json");
 const verbose = hasFlag("--verbose");
+const noDetail = hasFlag("--no-detail");
 
 const API_BASE = "https://www.serve.co.kr";
 const CATEGORY_CODES = "HOU01,HOU02,HOU03,HOU04,HOU05,HOU06,HOU07,HOU08,HOU09";
 const NAV_WAIT_MS = 3000;
 // atcl 파라미터를 포함해야 목록 패널이 열리고 getAtclList가 트리거됨
 const TRIGGER_ATCL = "331096536";
+
+const COMMON_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const DETAIL_DELAY_MS = 500;
 
 // ============================================================================
 // 구 좌표 (bounds)
@@ -154,6 +159,54 @@ function filterListing(item) {
   const area = parseFloat(item.area2);
   if (Number.isFinite(area) && area > 0 && area < minAreaM2) return false;
   return true;
+}
+
+// ============================================================================
+// Step 1.5: 상세 조회 (getAtclDetail)
+// ============================================================================
+
+async function fetchServeDetail(atclNo) {
+  const url = `${API_BASE}/good/v1/map/getAtclDetail?atclNo=${encodeURIComponent(atclNo)}&tabNo=2`;
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": COMMON_UA,
+      Accept: "application/json",
+      Referer: "https://www.serve.co.kr/good/map",
+    },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const resultList = json?.data?.resultList;
+  if (!resultList || resultList.length === 0) return null;
+  return resultList[0];
+}
+
+async function enrichWithDetails(listings) {
+  if (noDetail || listings.length === 0) return listings;
+
+  log(`상세 조회 시작: ${listings.length}건`);
+  let detailSuccess = 0;
+
+  for (const item of listings) {
+    const atclNo = String(item.atclNo);
+    try {
+      const detail = await fetchServeDetail(atclNo);
+      if (detail) {
+        const rawDesc = typeof detail.dtlDesc === "string" ? detail.dtlDesc.trim() : null;
+        if (rawDesc) item.dtlDesc = rawDesc;
+        const rawUse = typeof detail.bldUsageCd === "string" ? detail.bldUsageCd.trim() : null;
+        if (rawUse) item.bldUsageCd = rawUse;
+        detailSuccess++;
+      }
+    } catch {
+      // 상세 조회 실패 시 원본 데이터 그대로 사용
+    }
+    await new Promise((r) => setTimeout(r, DETAIL_DELAY_MS));
+  }
+
+  log(`상세 조회: ${detailSuccess}/${listings.length}건`);
+  return listings;
 }
 
 // ============================================================================
@@ -248,6 +301,9 @@ async function collectServe() {
 
     await browser.close();
     browser = null;
+
+    // Step 1.5: 상세 보강 (dtlDesc, bldUsageCd)
+    await enrichWithDetails(allListings);
 
     // Write JSONL
     for (const item of allListings) {
