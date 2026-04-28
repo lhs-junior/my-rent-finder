@@ -1352,6 +1352,9 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
     item?.walk_time_to_subway != null ? Number(item.walk_time_to_subway) : null,
     item?.parking_possible != null ? Boolean(item.parking_possible) : null,
     toText(item?.jibun_address ?? item?.jibunAddress ?? null, null),
+    item?.features && typeof item.features === "object" && Object.keys(item.features).length > 0
+      ? JSON.stringify(item.features)
+      : null,
   ];
 
   // Update rawIdByExternal map so subsequent items in this batch can resolve this rawId
@@ -1454,6 +1457,7 @@ const NORMALIZED_COLUMNS = [
   "walk_time_to_subway",
   "parking_possible",
   "jibun_address",
+  "features",
 ];
 
 const NORMALIZED_ON_CONFLICT_UPDATE = `
@@ -1502,6 +1506,7 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       walk_time_to_subway = EXCLUDED.walk_time_to_subway,
       parking_possible = COALESCE(EXCLUDED.parking_possible, normalized_listings.parking_possible),
       jibun_address = COALESCE(EXCLUDED.jibun_address, normalized_listings.jibun_address),
+      features = COALESCE(EXCLUDED.features, normalized_listings.features),
       deleted_at = normalized_listings.deleted_at,
       last_confirmed_at = NOW(),
       updated_at = NOW()
@@ -1516,6 +1521,7 @@ function buildNormalizedBatchSql(chunkSize) {
     const placeholders = NORMALIZED_COLUMNS.map((col, j) => {
       const p = `$${off + j + 1}`;
       if (col === "quality_flags") return `${p}::jsonb`;
+      if (col === "features") return `${p}::jsonb`;
       return p;
     });
     valueClauses.push(`(${placeholders.join(",")})`);

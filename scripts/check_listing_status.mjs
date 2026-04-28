@@ -70,26 +70,42 @@ async function checkKbListing(externalId) {
 }
 
 // ── 직방 상태 체크 ──
+// API는 item_ids 배열을 받음. 검증 결과 10건/req 안전, 20건+에서 400(BadRequestException).
+// batch 처리로 단건 직렬 호출 대비 ~10x throughput 향상.
+
+const ZIGBANG_BATCH_SIZE = 10;
+
+async function fetchZigbangBatch(numIds) {
+  const res = await fetch("https://apis.zigbang.com/house/property/v1/items/list", {
+    method: "POST",
+    headers: { "User-Agent": COMMON_UA, "Content-Type": "application/json" },
+    body: JSON.stringify({ domain: "zigbang", item_ids: numIds }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) {
+    const err = new Error(`zigbang http ${res.status}`);
+    err.httpStatus = res.status;
+    throw err;
+  }
+  const body = await res.json();
+  return Array.isArray(body?.items) ? body.items : [];
+}
+
+function classifyZigbangItem(item) {
+  if (!item) return { status: "expired", resultCode: "not_found" };
+  if (item.status === true || item.status === "open") return { status: "active" };
+  return { status: "expired", resultCode: "closed" };
+}
 
 async function checkZigbangListing(externalId) {
   const numId = Number(externalId);
   if (!Number.isFinite(numId) || numId <= 0) return { status: "expired", resultCode: "invalid_id" };
-
-  const res = await fetch("https://apis.zigbang.com/house/property/v1/items/list", {
-    method: "POST",
-    headers: { "User-Agent": COMMON_UA, "Content-Type": "application/json" },
-    body: JSON.stringify({ domain: "zigbang", item_ids: [numId] }),
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!res.ok) return { status: "error", httpStatus: res.status };
-
-  const body = await res.json();
-  const items = body?.items ?? [];
-  if (items.length === 0) return { status: "expired", resultCode: "not_found" };
-
-  const item = items[0];
-  if (item?.status === true || item?.status === "open") return { status: "active" };
-  return { status: "expired", resultCode: "closed" };
+  try {
+    const items = await fetchZigbangBatch([numId]);
+    return classifyZigbangItem(items[0]);
+  } catch (e) {
+    return { status: "error", httpStatus: e.httpStatus };
+  }
 }
 
 // ── 다방 상태 체크 ──
@@ -157,30 +173,34 @@ async function checkDabangListing(externalId) {
 }
 
 // ── 피터팬 상태 체크 ──
+// 검증된 응답 패턴 (2026-04-29):
+//   활성: 200 + 본문 ~280K~310K
+//   만료: 404, 또는 200 + ~39K + "존재하지 않는"/"매물을 찾을 수 없"
+// 길이 + 마커 이중 판정으로 한국어 메시지 변경에도 robust.
+
+const PETERPANZ_ACTIVE_MIN_LEN = 60000;
 
 async function checkPeterpanzListing(externalId) {
-  // Try fetching the detail page URL — returns 200 for active, 404/redirect for expired
   const url = `https://www.peterpanz.com/house/${externalId}`;
   const res = await fetch(url, {
-    headers: {
-      "User-Agent": COMMON_UA,
-      Accept: "text/html",
-    },
+    headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
     redirect: "manual",
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(8000),
   });
 
-  // 200 = page exists = active
   if (res.status === 200) {
     const html = await res.text();
-    // Check if page contains actual listing content or a "not found" message
-    if (html.includes("해당 매물을 찾을 수 없") || html.includes("삭제된 매물") || html.includes("존재하지 않는")) {
+    if (
+      html.length < PETERPANZ_ACTIVE_MIN_LEN ||
+      html.includes("해당 매물을 찾을 수 없") ||
+      html.includes("삭제된 매물") ||
+      html.includes("존재하지 않는")
+    ) {
       return { status: "expired", resultCode: "deleted_page" };
     }
     return { status: "active" };
   }
   if (res.status === 404) return { status: "expired", resultCode: "not_found" };
-  // 301/302 redirect often means listing was removed
   if (res.status >= 300 && res.status < 400) return { status: "expired", resultCode: "redirect" };
   return { status: "error", httpStatus: res.status };
 }
@@ -354,6 +374,79 @@ const CHECKERS = {
   daangn: checkDaangnListing,
   serve: checkServeListing,
 };
+
+// ── batch 처리: rows[] -> result[] (idx 정합 보장) ──
+
+async function checkZigbangBatchRows(rows) {
+  const results = new Array(rows.length);
+  for (let i = 0; i < rows.length; i += ZIGBANG_BATCH_SIZE) {
+    const slice = rows.slice(i, i + ZIGBANG_BATCH_SIZE);
+    const numIds = [];
+    const indexById = new Map(); // numId(string) -> 원래 index
+    for (let k = 0; k < slice.length; k++) {
+      const numId = Number(slice[k].external_id);
+      if (!Number.isFinite(numId) || numId <= 0) {
+        results[i + k] = { status: "expired", resultCode: "invalid_id" };
+      } else {
+        numIds.push(numId);
+        indexById.set(String(numId), i + k);
+      }
+    }
+    if (numIds.length === 0) continue;
+
+    let items;
+    try {
+      items = await fetchZigbangBatch(numIds);
+    } catch (e) {
+      // chunk 전체 error — 해당 매물들은 다음 회차에 재시도
+      for (const idx of indexById.values()) {
+        results[idx] = { status: "error", httpStatus: e.httpStatus };
+      }
+      await sleep(delayMs);
+      continue;
+    }
+
+    // 응답에 포함된 ID는 classify, 누락된 ID는 not_found
+    const itemMap = new Map();
+    for (const it of items) itemMap.set(String(it.item_id), it);
+    for (const [idStr, idx] of indexById) {
+      results[idx] = classifyZigbangItem(itemMap.get(idStr));
+    }
+    await sleep(delayMs);
+  }
+  return results;
+}
+
+const BATCH_CHECKERS = {
+  zigbang: checkZigbangBatchRows,
+};
+
+// 플랫폼별 동시성 (단건 체커 한정).
+// naver: 1 (기존 rate limit), kbland/dabang/daangn/peterpanz/serve: 검증된 안전치
+const CONCURRENCY = {
+  naver: 1,
+  kbland: 4,
+  dabang: 4,
+  daangn: 4,
+  peterpanz: 5,
+  serve: 8,
+};
+
+async function runWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  let aborted = false;
+  async function lane() {
+    while (!aborted) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await worker(items[i], i, () => { aborted = true; });
+    }
+  }
+  const lanes = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(Array.from({ length: lanes }, lane));
+  return results;
+}
 
 // DB 기반 만료: HTTP 체크가 불가능한 플랫폼 (서버 IP 차단 등)
 const DB_ONLY_PLATFORMS = new Set([]);

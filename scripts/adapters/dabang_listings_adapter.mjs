@@ -29,6 +29,27 @@ export async function fetchDabangNear(roomId, { timeoutMs = 8000 } = {}) {
   return json?.result ?? null;
 }
 
+// /api/3/new-room/detail — 매물 상세. status 체크/상세 보강에 사용.
+// 반환: { status, room, msg } — 200이면 ok=true, 4xx면 ok=false (notFound 또는 error).
+export async function fetchDabangDetail(roomId, { timeoutMs = 8000 } = {}) {
+  const url = `https://www.dabangapp.com/api/3/new-room/detail?room_id=${encodeURIComponent(roomId)}&api_version=3.0.1&call_type=web&version=1`;
+  const res = await fetch(url, {
+    headers: {
+      ...DABANG_API_HEADERS,
+      referer: `https://www.dabangapp.com/map/onetwo?detail_type=room&detail_id=${encodeURIComponent(roomId)}`,
+    },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  const ok = res.status === 200;
+  let body = null;
+  try {
+    body = await res.json();
+  } catch {
+    // content-type이 text/plain인 경우 또는 본문이 비정상인 경우 — 무시
+  }
+  return { ok, status: res.status, room: body?.room ?? null, msg: body?.msg ?? null };
+}
+
 export function extractJibunKey(addr) {
   if (!addr) return null;
   // 콤마/공백 모두 토큰 구분자로 처리. 예: "서울시 노원구 공릉동 683-20, 1동" / "서울특별시 중랑구 중화동 295-20"
@@ -370,6 +391,79 @@ function parseDabangPriceText(value) {
   return parsed;
 }
 
+// detail 페이로드의 풍부한 attribute를 features JSONB로 묶는다.
+// 다방 list-only 페이로드에는 거의 안 들어 있으므로 detail 수집 후에만 의미 있음.
+function buildDabangFeatures(row) {
+  if (!row) return null;
+  const out = {};
+
+  const opts = Array.isArray(row.room_options)
+    ? row.room_options.map((o) => o?.name).filter(Boolean)
+    : null;
+  if (opts && opts.length > 0) out.options = opts;
+
+  const safeties = Array.isArray(row.safeties)
+    ? row.safeties.map((s) => s?.name).filter(Boolean)
+    : null;
+  if (safeties && safeties.length > 0) out.safeties = safeties;
+
+  const tags = Array.isArray(row.hash_tags) ? row.hash_tags.filter(Boolean) : null;
+  if (tags && tags.length > 0) out.tags = tags;
+
+  if (typeof row.heating === "string" && row.heating.trim()) out.heating = row.heating.trim();
+
+  if (row.parking != null || row.parking_str || row.parking_num != null) {
+    out.parking = {
+      possible: row.parking === true,
+      count: Number.isFinite(Number(row.parking_num)) ? Number(row.parking_num) : null,
+      label: typeof row.parking_str === "string" ? row.parking_str : null,
+    };
+  }
+
+  // 다방의 단일값 attribute는 "-" 표시도 들어오므로 빈값으로 정규화
+  const cleanText = (v) => {
+    if (typeof v !== "string") return null;
+    const s = v.trim();
+    return s && s !== "-" ? s : null;
+  };
+  const single = (k, v) => {
+    const c = cleanText(v);
+    if (c) out[k] = c;
+  };
+  single("elevator", row.elevator_str);
+  single("entrance", row.entrance_type_str);
+  single("households", row.household_num_str);
+  single("balcony", row.balcony_str);
+  single("built_in", row.built_in_str);
+  single("duplex", row.duplex_str);
+  single("loan", row.loan_str);
+  single("short_lease", row.short_lease_str);
+  single("moving_date", row.moving_date);
+  single("direction_base", row.direction_measurement_base_type_str);
+
+  if (row.is_new_construction === true) out.flags = { ...(out.flags || {}), new_construction: true };
+  if (row.is_lh_lease === true) out.flags = { ...(out.flags || {}), lh_lease: true };
+  if (row.is_take_tenant === true) out.flags = { ...(out.flags || {}), take_tenant: true };
+  if (row.is_naver_verify === true) out.flags = { ...(out.flags || {}), naver_verify: true };
+
+  const mc = {};
+  if (Number.isFinite(Number(row.maintenance_cost))) mc.cost = Number(row.maintenance_cost);
+  if (cleanText(row.maintenance_cost_str)) mc.cost_label = cleanText(row.maintenance_cost_str);
+  if (cleanText(row.maintenance_items_str)) mc.items = cleanText(row.maintenance_items_str);
+  if (cleanText(row.month_total_cost_str)) mc.month_total = cleanText(row.month_total_cost_str);
+  if (cleanText(row.maintenance_charge_type)) mc.charge_type = cleanText(row.maintenance_charge_type);
+  if (Object.keys(mc).length > 0) out.maintenance = mc;
+
+  const popularity = {};
+  if (Number.isFinite(Number(row.view_count_a_week))) popularity.week_views = Number(row.view_count_a_week);
+  if (Number.isFinite(Number(row.favorited_count))) popularity.favorites = Number(row.favorited_count);
+  if (Object.keys(popularity).length > 0) out.popularity = popularity;
+
+  if (cleanText(row.shorten_url)) out.shorten_url = cleanText(row.shorten_url);
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 function parseDabangAreaFromDesc(roomDesc) {
   const s = normalizeText(roomDesc);
   if (!s) return null;
@@ -527,6 +621,10 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
         }
       }
     }
+
+    // 다방 detail의 풍부한 attribute(옵션/안전/관리비/태그 등)를 features JSONB로 보존.
+    const features = buildDabangFeatures(mergedRow);
+    if (features) normalized.features = features;
 
     return normalized;
   }
