@@ -465,6 +465,19 @@ export class DabangListingAdapter extends BaseUserOnlyAdapter {
       if (j) normalized.jibun_address = j;
     }
 
+    // 다방 memo 필드 → description_text
+    // base adapter는 10자 미만 텍스트를 제외하지만 다방 memo는 5자 이상이면 유효한 설명으로 취급
+    // (list-only 매물에는 memo 없음 — detail 수집 후에만 채워짐)
+    if (!normalized.description_text) {
+      const memo = mergedRow?.memo;
+      if (typeof memo === "string") {
+        const trimmed = memo.trim();
+        if (trimmed.length >= 5 && !/^\d+[\s/]*\d*$/.test(trimmed)) {
+          normalized.description_text = trimmed;
+        }
+      }
+    }
+
     return normalized;
   }
 }

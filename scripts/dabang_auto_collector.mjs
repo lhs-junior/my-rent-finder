@@ -492,7 +492,9 @@ async function collectDabang() {
 
     if (fetchDetail && filtered.length > 0) {
       const allIds = filtered.map((item) => String(item.id));
-      const knownIds = await getExistingWithImagesAndFields("dabang", allIds, ["bathroom_count"], { maxAgeHours: 72 });
+      // description_text 포함: 이미지 + bathroom_count + description_text 모두 채워진 경우만 known으로 취급
+      // → 상세가 수집됐어도 description_text 누락된 매물은 재수집 대상
+      const knownIds = await getExistingWithImagesAndFields("dabang", allIds, ["bathroom_count", "description_text"], { maxAgeHours: 72 });
       const needDetail = filterKnownFromDetail(filtered, knownIds);
       if (knownIds.size > 0) log(`Skipped ${knownIds.size} known listings (detail fetch)`);
       log(`Fetching detail for ${needDetail.length} listings via browser context...`);
