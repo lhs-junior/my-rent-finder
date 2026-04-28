@@ -117,7 +117,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
         : `${apiBase}/api/listings?${query}`;
       const payload = await fetchJson(endpoint);
       if (payload?.error) throw new Error(`API 오류: ${payload.message || "요청 실패"}`);
-      setItems(Array.isArray(payload?.items) ? payload.items : []);
+      setItems(Array.isArray(payload?.items) ? payload.items : Array.isArray(payload?.listings) ? payload.listings : []);
       setTotalCount(typeof payload?.total === "number" ? payload.total : 0);
       setHasLoadedOnce(true);
       setLastLoadedAt(new Date().toISOString());
