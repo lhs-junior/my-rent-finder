@@ -588,6 +588,69 @@ export class ZigbangListingAdapter extends BaseUserOnlyAdapter {
       if (desc) item.description_text = desc;
     }
 
+    // features: detail payload 풍부 attribute → JSONB
+    // 다방과 동일 키 컨벤션 — UI는 같은 FeaturesSection이 자동 렌더한다.
+    const features = buildZigbangFeatures(raw);
+    if (features) item.features = features;
+
     return item;
   }
+}
+
+function buildZigbangFeatures(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const out = {};
+
+  if (typeof raw.elevator === "boolean") {
+    out.elevator = raw.elevator ? "있음" : "없음";
+  }
+
+  if (typeof raw.directionCriterion === "string" && raw.directionCriterion.trim()) {
+    out.direction_base = raw.directionCriterion.trim();
+  }
+
+  if (typeof raw.approveDate === "string" && raw.approveDate.trim()) {
+    out.approval_date = raw.approveDate.trim();
+  }
+
+  if (typeof raw.moveinDate === "string" && raw.moveinDate.trim()) {
+    out.moving_date = raw.moveinDate.trim();
+  }
+
+  // manageCost: amount + includes/notIncludes (배열 형태)
+  const mc = raw.manageCost;
+  if (mc && typeof mc === "object") {
+    const m = {};
+    const amount = Number(mc.amount);
+    if (Number.isFinite(amount) && amount > 0) m.cost = Math.round(amount * 10000);
+    const includes = Array.isArray(mc.includes) ? mc.includes : Array.isArray(mc.include) ? mc.include : null;
+    const notIncludes = Array.isArray(mc.notIncludes) ? mc.notIncludes : null;
+    if (includes && includes.length > 0) m.items = includes.join("/");
+    if (notIncludes && notIncludes.length > 0) m.exclude = notIncludes.join("/");
+    if (Object.keys(m).length > 0) out.maintenance = m;
+  }
+
+  if (Array.isArray(raw.tags) && raw.tags.length > 0) {
+    out.tags = raw.tags.filter(Boolean);
+  }
+  if (Array.isArray(raw.badges) && raw.badges.length > 0) {
+    const b = raw.badges.map((x) => (typeof x === "string" ? x : x?.label || x?.name)).filter(Boolean);
+    if (b.length > 0) out.tags = [...(out.tags || []), ...b];
+  }
+
+  const flags = {};
+  if (raw.is_new === true || raw.isNew === true) flags.new_construction = true;
+  if (raw.nonCompliantBuilding === true) flags.non_compliant_building = true;
+  if (raw.isHomepage === true) flags.is_homepage = true;
+  if (raw.itemBmType === "ZIGBANG_PLUS" || raw.item_bm_type === "ZIGBANG_PLUS") {
+    flags.zigbang_plus = true;
+  }
+  if (Object.keys(flags).length > 0) out.flags = flags;
+
+  if (Number.isFinite(Number(raw.bathroomCount)) && Number(raw.bathroomCount) > 0) {
+    // 일부 raw에 bath count가 features.bathroom_count 도 같이 표기
+    // (top-level bathroom_count 컬럼은 별도 컬럼으로 이미 채워짐 — 여긴 추가 정보용)
+  }
+
+  return Object.keys(out).length > 0 ? out : null;
 }

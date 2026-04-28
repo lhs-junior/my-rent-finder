@@ -11,8 +11,8 @@ raw payload의 옵션/시설/관리비 등 풍부한 attribute를 normalized_lis
 다방과 동일한 키 컨벤션을 사용 (options, safeties, tags, heating, parking, maintenance 등).
 
 - [x] **dabang** — `buildDabangFeatures` (commit 39b3bd3)
-- [ ] **naver** — articleAddition.tags / options / parking / heating / approvalDate
-- [ ] **zigbang** — item.options, parking, elevator, manage_cost
+- [ ] **naver** — articleAddition.tags / options / parking / heating / approvalDate (collector가 detail fetch 안 해 추가 작업 필요)
+- [x] **zigbang** — `buildZigbangFeatures` (elevator/manageCost/direction_base/moving_date/approval_date/flags)
 - [ ] **kbland** — bascInfo의 옵션 코드 → 한글 매핑 (코드표 정리 필요)
 - [ ] **daangn** — realty 매물의 옵션·안전시설
 - [ ] **serve** — getAtclDetail의 photoList·optionList
@@ -32,7 +32,7 @@ raw payload의 옵션/시설/관리비 등 풍부한 attribute를 normalized_lis
 - [x] **dabang** — /api/v5/room/{id}/near (commit 4b3f230)
 - [ ] **naver** — articleAddition / articleDetail에 jibun 포함, 좌표 정확
 - [ ] **kbland** — bascInfo에 lotNumber + lat/lng
-- [ ] **zigbang** — detail 응답에 jibun_address 별도 필드
+- [x] **zigbang** — detail 응답 jibunAddress + location.lat/lng (이미 매핑됨)
 - [ ] **daangn** — realty 응답 주소 + 좌표
 - [ ] **peterpanz** — HTML 파싱 (마지막)
 
