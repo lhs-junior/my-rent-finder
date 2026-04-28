@@ -14,7 +14,7 @@ raw payload의 옵션/시설/관리비 등 풍부한 attribute를 normalized_lis
 - [ ] **naver** — articleAddition.tags / options / parking / heating / approvalDate (collector가 detail fetch 안 해 추가 작업 필요)
 - [x] **zigbang** — `buildZigbangFeatures` (elevator/manageCost/direction_base/moving_date/approval_date/flags)
 - [ ] **kbland** — bascInfo의 옵션 코드 → 한글 매핑 (코드표 정리 필요)
-- [ ] **daangn** — realty 매물의 옵션·안전시설
+- [x] **daangn** — `buildDaangnFeatures` (options/parking/maintenance/popularity/flags + enum 한글 매핑)
 - [ ] **serve** — getAtclDetail의 photoList·optionList
 - [ ] **peterpanz** — HTML detail 파싱 (제일 어려움 — 마지막)
 

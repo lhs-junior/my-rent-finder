@@ -1204,6 +1204,134 @@ export class DaangnListingAdapter extends BaseUserOnlyAdapter {
       );
     }
 
+    // features: detail payload 풍부 attribute → JSONB (다방/직방과 동일 키 컨벤션)
+    const features = buildDaangnFeatures(payload);
+    if (features) item.features = features;
+
     return item;
   }
+}
+
+// daangn 옵션 enum → 한글 표시명 매핑
+const DAANGN_OPTION_LABELS = {
+  PARKING: "주차",
+  FRIDGE: "냉장고",
+  AIRCON: "에어컨",
+  WASHER: "세탁기",
+  TV: "TV",
+  BED: "침대",
+  DESK: "책상",
+  CLOSET: "옷장",
+  SHOE_CLOSET: "신발장",
+  INDUCTION: "인덕션",
+  GAS_RANGE: "가스레인지",
+  MICROWAVE: "전자레인지",
+  VENTILATOR: "환기시설",
+  SINK: "싱크대",
+  INTERCOM: "인터폰",
+  BIDET: "비데",
+  INTERNET: "인터넷",
+  ELEVATOR: "엘리베이터",
+  GAS: "가스",
+  CCTV: "CCTV",
+  CARD_KEY: "카드키",
+  DIGITAL_LOCK: "디지털도어락",
+};
+
+const DAANGN_MAINTENANCE_OPTION_LABELS = {
+  WATERWORKS: "수도",
+  ELECTRICITY: "전기",
+  GAS: "가스",
+  INTERNET: "인터넷",
+  HEATING: "난방",
+  TV: "TV",
+  CLEANING: "청소",
+  ELEVATOR: "승강기",
+  PUBLIC_USE: "공용",
+  ETC: "기타",
+};
+
+function buildDaangnFeatures(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const detail = payload._detail && typeof payload._detail === "object" ? payload._detail : null;
+  if (!detail) return null;
+
+  const out = {};
+
+  // options: [{name: 'PARKING', value: 'YES'}, ...]
+  if (Array.isArray(detail.options)) {
+    const yes = [];
+    for (const opt of detail.options) {
+      if (!opt || opt.value !== "YES") continue;
+      const name = opt.name;
+      const label = DAANGN_OPTION_LABELS[name] || name;
+      if (label) yes.push(label);
+    }
+    if (yes.length > 0) out.options = yes;
+  }
+
+  if (typeof detail.buildingApprovalDate === "string" && detail.buildingApprovalDate.trim()) {
+    out.approval_date = detail.buildingApprovalDate.trim();
+  }
+
+  if (typeof detail.moveInDate === "string" && detail.moveInDate.trim()) {
+    out.moving_date = detail.moveInDate.trim();
+  }
+
+  // 주차: PARKING 옵션이 NO이거나 availableParkingSpots == 0이면 불가능
+  const parkingOpt = Array.isArray(detail.options)
+    ? detail.options.find((o) => o?.name === "PARKING")
+    : null;
+  const parkingTotal = Number(detail.availableTotalParkingSpots);
+  const parkingAvail = Number(detail.availableParkingSpots);
+  if (parkingOpt || Number.isFinite(parkingTotal) || Number.isFinite(parkingAvail)) {
+    const possible =
+      parkingOpt?.value === "YES" ||
+      (Number.isFinite(parkingTotal) && parkingTotal > 0) ||
+      (Number.isFinite(parkingAvail) && parkingAvail > 0);
+    out.parking = {
+      possible: possible === true ? true : parkingOpt?.value === "NO" ? false : null,
+      total: Number.isFinite(parkingTotal) ? parkingTotal : null,
+      available: Number.isFinite(parkingAvail) ? parkingAvail : null,
+    };
+  }
+
+  // 관리비: includeManageCostOptionV3 / V2 → items, excludeManageCostOption → exclude
+  const include =
+    Array.isArray(detail.includeManageCostOptionV3) ? detail.includeManageCostOptionV3
+    : Array.isArray(detail.includeManageCostOptionV2) ? detail.includeManageCostOptionV2
+    : null;
+  const exclude = Array.isArray(detail.excludeManageCostOption) ? detail.excludeManageCostOption : null;
+  const totalCost = Number(detail.totalManageCost ?? detail.manageCost);
+  const m = {};
+  if (Number.isFinite(totalCost) && totalCost > 0) m.cost = totalCost;
+  if (include && include.length > 0) {
+    const items = include
+      .map((x) => DAANGN_MAINTENANCE_OPTION_LABELS[x?.option] || x?.option)
+      .filter(Boolean);
+    if (items.length > 0) m.items = items.join("/");
+  }
+  if (exclude && exclude.length > 0) {
+    const items = exclude
+      .map((x) => DAANGN_MAINTENANCE_OPTION_LABELS[x?.option] || x?.option || (typeof x === "string" ? x : null))
+      .filter(Boolean);
+    if (items.length > 0) m.exclude = items.join("/");
+  }
+  if (detail.isUnknownManageCost === true) m.unknown = true;
+  if (Object.keys(m).length > 0) out.maintenance = m;
+
+  // 인기도
+  const popularity = {};
+  if (Number.isFinite(Number(detail.viewCount))) popularity.views = Number(detail.viewCount);
+  if (Number.isFinite(Number(detail.watchCount))) popularity.watches = Number(detail.watchCount);
+  if (Number.isFinite(Number(detail.chatRoomCount))) popularity.chats = Number(detail.chatRoomCount);
+  if (Object.keys(popularity).length > 0) out.popularity = popularity;
+
+  const flags = {};
+  if (detail.isWriterVerified === true) flags.writer_verified = true;
+  if (detail.isWriterVerifiedCorporate === true) flags.writer_verified_corporate = true;
+  if (detail.isHideAddress === true) flags.hide_address = true;
+  if (Object.keys(flags).length > 0) out.flags = flags;
+
+  return Object.keys(out).length > 0 ? out : null;
 }
