@@ -129,5 +129,7 @@ export function normalizeImageUrl(url) {
 }
 
 export function normalizeView(value) {
-  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "scores" || value === "ops" || value === "sale" || value === "mypick" ? value : "map";
+  // Fallback "scores" and "mypick" to "map" (removed tabs)
+  if (value === "scores" || value === "mypick") return "map";
+  return value === "matches" || value === "listings" || value === "map" || value === "favorites" || value === "ops" || value === "sale" ? value : "map";
 }
