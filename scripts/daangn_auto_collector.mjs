@@ -1151,6 +1151,40 @@ function extractArticleId(value) {
   return null;
 }
 
+async function fetchDaangnArticleData(articleId) {
+  if (!articleId) return null;
+  try {
+    const url = `https://realty.daangn.com/articles/${articleId}`;
+    const res = await fetch(url, {
+      headers: DAANGN_FETCH_HEADERS,
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      try {
+        const ld = JSON.parse(m[1]);
+        const graphs = Array.isArray(ld["@graph"]) ? ld["@graph"] : [ld];
+        for (const g of graphs) {
+          if (g.geo?.latitude && g.geo?.longitude) {
+            return {
+              lat: parseFloat(g.geo.latitude),
+              lng: parseFloat(g.geo.longitude),
+              roomCount: g.numberOfRooms ?? null,
+              bathroomCount: g.numberOfBathroomsTotal ?? null,
+            };
+          }
+        }
+      } catch {
+        // noop
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function extractListingId(identifier) {
   if (!identifier) return null;
   const normalized = String(identifier).trim();
@@ -1505,6 +1539,28 @@ async function collectDistrict(districtName, locationId) {
       `  [${districtName}] 조건 충족: ${filtered.length}건 (월세 ≤${rentMax}, 보증금 ≤${depositMax})`,
     );
 
+  // 4. article 페이지에서 좌표/방수 보강 (concurrency 4)
+  if (filtered.length > 0) {
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < filtered.length) {
+        const item = filtered[cursor++];
+        const articleId = extractArticleId(item.webUrl);
+        if (articleId) {
+          const articleData = await fetchDaangnArticleData(articleId);
+          if (articleData) item._articleData = articleData;
+        }
+      }
+    };
+    await Promise.all(
+      Array(Math.min(DETAIL_FETCH_CONCURRENCY, filtered.length)).fill(0).map(() => worker()),
+    );
+    if (verbose) {
+      const withCoords = filtered.filter((i) => i._articleData?.lat).length;
+      console.log(`  [${districtName}] 좌표 확보: ${withCoords}/${filtered.length}건`);
+    }
+  }
+
   return {
     items: filtered,
     total: allPosts.length,
@@ -1610,10 +1666,10 @@ async function main() {
           address: item.address,
           addressInfo: detail.addressInfo || null,
           region: detail.region || null,
-          lat: null,
-          lng: null,
-          roomCnt: detail.roomCnt ?? null,
-          bathroomCnt: detail.bathroomCnt ?? null,
+          lat: item._articleData?.lat ?? null,
+          lng: item._articleData?.lng ?? null,
+          roomCnt: item._articleData?.roomCount ?? detail.roomCnt ?? null,
+          bathroomCnt: item._articleData?.bathroomCount ?? detail.bathroomCnt ?? null,
           manageCost: detail.manageCost ?? null,
           buildingName: detail.buildingName || null,
           buildingApprovalDate: detail.buildingApprovalDate || null,
