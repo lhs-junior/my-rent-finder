@@ -32,9 +32,9 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 시작" | tee -a "$LOG_DIR/collect
 cd "$REPO_DIR" && $GIT_BIN pull --ff-only 2>&1 | tee -a "$LOG_DIR/collect.log" || \
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 실패 — 기존 코드로 계속 진행" | tee -a "$LOG_DIR/collect.log"
 
-# caffeinate -i: 수집 중 절전 방지 (stdout/stderr 터미널로 출력)
-caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0
+# caffeinate -i: 수집 중 절전 방지 (stdout/stderr 터미널 + 로그 파일 동시 출력)
+caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0 2>&1 | tee -a "$LOG_DIR/harness.log"
 
-EXIT_CODE=$?
+EXIT_CODE=${PIPESTATUS[0]}
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 수집 완료 (exit=$EXIT_CODE)" | tee -a "$LOG_DIR/collect.log"
 exit $EXIT_CODE
