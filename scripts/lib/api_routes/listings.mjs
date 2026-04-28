@@ -851,7 +851,7 @@ export async function handleMyPick(req, res) {
           n.address_text,
           n.rent_amount,
           n.deposit_amount,
-          COALESCE(n.area_exclusive_m2, n.area_supply_m2) AS area_m2,
+          COALESCE(n.area_exclusive_m2, n.area_gross_m2) AS area_m2,
           n.area_exclusive_m2,
           n.floor,
           n.room_count,
