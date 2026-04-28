@@ -46,7 +46,7 @@ raw payload의 옵션/시설/관리비 등 풍부한 attribute를 normalized_lis
 ## C. UI/UX 강화
 
 - [x] 모달 features 섹션 (commit e534d6d)
-- [ ] 카드 features 미리보기 (주요 옵션·태그 chips)
+- [x] 카드 features 미리보기 — 주차/엘리베이터/풀옵션/즉시입주/신축/플러스 칩
 - [ ] features 기반 필터 (사이드바 토글: "주차", "엘리베이터", "풀옵션", "신축")
 - [ ] 태그 검색 (features.tags ILIKE)
 - [ ] 인기도 정렬 (features.popularity.week_views)

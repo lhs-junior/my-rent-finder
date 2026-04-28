@@ -46,6 +46,25 @@ function summarizeSignals(item) {
   return signals;
 }
 
+// 카드에 한눈에 보일 핵심 features만 1~4개 칩으로 노출.
+// (모달의 FeaturesSection은 전체 detail을 보여주는 것과 분리.)
+function summarizeFeatureChips(features) {
+  if (!features || typeof features !== "object") return [];
+  const chips = [];
+  if (features.parking?.possible === true) chips.push("주차");
+  if (features.elevator === "있음") chips.push("엘리베이터");
+  if (Array.isArray(features.options)) {
+    if (features.options.length >= 5) chips.push("풀옵션");
+    else if (features.options.includes("에어컨") && features.options.includes("냉장고")) chips.push("기본가전");
+  }
+  if (typeof features.moving_date === "string" && /즉시/.test(features.moving_date)) {
+    chips.push("즉시입주");
+  }
+  if (features.flags?.new_construction === true) chips.push("신축");
+  if (features.flags?.zigbang_plus === true) chips.push("플러스");
+  return chips.slice(0, 4);
+}
+
 function platformBadgeStyle(platform) {
   const normalized = String(platform || "").toLowerCase();
   return {
@@ -76,6 +95,7 @@ export default function ListingCard({
     item.lease_type === "매매" && item.building_year ? `${item.building_year}년` : null,
   ].filter(Boolean);
   const signals = summarizeSignals(item);
+  const featureChips = summarizeFeatureChips(item.features);
 
   const firstImage = normalizeImageUrl(
     item.first_image_url
@@ -129,6 +149,7 @@ export default function ListingCard({
             {tags.length > 0 && (
               <div className="listing-card-meta">
                 {tags.map((t) => <span key={t} className="listing-card-tag">{t}</span>)}
+                {featureChips.map((c) => <span key={`f-${c}`} className="listing-card-feature-chip">{c}</span>)}
               </div>
             )}
             {listedRelative && (

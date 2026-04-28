@@ -3754,6 +3754,18 @@ pre {
   line-height: 1.5;
 }
 
+/* features 칩 — 한눈에 띄도록 강조 색상 */
+.listing-card-feature-chip {
+  background: var(--accent-soft, rgba(59, 130, 246, 0.08));
+  color: var(--accent-strong, #2563eb);
+  border: 1px solid var(--accent-line, rgba(59, 130, 246, 0.25));
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 /* ── Stale signal ────────────────────────────────────────────────────────── */
 
 .listing-card-signal {
