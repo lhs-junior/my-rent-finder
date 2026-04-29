@@ -18,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { getExistingWithImagesAndFields } from "./lib/known_listings.mjs";
 
 // ============================================================================
 // CLI Arguments
@@ -182,13 +183,20 @@ async function fetchServeDetail(atclNo) {
   return resultList[0];
 }
 
-async function enrichWithDetails(listings) {
+async function enrichWithDetails(listings, { knownIds = new Set() } = {}) {
   if (noDetail || listings.length === 0) return listings;
 
-  log(`상세 조회 시작: ${listings.length}건`);
+  let skippedKnown = 0;
   let detailSuccess = 0;
-
+  const targets = [];
   for (const item of listings) {
+    if (knownIds.has(String(item.atclNo))) skippedKnown++;
+    else targets.push(item);
+  }
+  if (skippedKnown > 0) log(`Skipped ${skippedKnown} known listings (detail fetch)`);
+  log(`상세 조회 시작: ${targets.length}건 (전체 ${listings.length}건)`);
+
+  for (const item of targets) {
     const atclNo = String(item.atclNo);
     try {
       const detail = await fetchServeDetail(atclNo);
@@ -205,7 +213,7 @@ async function enrichWithDetails(listings) {
     await new Promise((r) => setTimeout(r, DETAIL_DELAY_MS));
   }
 
-  log(`상세 조회: ${detailSuccess}/${listings.length}건`);
+  log(`상세 조회: ${detailSuccess}/${targets.length}건 (skip=${skippedKnown})`);
   return listings;
 }
 
@@ -303,7 +311,13 @@ async function collectServe() {
     browser = null;
 
     // Step 1.5: 상세 보강 (dtlDesc, bldUsageCd)
-    await enrichWithDetails(allListings);
+    // skip-known: description_text가 이미 있고 72h 이내 갱신된 매물은 detail fetch 생략
+    let knownIds = new Set();
+    if (!noDetail && allListings.length > 0) {
+      const allAtclNos = allListings.map((it) => String(it.atclNo));
+      knownIds = await getExistingWithImagesAndFields("serve", allAtclNos, ["description_text"], { maxAgeHours: 72 });
+    }
+    await enrichWithDetails(allListings, { knownIds });
 
     // Write JSONL
     for (const item of allListings) {
