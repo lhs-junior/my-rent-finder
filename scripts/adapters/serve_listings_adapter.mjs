@@ -73,7 +73,7 @@ export class ServeListingAdapter extends BaseListingAdapter {
     // 방향
     const direction = normalizeDirection(raw.drcCdNm || raw.drcCd);
 
-    // 이미지 — photoList[].imageData 또는 expsrImgFileUrl
+    // 이미지 — photoList[].imageData 중 /article_photo/ 경로만 허용 (중개사 프로필 차단)
     const imageUrls = extractImageUrls(raw);
 
     // 건축일
@@ -143,21 +143,27 @@ function parseFloatSafe(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+// 매물 사진 화이트리스트.
+// serve.co.kr 응답 구조 분석 결과:
+//   /article_photo/...  → 매물 사진 (photoList[].imageData)
+//   /member_profile/... → 중개사(사장님) 프로필 사진 (expsrImgFileUrl)
+// member_profile/외부 호스트/이상 path는 매물 사진이 아니므로 저장하지 않는다.
+const SERVE_LISTING_IMAGE_RE = /^https?:\/\/[^/]*serve\.co\.kr\/article_photo\//i;
+
+export function isServeListingImage(url) {
+  return typeof url === "string" && SERVE_LISTING_IMAGE_RE.test(url);
+}
+
 function extractImageUrls(raw) {
+  if (!Array.isArray(raw.photoList)) return [];
   const urls = [];
-
-  // photoList 우선
-  if (Array.isArray(raw.photoList)) {
-    for (const photo of raw.photoList) {
-      const url = photo?.imageData;
-      if (url && typeof url === "string" && url.startsWith("http")) {
-        urls.push(url);
-      }
-    }
+  const seen = new Set();
+  for (const photo of raw.photoList) {
+    const url = photo?.imageData;
+    if (!isServeListingImage(url)) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
   }
-
-  // photoList가 없으면 expsrImgFileUrl 사용 (프로필 이미지일 수 있으므로 후순위)
-  // expsrImgFileUrl은 보통 중개사 프로필이므로 photoList가 없을 때만
-
   return urls;
 }
