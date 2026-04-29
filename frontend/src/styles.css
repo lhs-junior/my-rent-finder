@@ -3232,6 +3232,13 @@ pre {
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.mypick-sort-row {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .fav-header h2 {
@@ -3784,6 +3791,16 @@ pre {
   border-radius: 4px;
   background: #fff7ed;
   color: var(--warn);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.listing-card-signal--new {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #e8f5e9;
+  color: #2e7d32;
   font-size: 0.69rem;
   font-weight: 700;
 }

@@ -4,6 +4,12 @@ import DetailModal from "./DetailModal.jsx";
 
 const DARK_TEXT_PLATFORMS = new Set(["naver", "daangn"]);
 
+const SORT_OPTIONS = [
+  { v: "newest", l: "최신순" },
+  { v: "rent",   l: "월세순" },
+  { v: "score",  l: "점수순" },
+];
+
 function platformBadgeStyle(platform) {
   return {
     background: PLATFORM_COLORS[platform] || "#6B7280",
@@ -46,6 +52,11 @@ function MyPickCard({ item, onOpenDetail }) {
 
         <div className="listing-card-body">
           <div className="score-card-header" style={{ marginBottom: 4 }}>
+            {item.is_new && (
+              <span className="listing-card-signal listing-card-signal--new" title="7일 이내 수집">
+                신규
+              </span>
+            )}
             {item.lien_warning && (
               <span
                 className="listing-card-signal listing-card-signal--warn"
@@ -103,6 +114,7 @@ export default function MyPickView({ apiBase }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [detailId, setDetailId] = useState(null);
+  const [sort, setSort] = useState("newest");
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -111,7 +123,7 @@ export default function MyPickView({ apiBase }) {
     setLoading(true);
     setError(null);
 
-    fetch(`${normalizedApiBase}/api/listings/my-pick`, { signal: controller.signal })
+    fetch(`${normalizedApiBase}/api/listings/my-pick?sort=${sort}`, { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         return r.json();
@@ -126,7 +138,7 @@ export default function MyPickView({ apiBase }) {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [normalizedApiBase]);
+  }, [normalizedApiBase, sort]);
 
   const openDetail = useCallback((listingId) => {
     if (!listingId) return;
@@ -146,6 +158,18 @@ export default function MyPickView({ apiBase }) {
       <div className="fav-header">
         <h2>내 조건</h2>
         <span className="fav-count">{total}건</span>
+        <div className="mypick-sort-row">
+          {SORT_OPTIONS.map(o => (
+            <button
+              key={o.v}
+              type="button"
+              className={`ls-chip${sort === o.v ? " ls-chip--active" : ""}`}
+              onClick={() => setSort(o.v)}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="fav-grade-filter" style={{ fontSize: "0.8rem", color: "var(--text-muted, #888)" }}>

@@ -843,6 +843,11 @@ export async function handleListingVerify(req, res, id) {
 // ---------------------------------------------------------------------------
 
 export async function handleMyPick(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const sortParam = url.searchParams.get("sort") || "newest";
+  const VALID_SORTS = new Set(["newest", "rent", "score"]);
+  const sort = VALID_SORTS.has(sortParam) ? sortParam : "newest";
+
   const cfg = loadMyPickConfig();
   const MY_PICK_TARGET_STATIONS = cfg.target_stations ?? [
     "청량리", "회기", "외대앞", "중랑", "상봉", "중화", "면목", "사가정",
@@ -937,7 +942,11 @@ export async function handleMyPick(req, res) {
             OR (n.room_count IS NULL AND n.building_use NOT IN (${smallUsesInClause}))
             OR (n.room_count IS NULL AND n.building_use IS NULL)
           )
-        ORDER BY n.rent_amount ASC, n.deposit_amount ASC
+        ORDER BY ${
+          sort === "rent"  ? "n.rent_amount ASC, n.deposit_amount ASC" :
+          sort === "score" ? "sl.total_score DESC NULLS LAST, n.created_at DESC" :
+                             "n.created_at DESC"
+        }
       `;
 
       const params = [...MY_PICK_TARGET_STATIONS, MY_PICK_DONG_PATTERN];
@@ -1000,6 +1009,7 @@ export async function handleMyPick(req, res) {
           subway_walk_min: toInt(row.subway_walk_min, null),
           listed_at: safeText(row.listed_at, null),
           created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+          is_new: row.created_at ? (Date.now() - new Date(row.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000 : false,
           building_year: toInt(row.building_year, null),
           grade: safeText(row.grade, null),
           total_score: row.total_score !== null && row.total_score !== undefined ? toNumber(row.total_score, null) : null,
