@@ -782,6 +782,12 @@ async function enrichImageUrlsFromCpArticleUrl(articleUrl, imageLimit) {
   const normalizedArticleUrl = normalizeHttpUrl(articleUrl);
   if (!normalizedArticleUrl) return [];
 
+  // serve.co.kr는 Playwright 세션 없이는 빈 응답 → 9초 타임아웃만 낭비. 스킵.
+  try {
+    const cpHost = new URL(normalizedArticleUrl).hostname.toLowerCase();
+    if (cpHost === "serve.co.kr" || cpHost.endsWith(".serve.co.kr")) return [];
+  } catch {}
+
   const fetchResult = await fetchTextWithRetry(normalizedArticleUrl);
   if (!fetchResult.text) return [];
 
