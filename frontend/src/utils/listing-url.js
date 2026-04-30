@@ -191,9 +191,38 @@ function buildServeUrl(listing, sourceRef) {
   return `https://www.serve.co.kr/good/map?${params.toString()}`;
 }
 
+function buildDaangnUrl(listing, sourceRef) {
+  // www.daangn.com/articles/{id} 는 현재 모든 매물에서 404를 반환하므로
+  // 항상 realty.daangn.com 경로로 강제 변환한다.
+  const sourceUrl = normalizeUrl(listing?.source_url);
+  const articleNumericId =
+    parseArticleNoFromUrl(sourceUrl) || (/^\d{5,}$/.test(sourceRef) ? sourceRef : "");
+
+  if (articleNumericId) {
+    return `https://realty.daangn.com/articles/${encodeURIComponent(articleNumericId)}?referrer=public_web`;
+  }
+
+  // numeric id가 없는 구형 SEO URL은 그대로 사용 (kr/realty/{slug}는 redirect로 살아 있음)
+  if (isHttpUrl(sourceUrl)) {
+    const swapped = sourceUrl.replace(
+      /^https?:\/\/(?:www\.)?daangn\.com\/articles\//i,
+      "https://realty.daangn.com/articles/",
+    );
+    return swapped;
+  }
+
+  if (sourceRef) {
+    return `https://www.daangn.com/kr/realty/${encodeURIComponent(sourceRef)}`;
+  }
+  return "";
+}
+
 function resolveByPattern(platform, listing, sourceRef) {
   if (platform === "serve") {
     return buildServeUrl(listing, sourceRef);
+  }
+  if (platform === "daangn") {
+    return buildDaangnUrl(listing, sourceRef);
   }
 
   const sourceUrl = normalizeUrl(listing?.source_url);

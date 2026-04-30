@@ -286,57 +286,66 @@ async function checkDaangnListing(externalId, _row) {
     || extractDaangnArticleId(sourceUrl)
     || extractDaangnArticleId(externalId);
 
-  // numeric articleId → GraphQL API (빠르고 정확)
-  if (articleId) {
+  // numeric articleId 확보 — 없으면 SEO URL(https://www.daangn.com/kr/realty/{slugId})에서
+  // 리다이렉트를 따라가 realty.daangn.com/articles/{numericId} 패턴을 추출.
+  // (현재 daangn은 numeric → /articles/{slug-...-{numericId}} 로 redirect하므로 marker로 사용 가능)
+  let resolvedArticleId = articleId;
+  if (!resolvedArticleId) {
+    const seoUrl = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
     try {
-      const res = await fetch(DAANGN_GRAPHQL_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "User-Agent": COMMON_UA,
-          Origin: "https://realty.daangn.com",
-          Referer: "https://realty.daangn.com/",
-        },
-        body: JSON.stringify({
-          variables: { articleId: String(articleId) },
-          extensions: {
-            persistedQuery: { version: 1, sha256Hash: DAANGN_ARTICLE_QUERY_HASH },
-          },
-        }),
+      const seoRes = await fetch(seoUrl, {
+        headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
+        redirect: "follow",
         signal: AbortSignal.timeout(8000),
       });
-      if (!res.ok) return { status: "error", httpStatus: res.status };
-      const json = await res.json();
-      const a = json?.data?.articleByOriginalArticleId;
-      if (!a) return { status: "expired", resultCode: "not_found" };
-      if (a.isHide === true) return { status: "expired", resultCode: "hidden" };
-      if (a.status === "CLOSED") return { status: "expired", resultCode: "closed" };
-      if (a.status === "ON_GOING" || a.status === "RESERVED") return { status: "active" };
-      return { status: "unknown", resultCode: a.status };
+      // 410/404 → 즉시 종료 처리
+      if (seoRes.status === 410) return { status: "expired", resultCode: "gone" };
+      if (seoRes.status === 404) return { status: "expired", resultCode: "not_found" };
+      // 리다이렉트된 최종 URL에서 numeric articleId 추출
+      resolvedArticleId = extractDaangnArticleId(seoRes.url);
     } catch {
-      // GraphQL 실패 시 HTML 폴백
+      // 무시하고 다음 단계로
     }
+    // 그래도 못 찾으면 종료 판정 (SEO 패턴이 더 이상 존재하지 않거나 외부ID 자체가 의미 없음)
+    if (!resolvedArticleId) return { status: "expired", resultCode: "no_article_id" };
   }
 
-  // articleId 없는 구형 매물 → HTML 폴백
-  const url = sourceUrl || `https://www.daangn.com/kr/realty/${externalId}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": COMMON_UA, Accept: "text/html" },
-    redirect: "follow",
-    signal: AbortSignal.timeout(8000),
-  });
-  if (res.status === 410) return { status: "expired", resultCode: "gone" };
-  if (res.status === 404) return { status: "expired", resultCode: "not_found" };
-  if (res.status === 200) {
-    const html = await res.text();
-    if (/이미 거래된 매물|거래가 완료|거래완료|판매완료/.test(html)) {
-      return { status: "expired", resultCode: "traded" };
+  // GraphQL API로 canonical 상태 판별
+  try {
+    const res = await fetch(DAANGN_GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": COMMON_UA,
+        Origin: "https://realty.daangn.com",
+        Referer: "https://realty.daangn.com/",
+      },
+      body: JSON.stringify({
+        variables: { articleId: String(resolvedArticleId) },
+        extensions: {
+          persistedQuery: { version: 1, sha256Hash: DAANGN_ARTICLE_QUERY_HASH },
+        },
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return { status: "error", httpStatus: res.status };
+    const json = await res.json();
+    // recordNotFound 에러 → 게시글 삭제됨
+    if (Array.isArray(json?.errors) && json.errors.some((e) => e?.extensions?.code === "recordNotFound")) {
+      return { status: "expired", resultCode: "not_found" };
     }
-    if (html.includes("__remixContext")) return { status: "active" };
-    return { status: "unknown", resultCode: "unrecognized_page" };
+    const a = json?.data?.articleByOriginalArticleId;
+    if (!a) return { status: "expired", resultCode: "not_found" };
+    if (a.isHide === true) return { status: "expired", resultCode: "hidden" };
+    if (a.status === "CLOSED") return { status: "expired", resultCode: "closed" };
+    // RESERVED: 임대인이 임차인과 협의·예약 상태 — 신규 임차 불가하므로 종료 처리
+    if (a.status === "RESERVED") return { status: "expired", resultCode: "reserved" };
+    if (a.status === "ON_GOING") return { status: "active" };
+    return { status: "unknown", resultCode: a.status };
+  } catch (e) {
+    return { status: "error", resultCode: e?.name || "exception" };
   }
-  return { status: "error", httpStatus: res.status };
 }
 
 // ── 부동산써브 상태 체크 ──
