@@ -123,3 +123,32 @@ export async function getExistingWithSufficientImages(platformCode, externalIds,
   if (client) return run(client);
   return withDbClient(run);
 }
+
+// incremental 수집에서 known으로 판정해 fetch를 스킵한 매물의 updated_at만 갱신.
+// stale_detector가 14일 미수집 시 deleted_at 처리하므로, 스킵 매물도 touch가 필요.
+// 반환값: 갱신된 행 수
+export async function touchKnownListings(platformCode, externalIds, opts = {}) {
+  if (opts !== null && typeof opts === "object" && typeof opts.query === "function") {
+    opts = { client: opts };
+  }
+  const { client = null } = opts ?? {};
+
+  if (!Array.isArray(externalIds) || externalIds.length === 0) return 0;
+
+  const ids = externalIds.map(String);
+  const query = `
+    UPDATE normalized_listings
+    SET updated_at = NOW()
+    WHERE platform_code = $1
+      AND external_id = ANY($2)
+      AND deleted_at IS NULL
+  `;
+
+  const run = async (c) => {
+    const result = await c.query(query, [platformCode, ids]);
+    return result.rowCount ?? 0;
+  };
+
+  if (client) return run(client);
+  return withDbClient(run);
+}

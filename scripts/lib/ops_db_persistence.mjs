@@ -811,6 +811,13 @@ function resolveBaseRunId(runId, platform) {
   return `${runId}::${platform}`;
 }
 
+const VALID_RUN_MODES = new Set(["full", "incremental"]);
+
+function normalizeRunMode(value) {
+  const v = toText(value, "full");
+  return VALID_RUN_MODES.has(v) ? v : "full";
+}
+
 async function upsertCollectionRun(client, args) {
   const {
     runId,
@@ -826,6 +833,7 @@ async function upsertCollectionRun(client, args) {
     targetMinArea,
     extra,
     failureCode,
+    runMode,
   } = args;
 
   await client.query(
@@ -834,6 +842,7 @@ async function upsertCollectionRun(client, args) {
         run_id,
         platform_code,
         mode,
+        run_mode,
         status,
         started_at,
         finished_at,
@@ -845,10 +854,11 @@ async function upsertCollectionRun(client, args) {
         target_min_area,
         extra,
         failure_code
-      ) VALUES ($1, $2, 'STEALTH_AUTOMATION', $3, $4::timestamptz, $5::timestamptz, $6, $7, $8, $9, $10, $11, $12::jsonb, $13)
+      ) VALUES ($1, $2, 'STEALTH_AUTOMATION', $14, $3, $4::timestamptz, $5::timestamptz, $6, $7, $8, $9, $10, $11, $12::jsonb, $13)
       ON CONFLICT (run_id) DO UPDATE
       SET platform_code = EXCLUDED.platform_code,
           mode = EXCLUDED.mode,
+          run_mode = EXCLUDED.run_mode,
           status = EXCLUDED.status,
           finished_at = EXCLUDED.finished_at,
           query_city = EXCLUDED.query_city,
@@ -877,6 +887,7 @@ async function upsertCollectionRun(client, args) {
       toNumber(targetMinArea, null),
       JSON.stringify(extra || {}),
       toText(failureCode, null),
+      normalizeRunMode(runMode),
     ],
   );
 }
@@ -1781,6 +1792,8 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
   const targetMaxRent = toNumber(first?.targetMaxRent, null);
   const targetMinArea = toNumber(first?.targetMinArea, null);
 
+  const runMode = first?.runMode || first?.run_mode || summary?.runMode || summary?.run_mode || "full";
+
   await upsertCollectionRun(client, {
     runId: platformRunId,
     platformCode: platform,
@@ -1801,6 +1814,7 @@ async function ingestPlatformResult(client, baseRunId, platform, platformRuns, r
       run_meta: first?.runMeta || null,
     },
     failureCode: status === "FAILED" ? "PARTIAL_FAILURE" : null,
+    runMode,
   });
 
   const imageQueue = [];

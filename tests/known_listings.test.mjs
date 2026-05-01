@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getExistingWithImages, getExistingWithSufficientImages, getExistingWithImagesAndFields } from "../scripts/lib/known_listings.mjs";
+import { getExistingWithImages, getExistingWithSufficientImages, getExistingWithImagesAndFields, touchKnownListings } from "../scripts/lib/known_listings.mjs";
 
 function makeClient(rows) {
   return { query: async () => ({ rows }) };
@@ -127,5 +127,57 @@ describe("getExistingWithSufficientImages", () => {
     expect(capturedParams[3]).toBe(72);
     expect(capturedSql).toContain("$4");
     expect(capturedSql).toContain("updated_at");
+  });
+});
+
+describe("touchKnownListings", () => {
+  it("UPDATE 쿼리로 platform_code + external_id 매칭 매물의 updated_at 갱신", async () => {
+    let capturedSql = null;
+    let capturedParams = null;
+    const client = {
+      query: async (sql, params) => { capturedSql = sql; capturedParams = params; return { rowCount: 2 }; },
+    };
+    const result = await touchKnownListings("dabang", ["a", "b"], { client });
+    expect(result).toBe(2);
+    expect(capturedSql).toContain("UPDATE normalized_listings");
+    expect(capturedSql).toContain("SET updated_at = NOW()");
+    expect(capturedSql).toContain("deleted_at IS NULL");
+    expect(capturedParams[0]).toBe("dabang");
+    expect(capturedParams[1]).toEqual(["a", "b"]);
+  });
+
+  it("빈 배열 → DB 쿼리 없이 0 반환", async () => {
+    let queryCalled = false;
+    const client = { query: async () => { queryCalled = true; return { rowCount: 0 }; } };
+    const result = await touchKnownListings("dabang", [], { client });
+    expect(result).toBe(0);
+    expect(queryCalled).toBe(false);
+  });
+
+  it("null/undefined externalIds → 0 반환", async () => {
+    const client = { query: async () => ({ rowCount: 0 }) };
+    expect(await touchKnownListings("naver", null, { client })).toBe(0);
+    expect(await touchKnownListings("naver", undefined, { client })).toBe(0);
+  });
+
+  it("숫자 id도 문자열로 변환하여 처리", async () => {
+    let capturedParams = null;
+    const client = { query: async (sql, params) => { capturedParams = params; return { rowCount: 1 }; } };
+    await touchKnownListings("kbland", [42, 43], { client });
+    expect(capturedParams[1]).toEqual(["42", "43"]);
+  });
+
+  it("rowCount가 null이면 0 반환", async () => {
+    const client = { query: async () => ({ rowCount: null }) };
+    const result = await touchKnownListings("naver", ["x"], { client });
+    expect(result).toBe(0);
+  });
+
+  it("legacy 시그니처: 3번째 인자가 client 객체이면 client로 사용", async () => {
+    let queryCalled = false;
+    const client = { query: async () => { queryCalled = true; return { rowCount: 1 }; } };
+    const result = await touchKnownListings("serve", ["x"], client);
+    expect(result).toBe(1);
+    expect(queryCalled).toBe(true);
   });
 });
