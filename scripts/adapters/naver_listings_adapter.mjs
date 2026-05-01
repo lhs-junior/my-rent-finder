@@ -1615,11 +1615,21 @@ export class NaverListingAdapter extends BaseListingAdapter {
         .filter(Boolean)
         .filter((u, i, arr) => arr.indexOf(u) === i);
 
-      for (const cpUrl of cpUrlCandidates) {
-        const imgs = await enrichImageUrlsFromCpArticleUrl(cpUrl, Math.max(1, this.imageFallbackLimit));
-        if (imgs.length > 0) {
-          fallbackImageUrls = imgs;
-          break;
+      // Promise.any로 모든 CP URL 동시 fetch — 첫 non-empty 결과 채택.
+      // 직전 sequential 동작 대비 광진구류(느린 CP 서버) 시나리오에서 wall이 sum→max로 줄어듦
+      // (per-article 최대 6배 절감). 동일 매물의 다른 진입 URL이라 이미지 세트는 거의 동일.
+      if (cpUrlCandidates.length > 0) {
+        try {
+          fallbackImageUrls = await Promise.any(
+            cpUrlCandidates.map((cpUrl) =>
+              enrichImageUrlsFromCpArticleUrl(cpUrl, Math.max(1, this.imageFallbackLimit)).then((imgs) => {
+                if (!imgs || imgs.length === 0) throw new Error("cp_fallback_empty");
+                return imgs;
+              }),
+            ),
+          );
+        } catch {
+          fallbackImageUrls = [];
         }
       }
     }
