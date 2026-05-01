@@ -1490,11 +1490,24 @@ export class NaverListingAdapter extends BaseListingAdapter {
       }
     }
 
+    // bestBySource 엔트리들을 bounded concurrency로 정규화.
+    // 각 normalizeOne 호출은 CP fallback fetch (HTTP 6개 URL Promise.any) 포함하므로
+    // 직렬 처리 시 광진구 등 CP 응답 느린 매물 누적으로 wall이 폭증.
+    // concurrency=3: 매물 6 URL × 3 매물 = 최대 18개 동시 outbound fetch (CP 입장 무난).
+    const NAVER_NORMALIZE_CONCURRENCY = 3;
+    const entries = Array.from(bestBySource.values());
     const normalized = [];
-    for (const entry of Array.from(bestBySource.values())) {
-      const normalizedItem = await this.normalizeOne(entry.row, rawRecord);
-      if (normalizedItem) normalized.push(normalizedItem);
-    }
+    let pointer = 0;
+    const worker = async () => {
+      while (pointer < entries.length) {
+        const i = pointer;
+        pointer += 1;
+        const normalizedItem = await this.normalizeOne(entries[i].row, rawRecord);
+        if (normalizedItem) normalized.push(normalizedItem);
+      }
+    };
+    const workerCount = Math.max(1, Math.min(NAVER_NORMALIZE_CONCURRENCY, entries.length));
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
     return normalized;
   }
 
