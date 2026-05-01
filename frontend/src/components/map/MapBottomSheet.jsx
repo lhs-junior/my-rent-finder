@@ -1,6 +1,6 @@
 // frontend/src/components/map/MapBottomSheet.jsx
 import { useRef, useState, useEffect } from "react";
-import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney } from "../../utils/format.js";
+import { PLATFORM_OPTIONS, FLOOR_FILTER_OPTIONS, toMoney, toRelativeListedAt } from "../../utils/format.js";
 
 const STAGES = { peek: 64, half: 0.45, full: 0.92 };
 
@@ -263,6 +263,7 @@ export default function MapBottomSheet({
                 {m.lease_type && m.lease_type !== "월세" && (
                   <span className="map-left-card-tag--lease">{m.lease_type}</span>
                 )}
+                {(() => { const rel = toRelativeListedAt(m.listed_at); return rel ? <span className="map-left-card-tag--listed">{rel}</span> : null; })()}
               </div>
             </div>
           ))}
