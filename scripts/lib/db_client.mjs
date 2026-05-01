@@ -256,17 +256,27 @@ export async function withDbClient(handler) {
   const MAX_RETRIES = 3;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const client = await pool.connect();
+    // pg-pool은 client checkout 동안 자체 'error' 리스너를 떼낸다.
+    // 쿼리 사이(idle) 구간에서 connection이 끊기면 unhandled 'error' 이벤트로
+    // 프로세스가 crash 한다. 캡처용 임시 핸들러로 방어.
+    let connectionError = null;
+    const captureError = (err) => { connectionError = err; };
+    client.on("error", captureError);
     try {
       const result = await handler(client);
-      client.release();
+      client.removeListener("error", captureError);
+      // 핸들러는 정상 종료했지만 idle 중 connection이 끊긴 경우 → 오염된 client 폐기
+      client.release(connectionError || undefined);
       return result;
     } catch (err) {
+      client.removeListener("error", captureError);
+      const effectiveErr = err || connectionError;
       // transient 에러(죽은 커넥션)는 pool에 폐기 신호 전달
-      client.release(isTransientDbError(err) ? err : undefined);
+      client.release(isTransientDbError(effectiveErr) ? effectiveErr : undefined);
       // 비-transient 에러 또는 마지막 시도: 즉시 throw
-      if (!isTransientDbError(err) || attempt >= MAX_RETRIES) throw err;
+      if (!isTransientDbError(effectiveErr) || attempt >= MAX_RETRIES) throw effectiveErr;
       const delay = 500 * (2 ** (attempt - 1)); // 500ms, 1000ms
-      console.warn(`[db] withDbClient retry ${attempt}/${MAX_RETRIES} in ${delay}ms: ${err.message}`);
+      console.warn(`[db] withDbClient retry ${attempt}/${MAX_RETRIES} in ${delay}ms: ${effectiveErr.message}`);
       await new Promise((r) => setTimeout(r, delay));
     }
   }
