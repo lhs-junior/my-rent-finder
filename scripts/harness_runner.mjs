@@ -210,6 +210,21 @@ phaseTimes.matching_end = Date.now();
 const matchingDurationMs = phaseTimes.matching_end - phaseTimes.matching_start;
 
 // ═══════════════════════════════════════════
+// Phase 2.5: 이미지 백필 — persistence 다중 구 처리 시 누락된 listing_images 복구
+// ═══════════════════════════════════════════
+if (!hasArg(args, "--skip-image-backfill") && fs.existsSync(workspace)) {
+  try {
+    const backfillScript = path.resolve(import.meta.dirname, "backfill_images_from_run.mjs");
+    runPhase("image backfill", backfillScript, [workspace]);
+    console.log("[harness] ✓ image backfill complete");
+  } catch (err) {
+    console.error(`[harness] ⚠ image backfill error: ${err.message}`);
+  }
+} else if (hasArg(args, "--skip-image-backfill")) {
+  console.log("[harness] ▶ skipping image backfill (--skip-image-backfill)");
+}
+
+// ═══════════════════════════════════════════
 // Phase 3: Normalization Gate (from summary data)
 // ═══════════════════════════════════════════
 phaseTimes.normalization_start = Date.now();
