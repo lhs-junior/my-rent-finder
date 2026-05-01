@@ -1,0 +1,198 @@
+{
+  "captured_at": "2026-05-01T15:07:35.190Z",
+  "platforms": [
+    {
+      "platform": "daangn",
+      "active_listings": 54,
+      "with_image": 52,
+      "image_rate": 0.963,
+      "avg_image_count": 8.69,
+      "description_rate": 1,
+      "bathroom_rate": 1,
+      "direction_rate": 0.833,
+      "building_year_rate": 0,
+      "jibun_rate": 0,
+      "avg_age_hours": 10.7,
+      "oldest_updated_at": "2026-04-29T03:13:36.184Z",
+      "newest_updated_at": "2026-05-01T14:38:34.631Z"
+    },
+    {
+      "platform": "dabang",
+      "active_listings": 355,
+      "with_image": 355,
+      "image_rate": 1,
+      "avg_image_count": 8.29,
+      "description_rate": 0.654,
+      "bathroom_rate": 0.659,
+      "direction_rate": 0.659,
+      "building_year_rate": 0.659,
+      "jibun_rate": 0.563,
+      "avg_age_hours": 0.6,
+      "oldest_updated_at": "2026-04-30T14:09:58.343Z",
+      "newest_updated_at": "2026-05-01T14:35:58.513Z"
+    },
+    {
+      "platform": "kbland",
+      "active_listings": 175,
+      "with_image": 79,
+      "image_rate": 0.451,
+      "avg_image_count": 7.65,
+      "description_rate": 0.994,
+      "bathroom_rate": 0.731,
+      "direction_rate": 0.76,
+      "building_year_rate": 0.754,
+      "jibun_rate": 0.994,
+      "avg_age_hours": 4.3,
+      "oldest_updated_at": "2026-04-19T14:42:54.427Z",
+      "newest_updated_at": "2026-05-01T14:41:19.151Z"
+    },
+    {
+      "platform": "naver",
+      "active_listings": 258,
+      "with_image": 146,
+      "image_rate": 0.566,
+      "avg_image_count": 12.11,
+      "description_rate": 0.953,
+      "bathroom_rate": 0.38,
+      "direction_rate": 1,
+      "building_year_rate": 0.368,
+      "jibun_rate": 0,
+      "avg_age_hours": 22.5,
+      "oldest_updated_at": "2026-04-29T11:03:14.849Z",
+      "newest_updated_at": "2026-05-01T14:36:46.688Z"
+    },
+    {
+      "platform": "peterpanz",
+      "active_listings": 55,
+      "with_image": 55,
+      "image_rate": 1,
+      "avg_image_count": 10.12,
+      "description_rate": 0.055,
+      "bathroom_rate": 0.055,
+      "direction_rate": 0.055,
+      "building_year_rate": 0.055,
+      "jibun_rate": 0.055,
+      "avg_age_hours": 0.5,
+      "oldest_updated_at": "2026-05-01T14:36:52.413Z",
+      "newest_updated_at": "2026-05-01T14:37:47.770Z"
+    },
+    {
+      "platform": "serve",
+      "active_listings": 266,
+      "with_image": 166,
+      "image_rate": 0.624,
+      "avg_image_count": 9.61,
+      "description_rate": 0.617,
+      "bathroom_rate": 1,
+      "direction_rate": 1,
+      "building_year_rate": 0,
+      "jibun_rate": 0,
+      "avg_age_hours": 13.1,
+      "oldest_updated_at": "2026-04-28T02:18:37.351Z",
+      "newest_updated_at": "2026-05-01T15:03:28.689Z"
+    },
+    {
+      "platform": "zigbang",
+      "active_listings": 122,
+      "with_image": 122,
+      "image_rate": 1,
+      "avg_image_count": 11.2,
+      "description_rate": 0.877,
+      "bathroom_rate": 0.877,
+      "direction_rate": 0.877,
+      "building_year_rate": 0.869,
+      "jibun_rate": 0.795,
+      "avg_age_hours": 0,
+      "oldest_updated_at": "2026-05-01T15:05:39.400Z",
+      "newest_updated_at": "2026-05-01T15:06:54.358Z"
+    }
+  ],
+  "recent_runs_7d": [
+    {
+      "platform": "daangn",
+      "run_mode": "full",
+      "run_count": 54,
+      "last_started_at": "2026-05-01T11:22:08.211Z"
+    },
+    {
+      "platform": "dabang",
+      "run_mode": "full",
+      "run_count": 56,
+      "last_started_at": "2026-05-01T11:14:49.479Z"
+    },
+    {
+      "platform": "kbland",
+      "run_mode": "full",
+      "run_count": 31,
+      "last_started_at": "2026-05-01T11:22:17.645Z"
+    },
+    {
+      "platform": "naver",
+      "run_mode": "full",
+      "run_count": 31,
+      "last_started_at": "2026-05-01T11:14:50.464Z"
+    },
+    {
+      "platform": "peterpanz",
+      "run_mode": "full",
+      "run_count": 54,
+      "last_started_at": "2026-05-01T11:17:15.771Z"
+    },
+    {
+      "platform": "serve",
+      "run_mode": "full",
+      "run_count": 34,
+      "last_started_at": "2026-05-01T14:46:37.798Z"
+    },
+    {
+      "platform": "zigbang",
+      "run_mode": "full",
+      "run_count": 56,
+      "last_started_at": "2026-05-01T15:03:31.407Z"
+    }
+  ],
+  "stale_distribution": [
+    {
+      "platform": "daangn",
+      "stale_3d": 0,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "dabang",
+      "stale_3d": 0,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "kbland",
+      "stale_3d": 3,
+      "stale_7d": 3,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "naver",
+      "stale_3d": 0,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "peterpanz",
+      "stale_3d": 0,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "serve",
+      "stale_3d": 16,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    },
+    {
+      "platform": "zigbang",
+      "stale_3d": 0,
+      "stale_7d": 0,
+      "stale_14d_will_be_deleted": 0
+    }
+  ]
+}
