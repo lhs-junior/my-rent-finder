@@ -813,7 +813,7 @@ function resolveBaseRunId(runId, platform) {
 
 const VALID_RUN_MODES = new Set(["full", "incremental"]);
 
-function normalizeRunMode(value) {
+export function normalizeRunMode(value) {
   const v = toText(value, "full");
   return VALID_RUN_MODES.has(v) ? v : "full";
 }

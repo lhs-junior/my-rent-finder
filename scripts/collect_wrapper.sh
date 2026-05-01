@@ -32,8 +32,19 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 시작" | tee -a "$LOG_DIR/collect
 cd "$REPO_DIR" && $GIT_BIN pull --ff-only 2>&1 | tee -a "$LOG_DIR/collect.log" || \
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] git pull 실패 — 기존 코드로 계속 진행" | tee -a "$LOG_DIR/collect.log"
 
+# --mode=incremental|full (기본 full, 환경변수 또는 첫 번째 인자로 지정 가능)
+COLLECT_MODE="${COLLECT_MODE:-${1:-full}}"
+case "$COLLECT_MODE" in
+  full|incremental) ;;
+  *)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] invalid mode: '$COLLECT_MODE' (full|incremental만 허용)" | tee -a "$LOG_DIR/collect.log"
+    exit 2
+    ;;
+esac
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] collect mode=$COLLECT_MODE" | tee -a "$LOG_DIR/collect.log"
+
 # caffeinate -i: 수집 중 절전 방지 (stdout/stderr 터미널 + 로그 파일 동시 출력)
-caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0 2>&1 | tee -a "$LOG_DIR/harness.log"
+caffeinate -i "$NODE_BIN" "$HARNESS" --sample-cap=0 --mode="$COLLECT_MODE" 2>&1 | tee -a "$LOG_DIR/harness.log"
 
 EXIT_CODE=${PIPESTATUS[0]}
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 수집 완료 (exit=$EXIT_CODE)" | tee -a "$LOG_DIR/collect.log"

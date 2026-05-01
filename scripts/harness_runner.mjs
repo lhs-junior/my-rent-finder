@@ -107,6 +107,14 @@ const workspace = path.resolve(process.cwd(), outDir);
 const skipCollect = getBool(args, "--skip-collect", false);
 const inputSummaryPath = getArg(args, "--input-summary", null);
 
+const VALID_HARNESS_RUN_MODES = new Set(["full", "incremental"]);
+const harnessRunMode = String(getArg(args, "--mode", "full") ?? "full").toLowerCase();
+if (!VALID_HARNESS_RUN_MODES.has(harnessRunMode)) {
+  console.error(`[harness] invalid --mode='${harnessRunMode}'. Allowed: full, incremental`);
+  process.exit(2);
+}
+console.log(`[harness] runMode=${harnessRunMode}`);
+
 const collectScript = path.resolve(process.cwd(), "scripts", "run_parallel_collect.mjs");
 const buildScript = path.resolve(process.cwd(), "scripts", "build_operations_payload.mjs");
 const summaryFileName = `parallel_collect_summary_${runId}.json`;

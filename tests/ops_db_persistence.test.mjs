@@ -5,7 +5,23 @@ import {
   consumeRawIdCleanupToken,
   extractExternalIdCandidates,
   filterAliveImageQueueEntries,
+  normalizeRunMode,
 } from "../scripts/lib/ops_db_persistence.mjs";
+
+describe("normalizeRunMode", () => {
+  it("'full', 'incremental' 그대로 반환", () => {
+    expect(normalizeRunMode("full")).toBe("full");
+    expect(normalizeRunMode("incremental")).toBe("incremental");
+  });
+
+  it("알 수 없는 값은 'full'로 폴백 (런타임 안전장치)", () => {
+    expect(normalizeRunMode("INCREMENTAL")).toBe("full"); // 대소문자 구분
+    expect(normalizeRunMode("partial")).toBe("full");
+    expect(normalizeRunMode("")).toBe("full");
+    expect(normalizeRunMode(null)).toBe("full");
+    expect(normalizeRunMode(undefined)).toBe("full");
+  });
+});
 
 describe("ops_db_persistence image queue filtering", () => {
   it("keeps alive queued images when DB rows return bigint ids as strings", () => {

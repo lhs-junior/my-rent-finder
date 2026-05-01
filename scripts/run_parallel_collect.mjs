@@ -107,6 +107,15 @@ const probeConditions = resolveAbs(
 const maxParallel = Math.max(1, getInt(args, "--parallel", 7));
 const sampleCap = normalizeCap(getArg(args, "--sample-cap", "0"), 0);
 const delayMs = Math.max(100, getInt(args, "--delay-ms", 700));
+
+const VALID_RUN_MODES = new Set(["full", "incremental"]);
+const rawRunMode = String(getArg(args, "--mode", "full") ?? "full").toLowerCase();
+if (!VALID_RUN_MODES.has(rawRunMode)) {
+  console.error(`[run_parallel_collect] invalid --mode='${rawRunMode}'. Allowed: full, incremental`);
+  process.exit(2);
+}
+const runMode = rawRunMode;
+console.log(`[run_parallel_collect] runMode=${runMode}`);
 const persistToDb = getBool(args, "--persist-to-db", false);
 const runFidelityQA = !getBool(args, "--skip-platform-fidelity-qa", false);
 const qaStrict = getBool(args, "--qa-strict", false); // advisory by default — use --qa-strict=true to fail on QA errors
@@ -1354,6 +1363,8 @@ function assessDataQuality(result) {
 
 for (const r of results) {
   r.dataQuality = assessDataQuality(r);
+  // collection_runs.run_mode 컬럼이 ops_db_persistence에서 first?.runMode를 우선 참조함
+  r.runMode = runMode;
 }
 
 const endAt = new Date().toISOString();
@@ -1362,6 +1373,7 @@ const summary = {
   startedAt: startAt,
   finishedAt: endAt,
   workspace,
+  runMode,
   runOptions: {
     sampleCap: Number.isFinite(sampleCap) ? sampleCap : 0,
     delayMs,
@@ -1370,6 +1382,7 @@ const summary = {
     verbose,
     normalizeNaver: runNormalize,
     skipProbe,
+    runMode,
   },
   conditionsFile: probeConditionsPath,
   targetsFile: skipProbe ? targetsIn : targetsOut,
