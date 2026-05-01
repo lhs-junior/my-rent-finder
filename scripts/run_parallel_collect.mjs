@@ -158,11 +158,19 @@ const normalizedRequestedPlatforms = selectedPlatforms
   .map((p) => normalizePlatform(p))
   .filter(Boolean);
 
-if (normalizedRequestedPlatforms.length === 0) {
+// --exclude-platforms=naver,kbland — 격일/파트타임 스케줄을 위해 특정 플랫폼만 빼고 실행
+const excludeRaw = getList(args, "--exclude-platforms", []);
+const excludedPlatforms = new Set(excludeRaw.map((p) => normalizePlatform(p)).filter(Boolean));
+const filteredRequestedPlatforms = normalizedRequestedPlatforms.filter((p) => !excludedPlatforms.has(p));
+if (excludedPlatforms.size > 0) {
+  console.log(`[run_parallel_collect] excluding platforms: ${[...excludedPlatforms].join(",")}`);
+}
+
+if (filteredRequestedPlatforms.length === 0) {
   console.error("[WARN] 실행 대상 플랫폼이 없습니다. 기본/요청된 플랫폼이 비활성화되었을 수 있습니다.");
 }
 
-const selectedPlatformList = normalizedRequestedPlatforms;
+const selectedPlatformList = filteredRequestedPlatforms;
 const verbose = getBool(args, "--verbose", false);
 const runNormalize = getBool(args, "--normalize", true);
 const forceNoNaver = getBool(args, "--no-naver", false);
