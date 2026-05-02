@@ -7,6 +7,7 @@ import DetailModal from "../DetailModal.jsx";
 import { useMapListings } from "../../hooks/useMapListings.js";
 
 const MY_PICK_LAST_SEEN_KEY = "myPickLastSeenAt";
+const MY_PICK_SEEN_IDS_KEY = "myPickSeenIds";
 
 function readMyPickLastSeenAt() {
   try {
@@ -21,6 +22,21 @@ function readMyPickLastSeenAt() {
 
 function writeMyPickLastSeenAt(ts) {
   try { localStorage.setItem(MY_PICK_LAST_SEEN_KEY, String(ts)); } catch { /* ignore */ }
+}
+
+function readMyPickSeenIds() {
+  try {
+    const raw = localStorage.getItem(MY_PICK_SEEN_IDS_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeMyPickSeenIds(set) {
+  try { localStorage.setItem(MY_PICK_SEEN_IDS_KEY, JSON.stringify([...set])); } catch { /* ignore */ }
 }
 
 function formatRelativeKr(ts) {
@@ -75,6 +91,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
   const [myPickMarkers, setMyPickMarkers] = useState([]);
   const [myPickLoading, setMyPickLoading] = useState(false);
   const [myPickLastSeenAt, setMyPickLastSeenAt] = useState(() => readMyPickLastSeenAt());
+  const [myPickSeenIds, setMyPickSeenIds] = useState(() => readMyPickSeenIds());
   const [myPickUnseenOnly, setMyPickUnseenOnly] = useState(false);
   const [filters, setFilters] = useState({});
 
@@ -267,7 +284,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     if (filters.only_my_pick) {
       result = result.map(m => {
         const t = m.created_at ? new Date(m.created_at).getTime() : 0;
-        const isUnseen = Number.isFinite(t) && t > myPickLastSeenAt;
+        const fresh = Number.isFinite(t) && t > myPickLastSeenAt;
+        const isUnseen = fresh && !myPickSeenIds.has(String(m.listing_id));
         return isUnseen === !!m._unseen ? m : { ...m, _unseen: isUnseen };
       });
       if (myPickUnseenOnly) result = result.filter(m => m._unseen);
@@ -279,21 +297,38 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     if (!filters.only_my_pick) return 0;
     return myPickMarkers.reduce((acc, m) => {
       const t = m.created_at ? new Date(m.created_at).getTime() : 0;
-      return acc + (Number.isFinite(t) && t > myPickLastSeenAt ? 1 : 0);
+      const fresh = Number.isFinite(t) && t > myPickLastSeenAt;
+      return acc + (fresh && !myPickSeenIds.has(String(m.listing_id)) ? 1 : 0);
     }, 0);
-  }, [filters.only_my_pick, myPickMarkers, myPickLastSeenAt]);
+  }, [filters.only_my_pick, myPickMarkers, myPickLastSeenAt, myPickSeenIds]);
 
   const markAllMyPickSeen = useCallback(() => {
     const now = Date.now();
     writeMyPickLastSeenAt(now);
     setMyPickLastSeenAt(now);
+    writeMyPickSeenIds(new Set());
+    setMyPickSeenIds(new Set());
     setMyPickUnseenOnly(false);
   }, []);
 
   const resetMyPickSeen = useCallback(() => {
     writeMyPickLastSeenAt(0);
     setMyPickLastSeenAt(0);
+    writeMyPickSeenIds(new Set());
+    setMyPickSeenIds(new Set());
   }, []);
+
+  const markListingAsSeen = useCallback((listingId) => {
+    if (!filters.only_my_pick || listingId == null) return;
+    const id = String(listingId);
+    setMyPickSeenIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      writeMyPickSeenIds(next);
+      return next;
+    });
+  }, [filters.only_my_pick]);
 
   const myPickUnseenInfo = filters.only_my_pick ? {
     active: true,
@@ -334,7 +369,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     mapRef.current?.clearSelection?.();
     setSelectedId(normalizedId);
     setDetailId(normalizedId);
-  }, []);
+    markListingAsSeen(normalizedId);
+  }, [markListingAsSeen]);
 
   const handleCardClick = useCallback((listingOrId) => {
     const item = typeof listingOrId === "object" && listingOrId != null
@@ -345,12 +381,13 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     setSelectedId(id);
     setDetailId(id);
     mapRef.current?.clearSelection?.();
+    markListingAsSeen(id);
     const lat = toFiniteCoordinate(item.lat);
     const lng = toFiniteCoordinate(item.lng);
     if (lat != null && lng != null) {
       mapRef.current?.focusAt?.({ lat, lng, zoom: MAP_CARD_FOCUS_ZOOM });
     }
-  }, [displayedMarkers]);
+  }, [displayedMarkers, markListingAsSeen]);
 
   const handleCloseDetail = useCallback(() => {
     setDetailId(null);

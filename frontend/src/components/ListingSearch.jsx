@@ -6,6 +6,7 @@ import ListingCard from "./ListingCard.jsx";
 import DetailModal from "./DetailModal.jsx";
 
 const MY_PICK_LAST_SEEN_KEY = "myPickLastSeenAt";
+const MY_PICK_SEEN_IDS_KEY = "myPickSeenIds";
 
 function readMyPickLastSeenAt() {
   try {
@@ -21,6 +22,25 @@ function readMyPickLastSeenAt() {
 function writeMyPickLastSeenAt(ts) {
   try {
     localStorage.setItem(MY_PICK_LAST_SEEN_KEY, String(ts));
+  } catch {
+    // ignore
+  }
+}
+
+function readMyPickSeenIds() {
+  try {
+    const raw = localStorage.getItem(MY_PICK_SEEN_IDS_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeMyPickSeenIds(set) {
+  try {
+    localStorage.setItem(MY_PICK_SEEN_IDS_KEY, JSON.stringify([...set]));
   } catch {
     // ignore
   }
@@ -122,6 +142,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   const [gradeFilter, setGradeFilter] = useState(""); // "", "SS", "S", "A"
   const [myPickMode, setMyPickMode] = useState(false);
   const [myPickLastSeenAt, setMyPickLastSeenAt] = useState(() => readMyPickLastSeenAt());
+  const [myPickSeenIds, setMyPickSeenIds] = useState(() => readMyPickSeenIds());
   const [myPickUnseenOnly, setMyPickUnseenOnly] = useState(false);
 
   const buildQuery = useCallback((targetFilters = submittedFilters, targetPage = page) => {
@@ -176,7 +197,17 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     const normalizedId = toIdText(listingId);
     if (!normalizedId) return;
     setDetailId(normalizedId);
-  }, []);
+    // 내 조건 모드에서 카드를 한 번 클릭하면 그 매물의 NEW 표시는 사라짐
+    if (myPickMode) {
+      setMyPickSeenIds((prev) => {
+        if (prev.has(normalizedId)) return prev;
+        const next = new Set(prev);
+        next.add(normalizedId);
+        writeMyPickSeenIds(next);
+        return next;
+      });
+    }
+  }, [myPickMode]);
 
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
@@ -241,8 +272,9 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   const isItemUnseen = useCallback((item) => {
     if (!item || !item.created_at) return false;
     const t = new Date(item.created_at).getTime();
-    return Number.isFinite(t) && t > myPickLastSeenAt;
-  }, [myPickLastSeenAt]);
+    if (!(Number.isFinite(t) && t > myPickLastSeenAt)) return false;
+    return !myPickSeenIds.has(String(item.listing_id));
+  }, [myPickLastSeenAt, myPickSeenIds]);
 
   const myPickUnseenCount = useMemo(() => {
     if (!myPickMode) return 0;
@@ -260,12 +292,16 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     const now = Date.now();
     writeMyPickLastSeenAt(now);
     setMyPickLastSeenAt(now);
+    writeMyPickSeenIds(new Set());
+    setMyPickSeenIds(new Set());
     setMyPickUnseenOnly(false);
   }, []);
 
   const resetMyPickSeen = useCallback(() => {
     writeMyPickLastSeenAt(0);
     setMyPickLastSeenAt(0);
+    writeMyPickSeenIds(new Set());
+    setMyPickSeenIds(new Set());
   }, []);
 
   const myPickLastSeenLabel = useMemo(() => {
