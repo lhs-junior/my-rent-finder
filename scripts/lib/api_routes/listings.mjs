@@ -966,8 +966,8 @@ export async function handleMyPick(req, res) {
         SELECT * FROM candidates WHERE rn = 1
         ORDER BY ${
           sort === "rent"  ? "rent_amount ASC, deposit_amount ASC" :
-          sort === "score" ? "total_score DESC NULLS LAST, created_at DESC" :
-                             "created_at DESC"
+          sort === "score" ? "total_score DESC NULLS LAST, listed_at DESC NULLS LAST, created_at DESC" :
+                             "listed_at DESC NULLS LAST, created_at DESC" /* newest: 사이트 등록일 우선, 미상은 수집일 */
         }
       `;
 
