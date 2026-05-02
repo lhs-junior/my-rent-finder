@@ -45,7 +45,9 @@ export function toArea(value) {
   return `${v.toFixed(1)}㎡`;
 }
 
-// listed_at (YYYY-MM-DD HH:MM:SS, KST 가정) → "오늘" / "어제" / "N일 전" / "YYYY-MM-DD"
+// listed_at (YYYY-MM-DD [HH:MM:SS], KST 가정)
+// → "방금" / "N분 전" / "N시간 전" / "어제" / "N일 전" / "N주 전" / "YYYY-MM-DD 등록"
+//   24시간 미만은 자정을 넘어도 시간 단위로 계속 표기 (예: 23시간 전 → 다음 자정 직후에도 23시간 전 유지)
 export function toRelativeListedAt(value) {
   if (!value) return null;
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/.exec(String(value));
@@ -57,16 +59,20 @@ export function toRelativeListedAt(value) {
     nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate(),
     nowUtc.getUTCHours() + 9, nowUtc.getUTCMinutes(), nowUtc.getUTCSeconds(),
   ));
+  const diffMs = nowKst.getTime() - listed.getTime();
+  if (diffMs < 0) return `${y}-${mo}-${d}`;
+  // 시:분:초 정보가 있으면 24시간 미만은 시간 단위 우선
+  if (hh) {
+    const minTotal = Math.floor(diffMs / 60000);
+    if (minTotal < 1) return "방금 등록";
+    if (minTotal < 60) return `${minTotal}분 전 등록`;
+    const hrTotal = Math.floor(minTotal / 60);
+    if (hrTotal < 24) return `${hrTotal}시간 전 등록`;
+  }
+  // 24시간 이상 또는 날짜만 있는 경우는 일/주 단위
   const dayDiff = Math.floor((Date.UTC(nowKst.getUTCFullYear(), nowKst.getUTCMonth(), nowKst.getUTCDate())
                              - Date.UTC(+y, +mo - 1, +d)) / 86400000);
-  if (dayDiff < 0) return `${y}-${mo}-${d}`;
-  if (dayDiff === 0) {
-    if (!hh) return "오늘 등록";
-    const hrs = Math.floor((nowKst.getTime() - listed.getTime()) / 3600000);
-    if (hrs <= 0) return "방금 등록";
-    if (hrs < 24) return `${hrs}시간 전 등록`;
-    return "오늘 등록";
-  }
+  if (dayDiff <= 0) return "오늘 등록";
   if (dayDiff === 1) return "어제 등록";
   if (dayDiff <= 7) return `${dayDiff}일 전 등록`;
   if (dayDiff <= 30) return `${Math.floor(dayDiff / 7)}주 전 등록`;
