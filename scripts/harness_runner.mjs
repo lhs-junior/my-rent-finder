@@ -302,6 +302,17 @@ if (!hasArg(args, "--skip-status")) {
     console.error(`[harness] ⚠ listing status check error: ${err.message}`);
   }
 
+  // Phase 6.1: false-positive 회복 — status check가 일시적 anti-bot/timeout으로 잘못 종료처리한 매물 복구
+  if (!hasArg(args, "--skip-recover")) {
+    try {
+      const recoverScript = path.resolve(import.meta.dirname, "recover_falsely_deleted.mjs");
+      runPhase("false-positive recovery", recoverScript, ["--hours=24", "--limit=300"]);
+      console.log("[harness] ✓ false-positive recovery complete");
+    } catch (err) {
+      console.error(`[harness] ⚠ false-positive recovery error: ${err.message}`);
+    }
+  }
+
   // Phase 6.2: 수집 누락 기반 stale 판정 (HTTP 체크로 못 잡힌 매물 보완)
   try {
     const { detectStaleListings } = await import("./lib/stale_detector.mjs");
