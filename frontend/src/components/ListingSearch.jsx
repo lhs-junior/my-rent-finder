@@ -414,7 +414,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             </div>
           </div>
 
-          {/* 정렬 — myPickMode에서도 활성 상태 유지 */}
+          {/* 정렬 — myPickMode에서도 활성 상태 유지, 클릭 즉시 재조회 */}
           <div className="ls-field ls-field--always-enabled">
             <span className="ls-field-label">정렬</span>
             <div className="ls-chip-group">
@@ -423,7 +423,13 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
                   key={opt.v}
                   type="button"
                   className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
-                  onClick={() => set("sort", opt.v)}
+                  onClick={() => {
+                    const next = { ...filters, sort: opt.v };
+                    setFilters(next);
+                    setSubmittedFilters(next);
+                    setPage(1);
+                    setSearchToken(t => t + 1);
+                  }}
                 >
                   {opt.l}
                 </button>
