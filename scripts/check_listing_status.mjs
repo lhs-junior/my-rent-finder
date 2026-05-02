@@ -538,7 +538,7 @@ async function checkPlatformByDb(platformCode, client) {
 
 // ── 단일 플랫폼 체크 ──
 
-function summarizeResult(row, result, counters, expiredIds) {
+function summarizeResult(row, result, counters, expiredIds, activeIds = null) {
   if (result?.status === "expired") {
     counters.expired++;
     expiredIds.push(row.listing_id);
@@ -547,6 +547,7 @@ function summarizeResult(row, result, counters, expiredIds) {
   }
   if (result?.status === "active") {
     counters.active++;
+    if (activeIds) activeIds.push(row.listing_id);
     if (verbose) console.log(`  ✓ ${row.external_id} — 활성`);
     return false;
   }
@@ -555,18 +556,66 @@ function summarizeResult(row, result, counters, expiredIds) {
   return result?.httpStatus === 429; // rate-limit은 timeout-like로 취급
 }
 
+// 2-stage soft-delete: false-positive 방지를 위한 시간 차 재확인.
+// 1단계 (이번 회차에 처음 expired 검출): quality_flags에 STATUS_PENDING_DELETE 플래그만 추가, deleted_at은 그대로 유지.
+// 2단계 (전 회차에 이미 PENDING 플래그가 있던 매물이 또 expired): deleted_at 설정.
+// 12시간 간격으로 두 번 expired 일치할 때만 종료 처리 → 일시적 anti-bot/rate-limit/네트워크 오류 100% 흡수.
 async function persistExpired(client, expiredIds) {
   if (expiredIds.length === 0) return 0;
   if (dryRun) {
-    console.log(`[status-check] DRY RUN: ${expiredIds.length}건 soft-delete 예정`);
+    console.log(`[status-check] DRY RUN: ${expiredIds.length}건 expired (PENDING/CONFIRM 분류 생략)`);
     return expiredIds.length;
   }
-  const placeholders = expiredIds.map((_, i) => `$${i + 1}`).join(",");
-  const result = await client.query(
-    `UPDATE normalized_listings SET deleted_at = NOW() WHERE listing_id IN (${placeholders})`,
-    expiredIds,
+  // 이번 회차 expired 매물 중 이미 PENDING 플래그를 단 건만 진짜 만료로 확정
+  const { rows: pendingRows } = await client.query(
+    `SELECT listing_id FROM normalized_listings
+     WHERE listing_id = ANY($1::bigint[]) AND quality_flags::text LIKE '%STATUS_PENDING_DELETE%'`,
+    [expiredIds],
   );
-  console.log(`[status-check] DB 업데이트: ${result.rowCount}건 soft-delete 완료`);
+  const pendingSet = new Set(pendingRows.map((r) => Number(r.listing_id)));
+  const toDelete = expiredIds.filter((id) => pendingSet.has(Number(id)));
+  const toFlag = expiredIds.filter((id) => !pendingSet.has(Number(id)));
+
+  if (toDelete.length > 0) {
+    const result = await client.query(
+      `UPDATE normalized_listings SET deleted_at = NOW(),
+         quality_flags = COALESCE(
+           (SELECT jsonb_agg(elem) FROM jsonb_array_elements(quality_flags) AS elem
+             WHERE elem::text != '"STATUS_PENDING_DELETE"'),
+           '[]'::jsonb)
+       WHERE listing_id = ANY($1::bigint[])`,
+      [toDelete],
+    );
+    console.log(`[status-check] DB 업데이트: ${result.rowCount}건 soft-delete 확정 (2회 연속 expired)`);
+  }
+  if (toFlag.length > 0) {
+    await client.query(
+      `UPDATE normalized_listings
+         SET quality_flags = COALESCE(quality_flags, '[]'::jsonb) || '["STATUS_PENDING_DELETE"]'::jsonb,
+             updated_at = NOW()
+       WHERE listing_id = ANY($1::bigint[])`,
+      [toFlag],
+    );
+    console.log(`[status-check] PENDING 플래그: ${toFlag.length}건 (다음 회차에 또 expired면 종료 처리)`);
+  }
+  return toDelete.length;
+}
+
+// active 결과 매물의 STATUS_PENDING_DELETE 플래그 제거 (false-positive 1차 마킹 회복)
+async function clearPendingFlags(client, activeIds) {
+  if (activeIds.length === 0 || dryRun) return 0;
+  const result = await client.query(
+    `UPDATE normalized_listings
+       SET quality_flags = COALESCE(
+         (SELECT jsonb_agg(elem) FROM jsonb_array_elements(quality_flags) AS elem
+           WHERE elem::text != '"STATUS_PENDING_DELETE"'),
+         '[]'::jsonb)
+     WHERE listing_id = ANY($1::bigint[]) AND quality_flags::text LIKE '%STATUS_PENDING_DELETE%'`,
+    [activeIds],
+  );
+  if (result.rowCount > 0) {
+    console.log(`[status-check] PENDING 플래그 해제: ${result.rowCount}건 (재확인 시 활성)`);
+  }
   return result.rowCount;
 }
 
@@ -602,6 +651,7 @@ async function checkPlatform(platformCode, client) {
 
   const counters = { active: 0, expired: 0, errors: 0 };
   const expiredIds = [];
+  const activeIds = [];
 
   if (batchChecker) {
     // batch 체커: rows를 받아 idx 정합된 result[] 반환 (zigbang 등)
@@ -623,7 +673,7 @@ async function checkPlatform(platformCode, client) {
         }
       }
     }
-    for (let i = 0; i < rows.length; i++) summarizeResult(rows[i], results[i], counters, expiredIds);
+    for (let i = 0; i < rows.length; i++) summarizeResult(rows[i], results[i], counters, expiredIds, activeIds);
   } else {
     // 단건 체커: concurrency pool로 처리. 연속 타임아웃 N회면 abort.
     const concurrency = CONCURRENCY[platformCode] ?? 1;
@@ -666,7 +716,7 @@ async function checkPlatform(platformCode, client) {
           // 재확인 실패 — 1차 결과 유지 (보수적)
         }
       }
-      const isTimeoutLike = summarizeResult(row, result, counters, expiredIds);
+      const isTimeoutLike = summarizeResult(row, result, counters, expiredIds, activeIds);
       if (isTimeoutLike) consecutiveTimeouts++;
       else consecutiveTimeouts = 0;
       if (consecutiveTimeouts >= MAX_CONSECUTIVE_TIMEOUTS) {
@@ -679,6 +729,7 @@ async function checkPlatform(platformCode, client) {
   }
 
   await persistExpired(client, expiredIds);
+  await clearPendingFlags(client, activeIds);
   return { platform: platformCode, checked: rows.length, ...counters };
 }
 
