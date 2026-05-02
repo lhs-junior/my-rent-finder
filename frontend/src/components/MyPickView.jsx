@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { toPlatformLabel, PLATFORM_COLORS, toMoney } from "../utils/format.js";
 import DetailModal from "./DetailModal.jsx";
 
@@ -10,6 +10,46 @@ const SORT_OPTIONS = [
   { v: "score",  l: "점수순" },
 ];
 
+const LAST_SEEN_KEY = "myPickLastSeenAt";
+
+function readLastSeenAt() {
+  try {
+    const raw = localStorage.getItem(LAST_SEEN_KEY);
+    if (!raw) return 0;
+    const ts = Number(raw);
+    return Number.isFinite(ts) ? ts : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeLastSeenAt(ts) {
+  try {
+    localStorage.setItem(LAST_SEEN_KEY, String(ts));
+  } catch {
+    // ignore
+  }
+}
+
+function formatRelativeKr(iso) {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return null;
+  const diffMs = Date.now() - t;
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}일 전`;
+  const wk = Math.floor(day / 7);
+  if (wk < 5) return `${wk}주 전`;
+  const mo = Math.floor(day / 30);
+  if (mo < 12) return `${mo}개월 전`;
+  return `${Math.floor(day / 365)}년 전`;
+}
+
 function platformBadgeStyle(platform) {
   return {
     background: PLATFORM_COLORS[platform] || "#6B7280",
@@ -17,15 +57,17 @@ function platformBadgeStyle(platform) {
   };
 }
 
-function MyPickCard({ item, onOpenDetail }) {
+function MyPickCard({ item, isUnseen, onOpenDetail }) {
   const platform = item.platform_code || "";
   const subwayBadge =
     item.nearest_subway_station && item.subway_distance_m != null
       ? `${item.nearest_subway_station}${item.nearest_subway_line ? `(${item.nearest_subway_line})` : ""} ${item.subway_walk_min ? `도보 ${item.subway_walk_min}분` : `${item.subway_distance_m}m`}`
       : null;
+  const relTime = formatRelativeKr(item.created_at);
 
   return (
-    <div className="score-card">
+    <div className={`score-card${isUnseen ? " score-card--unseen" : ""}`}>
+      {isUnseen && <span className="mypick-unseen-dot" aria-label="미열람 신규" />}
       <button
         type="button"
         className="listing-card-main"
@@ -52,9 +94,18 @@ function MyPickCard({ item, onOpenDetail }) {
 
         <div className="listing-card-body">
           <div className="score-card-header" style={{ marginBottom: 4 }}>
-            {item.is_new && (
+            {isUnseen ? (
+              <span className="listing-card-signal listing-card-signal--unseen" title="마지막 방문 이후 새로 등록">
+                NEW
+              </span>
+            ) : item.is_new ? (
               <span className="listing-card-signal listing-card-signal--new" title="7일 이내 수집">
                 신규
+              </span>
+            ) : null}
+            {relTime && (
+              <span className="listing-card-signal listing-card-signal--time" title={item.created_at || ""}>
+                {relTime}
               </span>
             )}
             {item.lien_warning && (
@@ -115,6 +166,8 @@ export default function MyPickView({ apiBase }) {
   const [error, setError] = useState(null);
   const [detailId, setDetailId] = useState(null);
   const [sort, setSort] = useState("newest");
+  const [unseenOnly, setUnseenOnly] = useState(false);
+  const [lastSeenAt, setLastSeenAt] = useState(() => readLastSeenAt());
 
   const normalizedApiBase = (typeof apiBase === "string" ? apiBase.trim() : "").replace(/\/$/, "");
 
@@ -145,6 +198,46 @@ export default function MyPickView({ apiBase }) {
     setDetailId(String(listingId));
   }, []);
 
+  const isItemUnseen = useCallback((item) => {
+    if (!item.created_at) return false;
+    const t = new Date(item.created_at).getTime();
+    return Number.isFinite(t) && t > lastSeenAt;
+  }, [lastSeenAt]);
+
+  const unseenCount = useMemo(
+    () => listings.reduce((acc, it) => acc + (isItemUnseen(it) ? 1 : 0), 0),
+    [listings, isItemUnseen],
+  );
+
+  const visibleListings = useMemo(() => {
+    let arr = listings;
+    if (unseenOnly) arr = arr.filter(isItemUnseen);
+    if (sort === "newest") {
+      arr = [...arr].sort((a, b) => {
+        const ua = isItemUnseen(a) ? 1 : 0;
+        const ub = isItemUnseen(b) ? 1 : 0;
+        if (ua !== ub) return ub - ua;
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    return arr;
+  }, [listings, unseenOnly, sort, isItemUnseen]);
+
+  const markAllSeen = useCallback(() => {
+    const now = Date.now();
+    writeLastSeenAt(now);
+    setLastSeenAt(now);
+    setUnseenOnly(false);
+  }, []);
+
+  const lastSeenLabel = useMemo(() => {
+    if (!lastSeenAt) return "마지막 확인: 없음";
+    const rel = formatRelativeKr(new Date(lastSeenAt).toISOString());
+    return rel ? `마지막 확인: ${rel}` : "마지막 확인: -";
+  }, [lastSeenAt]);
+
   if (loading && listings.length === 0) {
     return (
       <div className="fav-view">
@@ -172,24 +265,73 @@ export default function MyPickView({ apiBase }) {
         </div>
       </div>
 
+      <div className="mypick-unseen-bar" role="status">
+        {unseenCount > 0 ? (
+          <>
+            <span className="mypick-unseen-bar-icon" aria-hidden>🆕</span>
+            <span className="mypick-unseen-bar-text">
+              마지막 확인 이후 새 매물 <strong>{unseenCount}건</strong>
+            </span>
+            <button
+              type="button"
+              className={`ls-chip mypick-unseen-toggle${unseenOnly ? " ls-chip--active" : ""}`}
+              onClick={() => setUnseenOnly((v) => !v)}
+            >
+              {unseenOnly ? "전체 보기" : "신규만"}
+            </button>
+            <button
+              type="button"
+              className="mypick-mark-seen"
+              onClick={markAllSeen}
+              title="현재 시점을 마지막 확인 시간으로 기록합니다"
+            >
+              모두 확인
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="mypick-unseen-bar-icon mypick-unseen-bar-icon--muted" aria-hidden>✓</span>
+            <span className="mypick-unseen-bar-text mypick-unseen-bar-text--muted">
+              새 매물 없음 · {lastSeenLabel}
+            </span>
+            {lastSeenAt > 0 && (
+              <button
+                type="button"
+                className="mypick-mark-seen mypick-mark-seen--reset"
+                onClick={() => {
+                  writeLastSeenAt(0);
+                  setLastSeenAt(0);
+                }}
+                title="마지막 확인 기록을 지워 다시 신규 표시를 봅니다"
+              >
+                기록 초기화
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
       <div className="fav-grade-filter" style={{ fontSize: "0.8rem", color: "var(--text-muted, #888)" }}>
         월세 90만↓ · 방3개↑ · 14개역 1km이내 · 근린/업무시설 제외
       </div>
 
       {error && <div className="error-box">{error}</div>}
 
-      {listings.length === 0 && !loading && (
+      {visibleListings.length === 0 && !loading && (
         <div className="fav-empty">
-          <p>조건에 맞는 매물이 없습니다.</p>
-          <span className="muted">수집 후 다시 확인해 주세요.</span>
+          <p>{unseenOnly ? "신규 매물이 없습니다." : "조건에 맞는 매물이 없습니다."}</p>
+          <span className="muted">
+            {unseenOnly ? "‘전체 보기’를 눌러 모든 매물을 확인하세요." : "수집 후 다시 확인해 주세요."}
+          </span>
         </div>
       )}
 
       <div className="listing-grid">
-        {listings.map((item, idx) => (
+        {visibleListings.map((item, idx) => (
           <MyPickCard
             key={item.listing_id ?? `mypick-${idx}`}
             item={item}
+            isUnseen={isItemUnseen(item)}
             onOpenDetail={openDetail}
           />
         ))}

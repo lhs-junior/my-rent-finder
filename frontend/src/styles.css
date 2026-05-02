@@ -3805,6 +3805,120 @@ pre {
   font-weight: 700;
 }
 
+.listing-card-signal--unseen {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #ffe8e8;
+  color: #c62828;
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 0 0 1px rgba(198, 40, 40, 0.2);
+}
+
+.listing-card-signal--time {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.69rem;
+  font-weight: 500;
+}
+
+/* ── My-pick: unseen-new bar + unseen card emphasis ──────────────────────── */
+
+.mypick-unseen-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff5f5 0%, #ffecec 100%);
+  border: 1px solid #ffcdcd;
+}
+
+.mypick-unseen-bar:has(.mypick-unseen-bar-text--muted) {
+  background: var(--bg-secondary, #f4f4f3);
+  border-color: var(--line, #e5e5e3);
+}
+
+.mypick-unseen-bar-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.mypick-unseen-bar-icon--muted { opacity: 0.6; }
+
+.mypick-unseen-bar-text {
+  font-size: 0.88rem;
+  color: #c62828;
+  font-weight: 600;
+}
+.mypick-unseen-bar-text strong {
+  color: #b71c1c;
+  margin: 0 2px;
+  font-weight: 800;
+}
+.mypick-unseen-bar-text--muted {
+  color: var(--text-muted, #888);
+  font-weight: 500;
+}
+
+.mypick-unseen-toggle {
+  margin-left: auto;
+}
+
+.mypick-mark-seen {
+  margin-left: 4px;
+  padding: 5px 12px;
+  border-radius: 18px;
+  border: 1px solid #c62828;
+  background: #c62828;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.mypick-mark-seen:hover {
+  background: #b71c1c;
+  border-color: #b71c1c;
+}
+.mypick-mark-seen--reset {
+  background: transparent;
+  border: 1px solid var(--line, #e5e5e3);
+  color: var(--text-muted, #888);
+  margin-left: auto;
+}
+.mypick-mark-seen--reset:hover {
+  color: var(--text, #222);
+  border-color: var(--text-muted, #888);
+  background: transparent;
+}
+
+.score-card--unseen {
+  position: relative;
+  outline: 2px solid #ffb3b3;
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+
+.mypick-unseen-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e53935;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.18);
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* ── Proof / collected-at ────────────────────────────────────────────────── */
 
 .listing-card-proof {
