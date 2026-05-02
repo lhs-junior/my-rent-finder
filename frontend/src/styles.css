@@ -3899,24 +3899,52 @@ pre {
   background: transparent;
 }
 
-.score-card--unseen {
+.mypick-card-wrap {
   position: relative;
-  outline: 2px solid #ffb3b3;
+  display: contents;
+}
+
+.mypick-card-wrap--unseen {
+  display: block;
+  position: relative;
+  border-radius: 14px;
+  outline: 2px solid #ff8a80;
   outline-offset: -2px;
-  border-radius: 10px;
+  background: #fff5f5;
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.08);
+}
+
+.mypick-card-wrap--unseen > .listing-card {
+  background: transparent;
 }
 
 .mypick-unseen-dot {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: #e53935;
-  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.18);
-  z-index: 2;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.22);
+  z-index: 3;
   pointer-events: none;
+}
+
+.mypick-unseen-tag {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 /* ── Proof / collected-at ────────────────────────────────────────────────── */
