@@ -950,9 +950,13 @@ function buildJobs(targetMap, targetsFileUsed, conditionData) {
         continue;
       }
 
-      // kbland는 Chrome CDP 단일 세션 사용 → 하나의 프로세스가 --sigungu-list로 순차 처리
+      // kbland는 Chrome CDP 단일 세션 사용 → 하나의 프로세스가 --sigungu-list로 순차 처리.
+      // _phase: 2 — phase 1 worker pool 맨 끝에서 12분 늦게 시작되어 phase 1 wall을
+      // serve 17분 → 32분으로 늘리던 문제. naver와 함께 phase 2에서 병렬 실행하면
+      // max(naver=40, kbland=21)=40분으로 끝나 전체 wall 19분 절감.
       jobs.push({
         name: "kbland",
+        _phase: 2,
         run: async () => {
           const rawFile = path.join(workspace, `kbland_raw_${runId}.jsonl`);
           const metaFile = path.join(workspace, `kbland_meta_${runId}.json`);
@@ -1303,9 +1307,10 @@ if (persistToDb) {
 
 // _phase 의미:
 //   1 = phase 1에서 우선 실행 (serve — naverAtclNo cross-ref 추출 소스)
-//   2 = phase 1 완료 후 실행 (naver — cross-ref 파일을 --skip-cross-refs-file로 받음)
-//   undefined = phase 1과 함께 병렬 (zigbang, dabang, peterpanz, daangn, kbland)
-// 이전: serve만 phase 1 → 16분 동안 6개 platform이 idle. 이제 naver만 phase 2.
+//   2 = phase 1 완료 후 실행:
+//       - naver: serve cross-ref 파일을 --skip-cross-refs-file로 받음 (의존성)
+//       - kbland: phase 1 worker pool 끝에 묶여 늦게 시작되던 문제 → naver와 병렬
+//   undefined = phase 1과 함께 병렬 (zigbang, dabang, peterpanz, daangn)
 const phase1Jobs = jobs.filter((j) => j._phase !== 2);
 const phase2Jobs = jobs.filter((j) => j._phase === 2);
 
