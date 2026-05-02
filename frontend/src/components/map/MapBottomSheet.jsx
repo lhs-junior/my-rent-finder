@@ -14,6 +14,7 @@ export default function MapBottomSheet({
   filters = {},
   onFilterChange,
   onZoomOut,
+  myPickUnseen,
 }) {
   const [stage, setStage] = useState("peek");
   const [showFilter, setShowFilter] = useState(false);
@@ -247,12 +248,45 @@ export default function MapBottomSheet({
           </button>
         </div>
         <div className="map-bottom-list">
+          {myPickUnseen?.active && (
+            <div className="mypick-unseen-bar mypick-unseen-bar--map mypick-unseen-bar--bottom" role="status">
+              {myPickUnseen.count > 0 ? (
+                <>
+                  <span className="mypick-unseen-bar-icon" aria-hidden>🆕</span>
+                  <span className="mypick-unseen-bar-text">새 매물 <strong>{myPickUnseen.count}건</strong></span>
+                  <button
+                    type="button"
+                    className={`mypick-unseen-toggle-mini${myPickUnseen.onlyUnseen ? " mypick-unseen-toggle-mini--active" : ""}`}
+                    onClick={myPickUnseen.onToggleOnlyUnseen}
+                  >{myPickUnseen.onlyUnseen ? "전체" : "신규만"}</button>
+                  <button
+                    type="button"
+                    className="mypick-mark-seen mypick-mark-seen--mini"
+                    onClick={myPickUnseen.onMarkAllSeen}
+                  >모두 확인</button>
+                </>
+              ) : (
+                <>
+                  <span className="mypick-unseen-bar-icon mypick-unseen-bar-icon--muted" aria-hidden>✓</span>
+                  <span className="mypick-unseen-bar-text mypick-unseen-bar-text--muted">{myPickUnseen.lastSeenLabel}</span>
+                  {myPickUnseen.lastSeenAt > 0 && (
+                    <button
+                      type="button"
+                      className="mypick-mark-seen mypick-mark-seen--reset mypick-mark-seen--mini"
+                      onClick={myPickUnseen.onReset}
+                    >초기화</button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           {markers.map(m => (
             <div
               key={m.listing_id}
-              className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
+              className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}${m._unseen ? " map-left-card--unseen" : ""}`}
               onClick={() => { onCardClick(m); setStage((s) => (s === "full" ? "half" : s)); }}
             >
+              {m._unseen && <span className="map-left-card-newtag">NEW</span>}
               <div className="map-left-card-price">{m.rent_amount != null ? `월 ${toMoney(m.rent_amount)}` : "가격미정"}</div>
               <div className="map-left-card-deposit">보증 {m.deposit_amount != null ? toMoney(m.deposit_amount) : "-"}</div>
               <div className="map-left-card-addr">{m.address_text || "-"}</div>

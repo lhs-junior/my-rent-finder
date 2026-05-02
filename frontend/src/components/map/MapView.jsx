@@ -1,10 +1,45 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import KakaoMap from "./KakaoMap.jsx";
 import MapLeftPanel from "./MapLeftPanel.jsx";
 import MapBottomSheet from "./MapBottomSheet.jsx";
 import MapControls from "./MapControls.jsx";
 import DetailModal from "../DetailModal.jsx";
 import { useMapListings } from "../../hooks/useMapListings.js";
+
+const MY_PICK_LAST_SEEN_KEY = "myPickLastSeenAt";
+
+function readMyPickLastSeenAt() {
+  try {
+    const raw = localStorage.getItem(MY_PICK_LAST_SEEN_KEY);
+    if (!raw) return 0;
+    const ts = Number(raw);
+    return Number.isFinite(ts) ? ts : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeMyPickLastSeenAt(ts) {
+  try { localStorage.setItem(MY_PICK_LAST_SEEN_KEY, String(ts)); } catch { /* ignore */ }
+}
+
+function formatRelativeKr(ts) {
+  if (!Number.isFinite(ts) || ts <= 0) return null;
+  const diffMs = Date.now() - ts;
+  if (diffMs < 0) return "방금";
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}일 전`;
+  const wk = Math.floor(day / 7);
+  if (wk < 5) return `${wk}주 전`;
+  const mo = Math.floor(day / 30);
+  if (mo < 12) return `${mo}개월 전`;
+  return `${Math.floor(day / 365)}년 전`;
+}
 
 const INITIAL_CENTER = { lat: 37.5665, lng: 126.978 };
 const INITIAL_ZOOM = 13;
@@ -39,6 +74,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
   const [aiLoading, setAiLoading] = useState(false);
   const [myPickMarkers, setMyPickMarkers] = useState([]);
   const [myPickLoading, setMyPickLoading] = useState(false);
+  const [myPickLastSeenAt, setMyPickLastSeenAt] = useState(() => readMyPickLastSeenAt());
+  const [myPickUnseenOnly, setMyPickUnseenOnly] = useState(false);
   const [filters, setFilters] = useState({});
 
   // 찜만 보기 활성화 시 favorites API에서 직접 마커 로드
@@ -159,6 +196,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
               grade: it.grade || null,
               total_score: it.total_score || null,
               listed_at: it.listed_at || null,
+              created_at: it.created_at || null,
               nearest_subway_station: it.nearest_subway_station || null,
               nearest_subway_line: it.nearest_subway_line || null,
               subway_distance_m: it.subway_distance_m ?? null,
@@ -223,8 +261,58 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         result = result.filter(m => m.subway_distance_m != null && m.subway_distance_m <= maxSw);
       }
     }
+    // 내 조건 모드: 미열람(_unseen) 플래그 부여 + 최상단 정렬, 신규만 필터
+    if (filters.only_my_pick) {
+      result = result.map(m => {
+        const t = m.created_at ? new Date(m.created_at).getTime() : 0;
+        const isUnseen = Number.isFinite(t) && t > myPickLastSeenAt;
+        return isUnseen === !!m._unseen ? m : { ...m, _unseen: isUnseen };
+      });
+      if (myPickUnseenOnly) result = result.filter(m => m._unseen);
+      result = [...result].sort((a, b) => {
+        const ua = a._unseen ? 1 : 0;
+        const ub = b._unseen ? 1 : 0;
+        if (ua !== ub) return ub - ua;
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+    }
     return result;
   })();
+
+  const myPickUnseenCount = useMemo(() => {
+    if (!filters.only_my_pick) return 0;
+    return myPickMarkers.reduce((acc, m) => {
+      const t = m.created_at ? new Date(m.created_at).getTime() : 0;
+      return acc + (Number.isFinite(t) && t > myPickLastSeenAt ? 1 : 0);
+    }, 0);
+  }, [filters.only_my_pick, myPickMarkers, myPickLastSeenAt]);
+
+  const markAllMyPickSeen = useCallback(() => {
+    const now = Date.now();
+    writeMyPickLastSeenAt(now);
+    setMyPickLastSeenAt(now);
+    setMyPickUnseenOnly(false);
+  }, []);
+
+  const resetMyPickSeen = useCallback(() => {
+    writeMyPickLastSeenAt(0);
+    setMyPickLastSeenAt(0);
+  }, []);
+
+  const myPickUnseenInfo = filters.only_my_pick ? {
+    active: true,
+    count: myPickUnseenCount,
+    onlyUnseen: myPickUnseenOnly,
+    onToggleOnlyUnseen: () => setMyPickUnseenOnly(v => !v),
+    onMarkAllSeen: markAllMyPickSeen,
+    onReset: resetMyPickSeen,
+    lastSeenLabel: myPickLastSeenAt
+      ? (formatRelativeKr(myPickLastSeenAt) ? `마지막 확인: ${formatRelativeKr(myPickLastSeenAt)}` : "마지막 확인: -")
+      : "마지막 확인: 없음",
+    lastSeenAt: myPickLastSeenAt,
+  } : null;
   const [selectedId, setSelectedId] = useState(null);
   const [detailId, setDetailId] = useState(null);
   const [heatmapOn, setHeatmapOn] = useState(false);
@@ -312,6 +400,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
           selectedId={selectedId}
           onCardClick={handleCardClick}
           getFavoriteGrade={getFavoriteGrade}
+          myPickUnseen={myPickUnseenInfo}
         />
       </div>
 
@@ -361,6 +450,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         filters={filters}
         onFilterChange={handleFilterChange}
         onZoomOut={() => mapRef.current?.zoomOut?.()}
+        myPickUnseen={myPickUnseenInfo}
       />
     </div>
   );

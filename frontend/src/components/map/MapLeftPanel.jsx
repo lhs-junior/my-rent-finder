@@ -12,6 +12,7 @@ export default function MapLeftPanel({
   selectedId,
   onCardClick,
   getFavoriteGrade,
+  myPickUnseen,
 }) {
   const listRef = useRef(null);
 
@@ -169,6 +170,52 @@ export default function MapLeftPanel({
         </div>
       </div>
 
+      {/* 내 조건: 미열람 신규 알림 바 */}
+      {myPickUnseen?.active && (
+        <div className="mypick-unseen-bar mypick-unseen-bar--map" role="status">
+          {myPickUnseen.count > 0 ? (
+            <>
+              <span className="mypick-unseen-bar-icon" aria-hidden>🆕</span>
+              <span className="mypick-unseen-bar-text">
+                새 매물 <strong>{myPickUnseen.count}건</strong>
+              </span>
+              <button
+                type="button"
+                className={`mypick-unseen-toggle-mini${myPickUnseen.onlyUnseen ? " mypick-unseen-toggle-mini--active" : ""}`}
+                onClick={myPickUnseen.onToggleOnlyUnseen}
+              >
+                {myPickUnseen.onlyUnseen ? "전체" : "신규만"}
+              </button>
+              <button
+                type="button"
+                className="mypick-mark-seen mypick-mark-seen--mini"
+                onClick={myPickUnseen.onMarkAllSeen}
+                title="현재 시점을 마지막 확인 시간으로 기록합니다"
+              >
+                모두 확인
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="mypick-unseen-bar-icon mypick-unseen-bar-icon--muted" aria-hidden>✓</span>
+              <span className="mypick-unseen-bar-text mypick-unseen-bar-text--muted">
+                {myPickUnseen.lastSeenLabel}
+              </span>
+              {myPickUnseen.lastSeenAt > 0 && (
+                <button
+                  type="button"
+                  className="mypick-mark-seen mypick-mark-seen--reset mypick-mark-seen--mini"
+                  onClick={myPickUnseen.onReset}
+                  title="마지막 확인 기록을 지워 다시 신규 표시를 봅니다"
+                >
+                  초기화
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {/* 목록 */}
       <div className="map-left-count">
         {loading ? "조회 중..." : isFiltered ? `${totalInBounds ?? markers.length}건` : `지도 내 ${totalInBounds ?? markers.length}건`}
@@ -183,9 +230,10 @@ export default function MapLeftPanel({
             <div
               key={m.listing_id}
               data-listing-id={String(m.listing_id)}
-              className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}`}
+              className={`map-left-card${String(selectedId) === String(m.listing_id) ? " map-left-card--selected" : ""}${m._unseen ? " map-left-card--unseen" : ""}`}
               onClick={() => onCardClick(m)}
             >
+              {m._unseen && <span className="map-left-card-newtag">NEW</span>}
               <div className="map-left-card-price">
                 {grade && <span className={`map-left-grade-badge map-left-grade-badge--${grade}`}>{grade}{m.total_score != null ? ` ${m.total_score}` : ""}</span>}
                 {m.platform_code && <span className="map-left-platform-badge">{({naver:"네이버",dabang:"다방",daangn:"당근",peterpanz:"피터팬",zigbang:"직방",kbland:"KB",serve:"써브"})[m.platform_code] || m.platform_code}</span>}
