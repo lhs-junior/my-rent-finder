@@ -1518,7 +1518,13 @@ const NORMALIZED_ON_CONFLICT_UPDATE = `
       parking_possible = COALESCE(EXCLUDED.parking_possible, normalized_listings.parking_possible),
       jibun_address = COALESCE(EXCLUDED.jibun_address, normalized_listings.jibun_address),
       features = COALESCE(EXCLUDED.features, normalized_listings.features),
-      deleted_at = normalized_listings.deleted_at,
+      -- 재수집(=ON CONFLICT match) 시 deleted_at을 NULL로 풀어 자동 회복.
+      -- 이전 동작: deleted_at = normalized_listings.deleted_at 으로 보존 → 한 번 잘못 마킹된
+      --            매물이 다음 cron에 재수집돼도 사이트에 안 보이는 누락 버그 발생.
+      -- 새 동작: 재수집 = 플랫폼에 매물이 살아있다는 신호 → deleted_at NULL 클리어.
+      --          진짜 expired 매물은 collector가 raw 자체를 안 만들어 ON CONFLICT 안 일어나거나,
+      --          status check가 다음 단계에서 다시 deleted_at 마킹.
+      deleted_at = NULL,
       last_confirmed_at = NOW(),
       updated_at = NOW()
   RETURNING listing_id, external_id, (xmax = 0) AS is_insert

@@ -147,7 +147,8 @@ async function upsertNormalizedItem(client, item, rawId) {
       building_year = EXCLUDED.building_year,
       description_text = EXCLUDED.description_text,
       cross_ref = COALESCE(EXCLUDED.cross_ref, normalized_listings.cross_ref),
-      deleted_at = normalized_listings.deleted_at,
+      -- 재수집되면 자동 활성 회복 (Day 7 fix). ops_db_persistence.mjs와 동일 정책.
+      deleted_at = NULL,
       updated_at = NOW()
     RETURNING listing_id
   `, [
