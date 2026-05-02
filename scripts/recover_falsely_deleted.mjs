@@ -11,8 +11,7 @@
 //   node scripts/recover_falsely_deleted.mjs --dry-run             # 변경 없이 미리보기
 
 import { withDbClient } from "./lib/db_client.mjs";
-import { fetchDabangDetail } from "./adapters/dabang_listings_adapter.mjs";
-import { fetchZigbangV3ItemDetail } from "./zigbang_auto_collector.mjs";
+import { CHECKERS } from "./check_listing_status.mjs";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -24,28 +23,23 @@ const platformFilter = getArg("platform", null);
 const hours = parseInt(getArg("hours", "24"), 10);
 const limit = parseInt(getArg("limit", "300"), 10);
 
-// platform → async (externalId) → boolean (true if alive)
-const checkers = {
-  async dabang(externalId) {
-    try {
-      const detail = await fetchDabangDetail(externalId, { timeoutMs: 8000 });
-      if (detail.ok && detail.room && detail.room.is_contract === false) return true;
-      return false;
-    } catch {
-      return null; // unknown
-    }
-  },
-  async zigbang(externalId) {
-    try {
-      const detail = await fetchZigbangV3ItemDetail(externalId);
-      // detail이 객체로 돌아오면 살아있음. null이면 만료/실패.
-      return detail && typeof detail === "object" ? true : false;
-    } catch {
-      return null;
-    }
-  },
-  // 나머지 플랫폼은 status checker가 분리되어 있어 일단 dabang/zigbang부터
-};
+// CHECKERS는 (externalId, row) → { status: 'active' | 'expired' | 'error', resultCode? } 반환.
+// 회복 판정: 'active'가 명확히 나오면 복구. 'expired'/'error'는 보존(보수적).
+const checkers = Object.fromEntries(
+  Object.entries(CHECKERS).map(([platform, fn]) => [
+    platform,
+    async (externalId, row) => {
+      try {
+        const r = await fn(externalId, row);
+        if (r?.status === "active") return true;
+        if (r?.status === "expired") return false;
+        return null; // error/unknown — 보존
+      } catch {
+        return null;
+      }
+    },
+  ]),
+);
 
 async function recoverPlatform(client, platform, items) {
   const checker = checkers[platform];
@@ -59,7 +53,7 @@ async function recoverPlatform(client, platform, items) {
   let i = 0;
   for (const row of items) {
     i++;
-    const alive = await checker(row.external_id);
+    const alive = await checker(row.external_id, row);
     if (alive === true) {
       if (!dryRun) {
         await client.query(
@@ -89,7 +83,7 @@ await withDbClient(async (client) => {
   const totals = { recovered: 0, kept: 0, unknown: 0 };
   for (const platform of platforms) {
     const { rows } = await client.query(
-      `SELECT listing_id, external_id, deleted_at FROM normalized_listings
+      `SELECT listing_id, external_id, source_url, title, deleted_at FROM normalized_listings
        WHERE platform_code = $1 AND deleted_at IS NOT NULL
          AND deleted_at > NOW() - ($2::int || ' hours')::interval
        ORDER BY deleted_at DESC LIMIT $3`,

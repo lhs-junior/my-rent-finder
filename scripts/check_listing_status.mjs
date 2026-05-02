@@ -11,6 +11,7 @@
  */
 
 import fs from "node:fs";
+import path from "node:path";
 import { withDbClient } from "./lib/db_client.mjs";
 import { TARGET_DISTRICTS } from "./lib/target_districts.mjs";
 import { fetchDabangDetail } from "./adapters/dabang_listings_adapter.mjs";
@@ -391,6 +392,9 @@ const CHECKERS = {
   daangn: checkDaangnListing,
   serve: checkServeListing,
 };
+
+// 외부 스크립트(recover_falsely_deleted 등)에서 재사용 가능
+export { CHECKERS };
 
 // ── batch 처리: rows[] -> result[] (idx 정합 보장) ──
 
@@ -810,7 +814,13 @@ async function main() {
   console.log(`  [합계]  체크: ${totalChecked} | 활성: ${totalActive} | 종료: ${totalExpired} | 오류: ${totalErrors}`);
 }
 
-main().catch((e) => {
-  console.error(`[status-check] Fatal: ${e.message}`);
-  process.exit(1);
-});
+// 직접 실행 시에만 main() 호출 — 다른 스크립트가 CHECKERS를 import할 때 부작용 방지
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+  : false;
+if (isDirectRun) {
+  main().catch((e) => {
+    console.error(`[status-check] Fatal: ${e.message}`);
+    process.exit(1);
+  });
+}
