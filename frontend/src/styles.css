@@ -4695,6 +4695,12 @@ pre {
   pointer-events: none;
 }
 
+/* myPickMode 등에서 row 전체가 비활성화돼도 정렬 같은 일부 필드는 살림 */
+.ls-filter-row--disabled .ls-field--always-enabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* 등급 배지 */
 .listing-card-grade-row {
   display: flex;

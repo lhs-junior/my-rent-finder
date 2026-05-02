@@ -414,8 +414,8 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
             </div>
           </div>
 
-          {/* 정렬 */}
-          <div className="ls-field">
+          {/* 정렬 — myPickMode에서도 활성 상태 유지 */}
+          <div className="ls-field ls-field--always-enabled">
             <span className="ls-field-label">정렬</span>
             <div className="ls-chip-group">
               {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
