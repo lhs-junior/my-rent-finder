@@ -792,8 +792,9 @@ const PLATFORM_VERIFIERS = {
 export async function handleListingVerify(req, res, id) {
   const listing = await withDbClient(async (client) => {
     const result = await client.query(
-      `SELECT listing_id, platform_code, external_id, source_ref, source_url, quality_flags
-       FROM normalized_listings WHERE listing_id = $1 AND deleted_at IS NULL`,
+      `SELECT listing_id, platform_code, external_id, source_ref, source_url, quality_flags,
+              deleted_at IS NOT NULL AS already_expired
+       FROM normalized_listings WHERE listing_id = $1`,
       [id],
     );
     return result.rows?.[0] ?? null;
@@ -801,6 +802,12 @@ export async function handleListingVerify(req, res, id) {
 
   if (!listing) {
     sendJson(res, 404, { error: "listing_not_found" });
+    return;
+  }
+
+  // 이미 soft-delete된 매물은 굳이 원본 사이트 재조회 없이 종료 상태로 응답.
+  if (listing.already_expired) {
+    sendJson(res, 200, { alive: false, platform: safeText(listing.platform_code, ""), reason: "already_expired" });
     return;
   }
 
@@ -876,6 +883,8 @@ export async function handleMyPick(req, res) {
         .map((v) => `'${v.replace(/'/g, "''")}'`)
         .join(", ");
 
+      // 동일 주소+가격+면적 조합은 여러 플랫폼에 동일 매물이 중복 등록된 경우.
+      // 점수가 있는 행 → 점수 높은 행 → 사진 많은 행 → 최신 행 순으로 1건만 노출.
       const query = `
         WITH target_stations AS (
           SELECT DISTINCT ON (name) name, lat, lng
@@ -897,55 +906,68 @@ export async function handleMyPick(req, res) {
           SELECT listing_id FROM normalized_listings
           WHERE deleted_at IS NULL AND lat IS NULL
             AND address_text ~ $${MY_PICK_TARGET_STATIONS.length + 1}
-        )
-        SELECT
-          n.listing_id,
-          n.platform_code,
-          n.address_text,
-          n.rent_amount,
-          n.deposit_amount,
-          COALESCE(n.area_exclusive_m2, n.area_gross_m2) AS area_m2,
-          n.area_exclusive_m2,
-          n.floor,
-          n.room_count,
-          n.building_use,
-          n.lat,
-          n.lng,
-          n.description_text,
-          n.nearest_subway_station,
-          n.subway_distance_m,
-          n.nearest_subway_line,
-          n.subway_walk_min,
-          n.listed_at,
-          n.created_at,
-          n.building_year,
-          sl.grade,
-          sl.total_score,
-          sl.effective_monthly_cost,
-          json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score, 'feature', sl.feature_score) AS scores
-        FROM normalized_listings n
-        LEFT JOIN scored_listings sl ON sl.listing_id = n.listing_id
-        WHERE n.listing_id IN (
-          SELECT listing_id FROM in_range_ids
-          UNION
-          SELECT listing_id FROM dong_fallback_ids
-        )
-          AND n.deleted_at IS NULL
-          AND n.rent_amount <= ${MY_PICK_MAX_RENT}
-          AND (
-            n.building_use IS NULL
-            OR n.building_use NOT IN (${excludedInClause})
+        ),
+        candidates AS (
+          SELECT
+            n.listing_id,
+            n.platform_code,
+            n.address_text,
+            n.rent_amount,
+            n.deposit_amount,
+            COALESCE(n.area_exclusive_m2, n.area_gross_m2) AS area_m2,
+            n.area_exclusive_m2,
+            n.floor,
+            n.room_count,
+            n.building_use,
+            n.lat,
+            n.lng,
+            n.description_text,
+            n.nearest_subway_station,
+            n.subway_distance_m,
+            n.nearest_subway_line,
+            n.subway_walk_min,
+            n.listed_at,
+            n.created_at,
+            n.building_year,
+            sl.grade,
+            sl.total_score,
+            sl.effective_monthly_cost,
+            json_build_object('rpm', sl.rpm_score, 'subway', sl.subway_score, 'transfer', sl.transfer_score, 'area', sl.area_score, 'floor', sl.floor_score, 'year', sl.year_score, 'img', sl.img_score, 'feature', sl.feature_score) AS scores,
+            (SELECT COUNT(*) FROM listing_images WHERE listing_id = n.listing_id) AS img_cnt,
+            ROW_NUMBER() OVER (
+              PARTITION BY n.address_text, n.rent_amount, n.deposit_amount, n.area_exclusive_m2
+              ORDER BY
+                CASE WHEN sl.total_score IS NOT NULL THEN 0 ELSE 1 END,
+                sl.total_score DESC NULLS LAST,
+                (SELECT COUNT(*) FROM listing_images WHERE listing_id = n.listing_id) DESC,
+                n.created_at DESC,
+                n.listing_id ASC
+            ) AS rn
+          FROM normalized_listings n
+          LEFT JOIN scored_listings sl ON sl.listing_id = n.listing_id
+          WHERE n.listing_id IN (
+            SELECT listing_id FROM in_range_ids
+            UNION
+            SELECT listing_id FROM dong_fallback_ids
           )
-          AND (
-            n.room_count >= ${MY_PICK_MIN_ROOM}
-            OR n.building_use ILIKE '%쓰리룸%'
-            OR (n.room_count IS NULL AND n.building_use NOT IN (${smallUsesInClause}))
-            OR (n.room_count IS NULL AND n.building_use IS NULL)
-          )
+            AND n.deleted_at IS NULL
+            AND n.rent_amount <= ${MY_PICK_MAX_RENT}
+            AND (
+              n.building_use IS NULL
+              OR n.building_use NOT IN (${excludedInClause})
+            )
+            AND (
+              n.room_count >= ${MY_PICK_MIN_ROOM}
+              OR n.building_use ILIKE '%쓰리룸%'
+              OR (n.room_count IS NULL AND n.building_use NOT IN (${smallUsesInClause}))
+              OR (n.room_count IS NULL AND n.building_use IS NULL)
+            )
+        )
+        SELECT * FROM candidates WHERE rn = 1
         ORDER BY ${
-          sort === "rent"  ? "n.rent_amount ASC, n.deposit_amount ASC" :
-          sort === "score" ? "sl.total_score DESC NULLS LAST, n.created_at DESC" :
-                             "n.created_at DESC"
+          sort === "rent"  ? "rent_amount ASC, deposit_amount ASC" :
+          sort === "score" ? "total_score DESC NULLS LAST, created_at DESC" :
+                             "created_at DESC"
         }
       `;
 

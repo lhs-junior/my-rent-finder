@@ -181,6 +181,12 @@ export default function DetailModal({ detailId, onClose, onExpired, onOpenExtern
     }
   }, [detail, detailId, onExpired]);
 
+  // detail 로드 실패(404 등 — cleanup race로 hard-delete된 매물) 시도 expired 처리해 카드 자동 제거.
+  useEffect(() => {
+    if (!error || !detailId || !onExpired) return;
+    onExpired(detailId);
+  }, [error, detailId, onExpired]);
+
   const displayDetail = detail || cachedDetail;
   const imageCount = Array.isArray(displayDetail?.images) ? displayDetail.images.length : 0;
   const hasImages = imageCount > 0;

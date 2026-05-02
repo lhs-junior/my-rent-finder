@@ -129,6 +129,10 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
     setDetailId(String(listingId));
   }, []);
 
+  const handleExpired = useCallback((expiredId) => {
+    setRawItems((prev) => prev.filter((it) => String(it.listing_id) !== String(expiredId)));
+  }, []);
+
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
     if (url) window.open(url, "_blank", "noopener,noreferrer");
@@ -241,6 +245,7 @@ export default function ScoresView({ apiBase, isFavorite, toggleFavorite, onView
         <DetailModal
           detailId={detailId}
           onClose={() => setDetailId(null)}
+          onExpired={handleExpired}
           onOpenExternal={openExternalUrl}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
