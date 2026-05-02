@@ -602,6 +602,23 @@ async function checkPlatform(platformCode, client) {
   if (batchChecker) {
     // batch 체커: rows를 받아 idx 정합된 result[] 반환 (zigbang 등)
     const results = await batchChecker(rows);
+    // 2-pass 확인: 1차 expired 매물은 재확인 후에만 deleted_at 설정 (false-positive 방지).
+    // 일시적 anti-bot/rate-limit으로 살아있는 매물이 expired로 분류되는 경우 회복.
+    if (singleChecker) {
+      for (let i = 0; i < rows.length; i++) {
+        if (results[i]?.status !== "expired") continue;
+        await sleep(1500);
+        try {
+          const second = await singleChecker(rows[i].external_id, rows[i]);
+          if (second?.status === "active") {
+            console.log(`  ↻ ${rows[i].external_id} — 1차 종료 후 재확인 시 활성 (skip)`);
+            results[i] = { status: "active", resultCode: "recovered_on_retry" };
+          }
+        } catch {
+          // 재확인 실패 — 1차 결과 유지 (보수적)
+        }
+      }
+    }
     for (let i = 0; i < rows.length; i++) summarizeResult(rows[i], results[i], counters, expiredIds);
   } else {
     // 단건 체커: concurrency pool로 처리. 연속 타임아웃 N회면 abort.
@@ -630,6 +647,20 @@ async function checkPlatform(platformCode, client) {
         }
         await sleep(platformDelay);
         return { status: "error", resultCode: "exception" };
+      }
+      // 2-pass 확인: 1차 expired 매물은 재확인 후에만 deleted_at 설정 (false-positive 방지).
+      // 일시적 anti-bot/rate-limit/네트워크 오류로 살아있는 매물을 종료 처리하는 사례 회복.
+      if (result?.status === "expired") {
+        await sleep(1500);
+        try {
+          const second = await singleChecker(row.external_id, row);
+          if (second?.status === "active") {
+            console.log(`  ↻ ${row.external_id} — 1차 종료 후 재확인 시 활성 (skip)`);
+            result = { status: "active", resultCode: "recovered_on_retry" };
+          }
+        } catch {
+          // 재확인 실패 — 1차 결과 유지 (보수적)
+        }
       }
       const isTimeoutLike = summarizeResult(row, result, counters, expiredIds);
       if (isTimeoutLike) consecutiveTimeouts++;
