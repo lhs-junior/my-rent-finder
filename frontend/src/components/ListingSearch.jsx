@@ -251,16 +251,9 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
 
   const visibleItems = useMemo(() => {
     if (!myPickMode) return items;
-    let arr = items;
-    if (myPickUnseenOnly) arr = arr.filter(isItemUnseen);
-    return [...arr].sort((a, b) => {
-      const ua = isItemUnseen(a) ? 1 : 0;
-      const ub = isItemUnseen(b) ? 1 : 0;
-      if (ua !== ub) return ub - ua;
-      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return tb - ta;
-    });
+    if (myPickUnseenOnly) return items.filter(isItemUnseen);
+    // 정렬은 서버 응답(sort 옵션)을 그대로 사용. NEW는 시각 표시로만 강조.
+    return items;
   }, [myPickMode, items, myPickUnseenOnly, isItemUnseen]);
 
   const markAllMyPickSeen = useCallback(() => {

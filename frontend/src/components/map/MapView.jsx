@@ -174,7 +174,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       return;
     }
     setMyPickLoading(true);
-    fetch(`${apiBase}/api/listings/my-pick`)
+    const sortQs = filters.sort ? `?sort=${encodeURIComponent(filters.sort)}` : "";
+    fetch(`${apiBase}/api/listings/my-pick${sortQs}`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
       .then(data => {
         const items = data.listings || [];
@@ -206,7 +207,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       })
       .catch(() => setMyPickMarkers([]))
       .finally(() => setMyPickLoading(false));
-  }, [filters.only_my_pick, apiBase]);
+  }, [filters.only_my_pick, apiBase, filters.sort]);
 
   const hasActiveFilters = hasNonModeFilters(filters);
   const isLocalMode = filters.only_favorites || filters.only_ai || filters.only_my_pick || hasActiveFilters;
@@ -261,7 +262,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         result = result.filter(m => m.subway_distance_m != null && m.subway_distance_m <= maxSw);
       }
     }
-    // 내 조건 모드: 미열람(_unseen) 플래그 부여 + 최상단 정렬, 신규만 필터
+    // 내 조건 모드: 미열람(_unseen) 플래그 부여 + 신규만 필터
+    // 정렬 순서는 서버 응답(filters.sort)을 그대로 따름. NEW는 시각 표시로만 강조.
     if (filters.only_my_pick) {
       result = result.map(m => {
         const t = m.created_at ? new Date(m.created_at).getTime() : 0;
@@ -269,14 +271,6 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
         return isUnseen === !!m._unseen ? m : { ...m, _unseen: isUnseen };
       });
       if (myPickUnseenOnly) result = result.filter(m => m._unseen);
-      result = [...result].sort((a, b) => {
-        const ua = a._unseen ? 1 : 0;
-        const ub = b._unseen ? 1 : 0;
-        if (ua !== ub) return ub - ua;
-        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return tb - ta;
-      });
     }
     return result;
   })();
