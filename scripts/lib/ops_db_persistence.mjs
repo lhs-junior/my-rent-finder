@@ -625,18 +625,23 @@ async function cleanupNormalizedRowsByListingIds(client, listingIds) {
   );
 }
 
-async function cleanupNormalizedRowsForRawId(client, platform, rawId) {
+async function cleanupNormalizedRowsForRawId(client, platform, rawId, selfExternalId = null) {
   const platformCode = normalizePlatform(platform);
   if (!platformCode || rawId === null || rawId === undefined) return;
 
+  // selfExternalId가 주어지면 동일 external_id row는 보존 (DELETE → INSERT 시 detail 데이터 손실 방지).
+  // skip-known 최적화는 raw에 detail 필드가 없는 채로 들어오는 경우가 많아, 기존 row 삭제하면
+  // direction/bathroom_count/description/이미지가 매번 NULL로 초기화되는 버그가 발생함.
+  const selfId = selfExternalId != null ? String(selfExternalId) : null;
   const lookup = await client.query(
     `
       SELECT listing_id
       FROM normalized_listings
       WHERE platform_code = $1
         AND raw_id = $2
+        ${selfId ? "AND external_id IS DISTINCT FROM $3" : ""}
     `,
-    [platformCode, rawId],
+    selfId ? [platformCode, rawId, selfId] : [platformCode, rawId],
   );
 
   const listingIds = lookup.rows.map((row) => toInt(row?.listing_id, null)).filter((id) => id !== null);
@@ -1267,7 +1272,8 @@ async function prepareNormalizedListingRow(client, item, platformCode, rawIdByEx
   }
 
   if (consumeRawIdCleanupToken(cleanedRawIds, rawId)) {
-    await cleanupNormalizedRowsForRawId(client, platform, rawId);
+    // 동일 external_id는 보존: ON CONFLICT DO UPDATE로 COALESCE 보호. 다른 external_id만 정리 대상.
+    await cleanupNormalizedRowsForRawId(client, platform, rawId, externalId);
   }
 
   const rentAmount = toNumber(item?.rent_amount ?? item?.rentAmount ?? item?.rent, null);
