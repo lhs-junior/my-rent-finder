@@ -180,16 +180,22 @@ export default function MapBottomSheet({
               </div>
               <div className="map-mobile-filter-section-label">정렬</div>
               <div className="map-grade-filter">
-                {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
-                  <button
-                    key={opt.v}
-                    type="button"
-                    className={`map-grade-btn${(filters.sort || "") === opt.v ? " map-grade-btn--active" : ""}`}
-                    onClick={() => set("sort", opt.v)}
-                  >
-                    {opt.l}
-                  </button>
-                ))}
+                {(filters.only_my_pick
+                  ? [{ v: "newest", l: "최신순" }, { v: "rent", l: "월세 낮은순" }, { v: "score", l: "점수 높은순" }]
+                  : [{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }]
+                ).map(opt => {
+                  const cur = filters.sort || (filters.only_my_pick ? "newest" : "");
+                  return (
+                    <button
+                      key={opt.v}
+                      type="button"
+                      className={`map-grade-btn${cur === opt.v ? " map-grade-btn--active" : ""}`}
+                      onClick={() => set("sort", opt.v)}
+                    >
+                      {opt.l}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="map-mobile-filter-footer">

@@ -418,22 +418,28 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
           <div className="ls-field ls-field--always-enabled">
             <span className="ls-field-label">정렬</span>
             <div className="ls-chip-group">
-              {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  className={`ls-chip${(filters.sort || "") === opt.v ? " ls-chip--active" : ""}`}
-                  onClick={() => {
-                    const next = { ...filters, sort: opt.v };
-                    setFilters(next);
-                    setSubmittedFilters(next);
-                    setPage(1);
-                    setSearchToken(t => t + 1);
-                  }}
-                >
-                  {opt.l}
-                </button>
-              ))}
+              {(myPickMode
+                ? [{ v: "newest", l: "최신순" }, { v: "rent", l: "월세 낮은순" }, { v: "score", l: "점수 높은순" }]
+                : [{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }]
+              ).map(opt => {
+                const cur = filters.sort || (myPickMode ? "newest" : "");
+                return (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    className={`ls-chip${cur === opt.v ? " ls-chip--active" : ""}`}
+                    onClick={() => {
+                      const next = { ...filters, sort: opt.v };
+                      setFilters(next);
+                      setSubmittedFilters(next);
+                      setPage(1);
+                      setSearchToken(t => t + 1);
+                    }}
+                  >
+                    {opt.l}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

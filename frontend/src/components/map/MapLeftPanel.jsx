@@ -144,16 +144,22 @@ export default function MapLeftPanel({
           </div>
         )}
         <div className="map-sort-filter">
-          {[{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }].map(opt => (
-            <button
-              key={opt.v}
-              type="button"
-              className={`map-grade-btn${(filters.sort || "") === opt.v ? " map-grade-btn--active" : ""}`}
-              onClick={() => onFilterChange({ ...filters, sort: opt.v })}
-            >
-              {opt.l}
-            </button>
-          ))}
+          {(filters.only_my_pick
+            ? [{ v: "newest", l: "최신순" }, { v: "rent", l: "월세 낮은순" }, { v: "score", l: "점수 높은순" }]
+            : [{ v: "", l: "수집순" }, { v: "newest", l: "최신순" }]
+          ).map(opt => {
+            const cur = filters.sort || (filters.only_my_pick ? "newest" : "");
+            return (
+              <button
+                key={opt.v}
+                type="button"
+                className={`map-grade-btn${cur === opt.v ? " map-grade-btn--active" : ""}`}
+                onClick={() => onFilterChange({ ...filters, sort: opt.v })}
+              >
+                {opt.l}
+              </button>
+            );
+          })}
         </div>
         <div className="map-sort-filter">
           <span className="map-subway-label">🚇 역세권</span>
