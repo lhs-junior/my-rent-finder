@@ -231,6 +231,11 @@ export default function MapBottomSheet({
           >
             <div className="map-bottom-handle-bar" />
             <span className="map-bottom-count">{loading ? "..." : `${totalInBounds ?? markers.length}건`}</span>
+            {myPickUnseen?.active && myPickUnseen.count > 0 && (
+              <span className="map-bottom-newcount" title="마지막 확인 이후 새 매물">
+                NEW {myPickUnseen.count}
+              </span>
+            )}
           </div>
           {onZoomOut && (
             <button

@@ -39,6 +39,33 @@ function writeMyPickSeenIds(set) {
   try { localStorage.setItem(MY_PICK_SEEN_IDS_KEY, JSON.stringify([...set])); } catch { /* ignore */ }
 }
 
+const MY_PICK_SEEN_HASHES_KEY = "myPickSeenHashes";
+
+function makeListingHash(item) {
+  if (!item) return null;
+  const addr = (item.address_text || "").trim();
+  if (!addr) return null;
+  const rent = item.rent_amount ?? "";
+  const deposit = item.deposit_amount ?? "";
+  const area = item.area_exclusive_m2 ?? item.area_m2 ?? "";
+  return `${addr}|${rent}|${deposit}|${area}`;
+}
+
+function readMyPickSeenHashes() {
+  try {
+    const raw = localStorage.getItem(MY_PICK_SEEN_HASHES_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeMyPickSeenHashes(set) {
+  try { localStorage.setItem(MY_PICK_SEEN_HASHES_KEY, JSON.stringify([...set])); } catch { /* ignore */ }
+}
+
 function formatRelativeKr(ts) {
   if (!Number.isFinite(ts) || ts <= 0) return null;
   const diffMs = Date.now() - ts;
@@ -92,6 +119,7 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
   const [myPickLoading, setMyPickLoading] = useState(false);
   const [myPickLastSeenAt, setMyPickLastSeenAt] = useState(() => readMyPickLastSeenAt());
   const [myPickSeenIds, setMyPickSeenIds] = useState(() => readMyPickSeenIds());
+  const [myPickSeenHashes, setMyPickSeenHashes] = useState(() => readMyPickSeenHashes());
   const [myPickUnseenOnly, setMyPickUnseenOnly] = useState(false);
   const [filters, setFilters] = useState({});
 
@@ -285,7 +313,10 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       result = result.map(m => {
         const t = m.created_at ? new Date(m.created_at).getTime() : 0;
         const fresh = Number.isFinite(t) && t > myPickLastSeenAt;
-        const isUnseen = fresh && !myPickSeenIds.has(String(m.listing_id));
+        const seenById = myPickSeenIds.has(String(m.listing_id));
+        const hash = makeListingHash(m);
+        const seenByHash = hash && myPickSeenHashes.has(hash);
+        const isUnseen = fresh && !seenById && !seenByHash;
         return isUnseen === !!m._unseen ? m : { ...m, _unseen: isUnseen };
       });
       if (myPickUnseenOnly) result = result.filter(m => m._unseen);
@@ -298,9 +329,13 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     return myPickMarkers.reduce((acc, m) => {
       const t = m.created_at ? new Date(m.created_at).getTime() : 0;
       const fresh = Number.isFinite(t) && t > myPickLastSeenAt;
-      return acc + (fresh && !myPickSeenIds.has(String(m.listing_id)) ? 1 : 0);
+      if (!fresh) return acc;
+      if (myPickSeenIds.has(String(m.listing_id))) return acc;
+      const hash = makeListingHash(m);
+      if (hash && myPickSeenHashes.has(hash)) return acc;
+      return acc + 1;
     }, 0);
-  }, [filters.only_my_pick, myPickMarkers, myPickLastSeenAt, myPickSeenIds]);
+  }, [filters.only_my_pick, myPickMarkers, myPickLastSeenAt, myPickSeenIds, myPickSeenHashes]);
 
   const markAllMyPickSeen = useCallback(() => {
     const now = Date.now();
@@ -308,6 +343,8 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     setMyPickLastSeenAt(now);
     writeMyPickSeenIds(new Set());
     setMyPickSeenIds(new Set());
+    writeMyPickSeenHashes(new Set());
+    setMyPickSeenHashes(new Set());
     setMyPickUnseenOnly(false);
   }, []);
 
@@ -316,11 +353,14 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
     setMyPickLastSeenAt(0);
     writeMyPickSeenIds(new Set());
     setMyPickSeenIds(new Set());
+    writeMyPickSeenHashes(new Set());
+    setMyPickSeenHashes(new Set());
   }, []);
 
   const markListingAsSeen = useCallback((listingId) => {
     if (!filters.only_my_pick || listingId == null) return;
     const id = String(listingId);
+    const item = myPickMarkers.find((m) => String(m.listing_id) === id);
     setMyPickSeenIds((prev) => {
       if (prev.has(id)) return prev;
       const next = new Set(prev);
@@ -328,7 +368,24 @@ export default function MapView({ apiBase, isFavorite, toggleFavorite, getFavori
       writeMyPickSeenIds(next);
       return next;
     });
-  }, [filters.only_my_pick]);
+    const hash = makeListingHash(item);
+    if (hash) {
+      setMyPickSeenHashes((prev) => {
+        if (prev.has(hash)) return prev;
+        const next = new Set(prev);
+        next.add(hash);
+        writeMyPickSeenHashes(next);
+        return next;
+      });
+    }
+  }, [filters.only_my_pick, myPickMarkers]);
+
+  // '신규만' 켜진 채로 모두 클릭하면 unseen=0이 되어 빈 화면 + 토글 사라짐 → 자동 해제
+  useEffect(() => {
+    if (filters.only_my_pick && myPickUnseenOnly && myPickUnseenCount === 0) {
+      setMyPickUnseenOnly(false);
+    }
+  }, [filters.only_my_pick, myPickUnseenOnly, myPickUnseenCount]);
 
   const myPickUnseenInfo = filters.only_my_pick ? {
     active: true,

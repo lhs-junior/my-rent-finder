@@ -46,6 +46,39 @@ function writeMyPickSeenIds(set) {
   }
 }
 
+const MY_PICK_SEEN_HASHES_KEY = "myPickSeenHashes";
+
+// listing_id가 재수집으로 새 row(=새 id)로 들어와도 같은 매물로 인식하기 위한 보조 해시.
+// 주소+월세+보증금+전용면적 조합 — my-pick API의 dedup 키와 동일한 컬럼 기반.
+function makeListingHash(item) {
+  if (!item) return null;
+  const addr = (item.address_text || "").trim();
+  if (!addr) return null;
+  const rent = item.rent_amount ?? "";
+  const deposit = item.deposit_amount ?? "";
+  const area = item.area_exclusive_m2 ?? item.area_m2 ?? "";
+  return `${addr}|${rent}|${deposit}|${area}`;
+}
+
+function readMyPickSeenHashes() {
+  try {
+    const raw = localStorage.getItem(MY_PICK_SEEN_HASHES_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeMyPickSeenHashes(set) {
+  try {
+    localStorage.setItem(MY_PICK_SEEN_HASHES_KEY, JSON.stringify([...set]));
+  } catch {
+    // ignore
+  }
+}
+
 function formatRelativeKr(ts) {
   if (!Number.isFinite(ts) || ts <= 0) return null;
   const diffMs = Date.now() - ts;
@@ -143,6 +176,7 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
   const [myPickMode, setMyPickMode] = useState(false);
   const [myPickLastSeenAt, setMyPickLastSeenAt] = useState(() => readMyPickLastSeenAt());
   const [myPickSeenIds, setMyPickSeenIds] = useState(() => readMyPickSeenIds());
+  const [myPickSeenHashes, setMyPickSeenHashes] = useState(() => readMyPickSeenHashes());
   const [myPickUnseenOnly, setMyPickUnseenOnly] = useState(false);
 
   const buildQuery = useCallback((targetFilters = submittedFilters, targetPage = page) => {
@@ -197,8 +231,10 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     const normalizedId = toIdText(listingId);
     if (!normalizedId) return;
     setDetailId(normalizedId);
-    // 내 조건 모드에서 카드를 한 번 클릭하면 그 매물의 NEW 표시는 사라짐
+    // 내 조건 모드에서 카드를 한 번 클릭하면 그 매물의 NEW 표시는 사라짐.
+    // listing_id + 매물 해시(주소+가격+면적) 둘 다 저장 → 재수집으로 id가 새로 잡혀도 dedup.
     if (myPickMode) {
+      const item = items.find((it) => String(it.listing_id) === normalizedId);
       setMyPickSeenIds((prev) => {
         if (prev.has(normalizedId)) return prev;
         const next = new Set(prev);
@@ -206,8 +242,18 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
         writeMyPickSeenIds(next);
         return next;
       });
+      const hash = makeListingHash(item);
+      if (hash) {
+        setMyPickSeenHashes((prev) => {
+          if (prev.has(hash)) return prev;
+          const next = new Set(prev);
+          next.add(hash);
+          writeMyPickSeenHashes(next);
+          return next;
+        });
+      }
     }
-  }, [myPickMode]);
+  }, [myPickMode, items]);
 
   const openExternalUrl = useCallback((listing) => {
     const url = resolveExternalListingUrl(listing);
@@ -273,8 +319,11 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     if (!item || !item.created_at) return false;
     const t = new Date(item.created_at).getTime();
     if (!(Number.isFinite(t) && t > myPickLastSeenAt)) return false;
-    return !myPickSeenIds.has(String(item.listing_id));
-  }, [myPickLastSeenAt, myPickSeenIds]);
+    if (myPickSeenIds.has(String(item.listing_id))) return false;
+    const hash = makeListingHash(item);
+    if (hash && myPickSeenHashes.has(hash)) return false;
+    return true;
+  }, [myPickLastSeenAt, myPickSeenIds, myPickSeenHashes]);
 
   const myPickUnseenCount = useMemo(() => {
     if (!myPickMode) return 0;
@@ -294,6 +343,8 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setMyPickLastSeenAt(now);
     writeMyPickSeenIds(new Set());
     setMyPickSeenIds(new Set());
+    writeMyPickSeenHashes(new Set());
+    setMyPickSeenHashes(new Set());
     setMyPickUnseenOnly(false);
   }, []);
 
@@ -302,7 +353,16 @@ export default function ListingSearch({ apiBase, runId, isFavorite, toggleFavori
     setMyPickLastSeenAt(0);
     writeMyPickSeenIds(new Set());
     setMyPickSeenIds(new Set());
+    writeMyPickSeenHashes(new Set());
+    setMyPickSeenHashes(new Set());
   }, []);
+
+  // '신규만' 켜진 채로 모두 클릭하면 unseen=0이 되어 빈 화면 + 토글 사라짐 → 자동 해제
+  useEffect(() => {
+    if (myPickMode && myPickUnseenOnly && myPickUnseenCount === 0) {
+      setMyPickUnseenOnly(false);
+    }
+  }, [myPickMode, myPickUnseenOnly, myPickUnseenCount]);
 
   const myPickLastSeenLabel = useMemo(() => {
     if (!myPickLastSeenAt) return "마지막 확인: 없음";
